@@ -21,20 +21,9 @@ export default function Footer() {
   const quickLinks = (t.raw && t.raw("quickLinks")) || [];
   const supportLinks = (t.raw && t.raw("supportLinks")) || [];
 
-  // استيراد مؤثر النجوم
-  const FuturisticStars = require("./FuturisticStars").default;
   return (
     <footer className="relative w-full glass-blue-glassmorph text-(--ui-foreground) overflow-hidden border-t border-(--ui-border)" style={{backgroundColor: 'rgba(255,255,255,0.65)', WebkitBackdropFilter: 'blur(18px) saturate(140%)', backdropFilter: 'blur(18px) saturate(140%)'}}>
-      {/* مؤثرات النجوم على الجوانب */}
-      <div className="pointer-events-none select-none">
-        <div className="hidden md:block absolute left-0 top-0 h-full w-1/3 -z-10" style={{transform: 'scaleX(-1)'}}>
-          <FuturisticStars />
-        </div>
-        <div className="hidden md:block absolute right-0 top-0 h-full w-1/3 -z-10">
-          <FuturisticStars />
-        </div>
-      </div>
-      {/* Top Gradient Line */}
+      {/*  الخلفية    */}
       <div className="absolute top-0 left-0 w-full h-1 brand-gradient" />
 
       {/* Background Pattern */}
