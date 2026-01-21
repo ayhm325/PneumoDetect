@@ -1,5 +1,7 @@
+// صفحة ملف المريض: تعرض وتسمح بتعديل بيانات المريض الشخصية والطبية
 "use client";
 
+// استيراد الأدوات اللازمة من React وNext.js والمكتبات المساعدة
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useToast } from "../../../components/ui/ToastProvider";
@@ -22,22 +24,30 @@ import {
 } from "react-icons/fa";
 import UnifiedCard from "../../../components/ui/UnifiedCard";
 
+// المكون الرئيسي للصفحة
 export default function PatientProfilePage() {
-  const locale = useLocale();
-  const t = useTranslations("profile");
-  const patientT = useTranslations("patient");
-  const ui = useTranslations("ui");
-  const placeholder = ui("placeholder");
+  // متغيرات الترجمة واللغة
+  const locale = useLocale(); // اللغة الحالية
+  const t = useTranslations("profile"); // نصوص صفحة الملف الشخصي
+  const patientT = useTranslations("patient"); // نصوص عامة للمريض
+  const ui = useTranslations("ui"); // نصوص واجهة المستخدم العامة
+  const placeholder = ui("placeholder"); // نص افتراضي للحقول الفارغة
+  // أدوات عرض التنبيهات
   const { showSuccess, showError, showInfo, showWarning } = useToast();
+  // أدوات التوجيه
   const router = useRouter();
   const pathname = usePathname();
 
+  // متغيرات الحالة:
+  // - isEditing: هل المستخدم يعدل البيانات حالياً؟
+  // - loading: هل الصفحة في وضع التحميل؟
   const [isEditing, setIsEditing] = useState(false);
-  const [loading, setLoading] = useState(false); // For initial load
+  const [loading, setLoading] = useState(false); // عند تحميل البيانات لأول مرة
 
+  // بيانات الملف الشخصي للمريض (تملأ من API)
   const [profileData, setProfileData] = useState({
-    id: "",
-    userId: "",
+    id: "", // معرف المريض
+    userId: "", // معرف المستخدم المرتبط
     fullName: "",
     email: "",
     doctorId: "",
@@ -55,16 +65,19 @@ export default function PatientProfilePage() {
     updatedAt: "",
   });
 
-  // Fetch Profile Data
+
+  // عند تحميل الصفحة: جلب بيانات الملف الشخصي من API وتخزينها في state
   useEffect(() => {
     let mounted = true;
-    setLoading(true);
+    setLoading(true); // تفعيل مؤشر التحميل
     Promise.resolve().then(async () => {
       try {
+        // إرسال طلب لجلب بيانات المريض
         const res = await fetch("/api/patient/profile");
         if (!res.ok) return;
         const data = await res.json();
         if (!mounted) return;
+        // تعبئة بيانات الملف الشخصي من الاستجابة
         const p = data.profile || {};
         setProfileData({
           id: p.id || "",
@@ -87,24 +100,30 @@ export default function PatientProfilePage() {
           updatedAt: p.updatedAt || "",
         });
       } catch (err) {
+        // في حال فشل الجلب، طباعة الخطأ
         console.error("Failed to load profile", err);
       } finally {
+        // إيقاف مؤشر التحميل
         if (mounted) setLoading(false);
       }
     });
+    // تنظيف عند إلغاء تحميل الصفحة
     return () => {
       mounted = false;
     };
   }, []);
 
+  // دالة لتحديث قيمة أي حقل في بيانات الملف الشخصي عند التعديل
   const handleFieldChange = (e) => {
     const { name, value } = e.target;
     setProfileData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // دالة لحفظ التعديلات على بيانات الملف الشخصي (ترسلها إلى API)
   const handleSave = async () => {
     setLoading(true);
     try {
+      // إرسال البيانات المعدلة إلى الخادم
       const res = await fetch("/api/patient/profile", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },

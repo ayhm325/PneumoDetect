@@ -1,5 +1,7 @@
+// صفحة نتائج المريض: تعرض تقارير الأشعة الخاصة بالمريض بشكل تفاعلي
 "use client";
 
+// استيراد الأدوات اللازمة من React وNext.js والمكتبات المساعدة
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -20,13 +22,18 @@ import {
 import { useLocale, useTranslations } from "next-intl";
 import UnifiedCard from "../../../components/ui/UnifiedCard";
 
+// المكون الرئيسي للصفحة
 export default function PatientResultsPage() {
   const router = useRouter();
   const { showSuccess, showError, showInfo, showWarning } = useToast();
   const locale = useLocale();
   const t = useTranslations("patientResults");
 
-  // UI state variables
+  // متغيرات الحالة (state) الخاصة بواجهة المستخدم:
+  // - البحث
+  // - الفلاتر
+  // - عرض صورة التقرير
+  // - التقرير المحدد
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
@@ -34,17 +41,19 @@ export default function PatientResultsPage() {
   const [selectedReport, setSelectedReport] = useState(null);
   const labels = t;
 
-  // fetch real reports from API (only chest X-rays will be returned)
+  // مصفوفة التقارير التي سيتم عرضها (تملأ من API)
   const [reports, setReports] = useState([]);
 
-  // load real reports from API (server returns chest X-rays only)
+  // تحميل التقارير من API عند تحميل الصفحة
   useEffect(() => {
+    // عند تحميل الصفحة أو تغيير اللغة، يتم جلب التقارير من الخادم
     Promise.resolve().then(async () => {
       try {
         const res = await fetch("/api/patient/results");
         if (!res.ok) return;
         const data = await res.json();
 
+        // دالة لتحديد نوع الفحص من اسم الصورة
         const inferTypeKey = (imageUrl) => {
           const u = String(imageUrl || "").toLowerCase();
           if (u.includes("ct")) return "ct";
@@ -56,6 +65,7 @@ export default function PatientResultsPage() {
           return "xray";
         };
 
+        // دالة لتنسيق التاريخ (YYYY-MM-DD)
         const formatDate = (dt) => {
           if (!dt) return "";
           const d = new Date(dt);
@@ -63,21 +73,22 @@ export default function PatientResultsPage() {
           return d.toISOString().slice(0, 10);
         };
 
+        // دالة لتنسيق الوقت (ساعة ودقيقة)
         const formatTime = (dt) => {
           if (!dt) return "";
           const d = new Date(dt);
           if (Number.isNaN(d.getTime())) return "";
           try {
             return d.toLocaleTimeString(locale, {
-              hour: "2-digit",
-              minute: "2-digit",
-            });
-          } catch {
-            return "";
-          }
-        };
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch {
+    return "";
+  }
+};
 
-        // Map and sort by createdAt descending
+        // معالجة بيانات التقارير وتحويلها لصيغة مناسبة للعرض
         const mapped = (data.records || [])
           .map((r) => {
             const typeKey = inferTypeKey(r.imageUrl);
@@ -152,12 +163,13 @@ export default function PatientResultsPage() {
           })
           .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-        setReports(mapped);
+        setReports(mapped); // حفظ النتائج في state
       } catch (err) {
         console.error("Failed to load patient results:", err);
       }
     });
   }, [t, locale]);
+  // تسميات الإحصائيات (عدد التقارير، الجاهزة، المعلقة، تقارير هذا الشهر)
   const statsLabels = {
     total: t("stats.total"),
     ready: t("stats.ready"),
@@ -165,15 +177,12 @@ export default function PatientResultsPage() {
     thisMonth: t("stats.thisMonth"),
   };
 
-  const statusSynonyms =
-    typeof t.raw === "function" ? t.raw("statusSynonyms") || {} : {};
-  const prioritySynonyms =
-    typeof t.raw === "function" ? t.raw("prioritySynonyms") || {} : {};
+  // مرادفات الحالات والأولوية (للتعامل مع تعدد اللغات أو القيم)
+  const statusSynonyms = typeof t.raw === "function" ? t.raw("statusSynonyms") || {} : {};
+  const prioritySynonyms = typeof t.raw === "function" ? t.raw("prioritySynonyms") || {} : {};
 
-  const normalizeToken = (value) =>
-    String(value ?? "")
-      .trim()
-      .toLowerCase();
+  // دوال مساعدة لتوحيد القيم (حالة التقرير، الأولوية)
+  const normalizeToken = (value) => String(value ?? "").trim().toLowerCase();
   const tokenInList = (value, list) => {
     const token = normalizeToken(value);
     if (!token) return false;
@@ -203,6 +212,7 @@ export default function PatientResultsPage() {
     return "unknown";
   };
 
+  // دوال لإرجاع النص المناسب للحالة أو الأولوية حسب اللغة
   const getStatusLabel = (status) => {
     const normalized = normalizeStatus(status);
     if (normalized === "ready") return labels("statuses.ready");
@@ -218,6 +228,7 @@ export default function PatientResultsPage() {
     return priority;
   };
 
+  // مصفوفة الإحصائيات للعرض في واجهة المستخدم
   const stats = [
     {
       title: statsLabels.total,
@@ -253,6 +264,7 @@ export default function PatientResultsPage() {
     },
   ];
 
+  // دوال لإرجاع لون الحالة أو الأولوية أو النتيجة (للتصميم)
   const getStatusColor = (status) => {
     const normalized = normalizeStatus(status);
     if (normalized === "ready") {
@@ -303,6 +315,7 @@ export default function PatientResultsPage() {
     }
   };
 
+  // دوال التعامل مع أزرار التحميل والمشاركة والطباعة
   const handleDownload = (reportId) => {
     showSuccess(labels("toast.download"));
   };
@@ -315,6 +328,7 @@ export default function PatientResultsPage() {
     showInfo(labels("toast.print"));
   };
 
+  // تصفية التقارير حسب البحث والفلاتر
   const filteredReports = reports.filter((report) => {
     const q = searchQuery.toLowerCase();
     const matchesSearch =
@@ -328,6 +342,7 @@ export default function PatientResultsPage() {
     return matchesSearch && matchesType && matchesStatus;
   });
 
+  // واجهة المستخدم الرئيسية للصفحة (JSX)
   return (
     <>
 

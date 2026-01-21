@@ -100,7 +100,7 @@ export default function PatientNotificationsPage() {
 
   const handleDelete = async (id) => {
     await fetch(`/api/patient/notifications?id=${id}`, { method: "DELETE" });
-    setNotifications(notifications.filter((n) => n.id !== id));
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
     showInfo(labels.toast.notificationDeleted);
   };
 
@@ -125,8 +125,8 @@ export default function PatientNotificationsPage() {
     }
     const data = await res.json();
     if (data.success) {
-      setNotifications(
-        notifications.map((n) => (n.id === id ? { ...n, isRead: true } : n)),
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, isRead: true } : n))
       );
       showInfo(labels.toast.markedRead);
     } else {
@@ -142,7 +142,7 @@ export default function PatientNotificationsPage() {
     }
     const data = await res.json();
     if (data.success) {
-      setNotifications(notifications.map((n) => ({ ...n, isRead: true })));
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
       showSuccess(labels.toast.allMarkedRead);
     } else {
       showError(labels.toast.errorUpdate);
@@ -161,8 +161,8 @@ export default function PatientNotificationsPage() {
     }
     const data = await res.json();
     if (data.success) {
-      setNotifications(
-        notifications.map((n) => (n.id === id ? { ...n, isRead: false } : n)),
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, isRead: false } : n))
       );
       showInfo(labels.toast.markedUnread);
     } else {

@@ -49,7 +49,6 @@ export default function AdminDashboardPage() {
     totalScans: 0,
   });
 
-  // Replace Arabic digits with Western digits if locale is Arabic
   if (locale === "ar") {
     formattedDate = formattedDate.replace(/[٠-٩]/g, (d) =>
       String("٠١٢٣٤٥٦٧٨٩".indexOf(d)),
@@ -127,7 +126,6 @@ export default function AdminDashboardPage() {
       icon: "🏥",
       action: () => router.push(`${basePrefix}/admin/patients`),
     },
-    // analysis quick action removed because page was deleted
   ];
 
   // معلومات النظام الحقيقية
@@ -251,7 +249,6 @@ export default function AdminDashboardPage() {
 
   return (
     <>
-      {/* ToastContainer is rendered by ToastProvider at the app root. Do not render here. */}
       <div className="p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
@@ -291,7 +288,6 @@ export default function AdminDashboardPage() {
                 {stat.title}
               </h3>
               <p className="text-3xl font-bold text-foreground">{stat.value}</p>
-              {/* تم حذف جملة (من الشهر الماضي) */}
             </div>
           ))}
         </div>
