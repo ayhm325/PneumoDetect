@@ -8,6 +8,7 @@ import { formatTime } from "../../../lib/date";
 import { formatActivityDescription } from "../../../lib/activityFormat";
 import NotificationBellButton from "../../../components/ui/NotificationBellButton";
 import useSocket from "../../../components/chat/useSocket.client";
+import { Button, Card } from "../../../../src/components/ui";
 import {
   FaUserMd,
   FaUsers,
@@ -452,9 +453,10 @@ export default function DashboardHome({ serverData = {} }) {
             {stats.map((stat, index) => {
               const Icon = stat.icon;
               return (
-                <div
+                <Card
                   key={index}
-                  className="group relative overflow-hidden rounded-xl card-glass p-6 shadow-(--shadow-soft) border border-(--ui-border) transition-all hover:shadow-(--shadow-lift)"
+                  variant="interactive"
+                  className="group relative overflow-hidden"
                 >
                   <div
                     className={`absolute top-0 right-0 h-20 w-20 translate-x-8 -translate-y-8 transform rounded-full ${stat.bgLight} opacity-50 transition-transform group-hover:scale-150`}
@@ -476,7 +478,7 @@ export default function DashboardHome({ serverData = {} }) {
                       </p>
                     </div>
                   </div>
-                </div>
+                </Card>
               );
             })}
           </div>
@@ -486,12 +488,14 @@ export default function DashboardHome({ serverData = {} }) {
             {quickActions.map((action, index) => {
               const Icon = action.icon;
               return (
-                <button
+                <Button
                   key={index}
                   onClick={() => handleQuickAction(action.link)}
-                  className="group rounded-xl btn-gradient p-6 text-white shadow-(--shadow-soft) transition-all hover:shadow-(--shadow-lift) hover:scale-105"
+                  fullWidth
+                  size="lg"
+                  className="group !h-auto min-h-[132px] !items-start !justify-start gap-2 rounded-xl p-5 text-start"
                 >
-                  <div className="flex items-center justify-between mb-3">
+                  <div className="mb-3 flex w-full items-center justify-between">
                     <Icon className="text-3xl" />
                     <FaArrowRight className="transition-transform group-hover:-translate-x-1" />
                   </div>
@@ -499,7 +503,7 @@ export default function DashboardHome({ serverData = {} }) {
                   <p className="mt-1 text-sm opacity-90">
                     {action.description}
                   </p>
-                </button>
+                </Button>
               );
             })}
           </div>
@@ -507,7 +511,7 @@ export default function DashboardHome({ serverData = {} }) {
           {/* Main Content Grid */}
           <div className="grid gap-6 lg:grid-cols-3">
             {/* Today's Appointments */}
-            <div className="lg:col-span-2 rounded-xl card-glass p-6 shadow-(--shadow-soft) border border-(--ui-border)">
+            <Card className="lg:col-span-2">
               <div className="mb-6 flex items-center justify-between">
                 <h2 className="text-xl font-bold text-(--ui-foreground) flex items-center gap-2">
                   <FaCalendarAlt className="text-(--ui-info)" />
@@ -575,10 +579,10 @@ export default function DashboardHome({ serverData = {} }) {
                   ))
                 )}
               </div>
-            </div>
+            </Card>
 
             {/* Pending Scans */}
-            <div className="rounded-xl card-glass p-6 shadow-(--shadow-soft) border border-(--ui-border)">
+            <Card>
               <div className="mb-6 flex items-center justify-between">
                 <h2 className="text-xl font-bold text-(--ui-foreground) flex items-center gap-2">
                   <FaXRay className="text-(--ui-warning)" />
@@ -628,18 +632,18 @@ export default function DashboardHome({ serverData = {} }) {
                     </p>
                   </div>
                 ))}
-                <button
+                <Button
                   onClick={() => router.push(`${basePrefix}/doctor/results`)}
-                  className="w-full rounded-lg btn-gradient py-2 text-sm font-medium text-white transition-all"
+                  size="sm"
                 >
                   {labels.pendingScans.viewAll}
-                </button>
+                </Button>
               </div>
-            </div>
+            </Card>
           </div>
 
           {/* Recent Activity */}
-          <div className="rounded-xl card-glass p-6 shadow-(--shadow-soft) border border-(--ui-border)">
+          <Card>
             <div className="mb-6 flex items-center justify-between">
               <h2 className="text-xl font-bold text-(--ui-foreground) flex items-center gap-2">
                 <FaChartLine className="text-(--ui-info)" />
@@ -671,7 +675,7 @@ export default function DashboardHome({ serverData = {} }) {
                 );
               })}
             </div>
-          </div>
+          </Card>
         </div>
       </div>
     </>

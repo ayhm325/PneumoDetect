@@ -1,72 +1,68 @@
 import { NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
-import prisma from "../../../../lib/prismaClient.js";
-import { getJwtSecret } from "../../../../lib/auth/jwtSecret.js";
-import { getJwtVerifyOptions } from "../../../../lib/auth/jwtClaims.js";
+import { withRBAC } from "../../../../lib/auth/withRBAC";
+import { rateLimit } from "../../../../lib/security/rateLimiter";
+import { logAudit } from "../../../../lib/security/auditLogger";
+import { AppError } from "../../../../src/lib/errors/appError";
+import { chatPatientService } from "../../../../src/services/chat";
 
-export async function DELETE(request, context) {
-  try {
-    const params = context?.params;
-    const resolvedParams =
-      typeof params?.then === "function" ? await params : params;
-    const { chatId } = resolvedParams || {};
-    // تحقق من وجود معرف المحادثة
-    if (!chatId || typeof chatId !== "string") {
-      console.error("/api/chat/[chatId] DELETE missing chatId", resolvedParams);
-      return NextResponse.json({ error: "missing_chat_id", code: "CH01" }, { status: 400 });
-    }
-
-    // Accept token from cookie OR Authorization header (Bearer) as fallback
-    let token = request.cookies.get("token")?.value;
-    if (!token) {
-      const hdr =
-        request.headers.get("authorization") ||
-        request.headers.get("Authorization");
-      if (hdr && hdr.startsWith("Bearer ")) token = hdr.slice(7).trim();
-    }
-    if (!token) {
-      // لم يتم توفير رمز المصادقة
-      console.warn("/api/chat/[chatId] DELETE missing auth token (cookie/header)");
-      return NextResponse.json({ error: "unauthenticated", code: "AUTH01" }, { status: 401 });
-    }
-    let user;
-    try {
-      user = jwt.verify(token, getJwtSecret(), getJwtVerifyOptions());
-    } catch (e) {
-      return NextResponse.json({ error: "invalid_token", code: "AUTH02" }, { status: 401 });
-    }
-
-    const chat = await prisma.chat.findUnique({ where: { id: chatId } });
-    if (!chat)
-      return NextResponse.json({ error: "chat_not_found", code: "CH02" }, { status: 404 });
-
-    // authorize: only doctor (owner) or patient participant can delete
-    if (user.role === "doctor") {
-      if (chat.doctorId !== user.id)
-        return NextResponse.json({ error: "forbidden", code: "AUTH03" }, { status: 403 });
-    } else if (user.role === "patient") {
-      const patient = await prisma.patient.findUnique({
-        where: { userId: user.id },
-      });
-      if (!patient || patient.id !== chat.patientId)
-        return NextResponse.json({ error: "forbidden", code: "AUTH04" }, { status: 403 });
-    } else if (user.role === "admin") {
-      // admins may delete any chat
-    } else {
-      return NextResponse.json({ error: "forbidden", code: "AUTH05" }, { status: 403 });
-    }
-
-    // delete messages and chat inside a transaction
-    await prisma.$transaction([
-      prisma.message.deleteMany({ where: { chatId } }),
-      prisma.chat.delete({ where: { id: chatId } }),
-    ]);
-
-    // تم حذف المحادثة والرسائل بنجاح
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    // خطأ في حذف المحادثة
-    console.error("/api/chat/[chatId] DELETE error", error);
-    return NextResponse.json({ error: "server_error", code: "SRV01" }, { status: 500 });
-  }
+function mapDeleteChatError(message) {
+  if (message === "missing_chat_id") return "CH01";
+  if (message === "chat_not_found") return "CH02";
+  if (message === "unauthenticated") return "AUTH01";
+  if (message === "forbidden_doctor") return "AUTH03";
+  if (message === "forbidden_patient") return "AUTH04";
+  if (message === "forbidden_role") return "AUTH05";
+  return "SRV01";
 }
+
+export const DELETE = withRBAC(
+  async (request, user, context) => {
+    const rl = await rateLimit(request);
+    if (rl.limited) {
+      logAudit({
+        event: "rate_limit_exceeded",
+        userId: user.id,
+        ip: request.headers.get("x-forwarded-for"),
+        details: { endpoint: "DELETE /api/chat/[chatId]" },
+      });
+      return NextResponse.json({ error: "rate_limit_exceeded" }, { status: 429 });
+    }
+
+    try {
+      const params = context?.params;
+      const resolvedParams = typeof params?.then === "function" ? await params : params;
+      const chatId = String(resolvedParams?.chatId || "").trim();
+
+      const result = await chatPatientService.deleteChatById({
+        userId: user.id,
+        role: user.role,
+        chatId,
+      });
+
+      logAudit({
+        event: "chat_deleted",
+        userId: user.id,
+        ip: request.headers.get("x-forwarded-for"),
+        details: { chatId: chatId || null },
+      });
+
+      return NextResponse.json(result);
+    } catch (error) {
+      if (error instanceof AppError) {
+        return NextResponse.json(
+          { error: error.message, code: mapDeleteChatError(error.message) },
+          { status: error.statusCode },
+        );
+      }
+
+      logAudit({
+        event: "chat_delete_error",
+        userId: user?.id,
+        ip: request.headers.get("x-forwarded-for"),
+        details: { error: error instanceof Error ? error.message : String(error) },
+      });
+      return NextResponse.json({ error: "server_error", code: "SRV01" }, { status: 500 });
+    }
+  },
+  ["doctor", "patient", "admin"],
+);

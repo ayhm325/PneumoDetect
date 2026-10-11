@@ -9,11 +9,12 @@
  *  - جميع العمليات مسجلة في Audit Log
  */
 
-import prisma from "../../../../lib/prismaClient";
 import { withRBAC } from "../../../../lib/auth/withRBAC";
 import { rateLimit } from "../../../../lib/security/rateLimiter";
 import { logAudit } from "../../../../lib/security/auditLogger";
 import { NextResponse } from "next/server";
+import { AppError } from "../../../../src/lib/errors/appError";
+import { adminMonitoringService } from "../../../../src/services/admin";
 
 /**
  * =========================
@@ -49,52 +50,7 @@ export const GET = withRBAC(
     }
 
     try {
-      /**
-       * =========================
-       * 2) حساب بداية ونهاية اليوم الحالي
-       * =========================
-       * تُستخدم لحساب عدد السجلات (Scans) التي تمت اليوم فقط
-       */
-      const startOfToday = new Date();
-      startOfToday.setHours(0, 0, 0, 0);
-
-      const endOfToday = new Date();
-      endOfToday.setHours(23, 59, 59, 999);
-
-      /**
-       * =========================
-       * 3) جلب الإحصائيات بالتوازي
-       * =========================
-       * Promise.all لتحسين الأداء وتقليل زمن الاستجابة
-       */
-      const [
-        totalUsers,   // العدد الكلي للمستخدمين
-        doctors,      // عدد المستخدمين بدور doctor
-        patients,     // عدد المستخدمين بدور patient
-        todayScans,   // عدد الفحوصات/السجلات الطبية اليوم
-        totalScans,   // العدد الكلي للفحوصات
-      ] = await Promise.all([
-        prisma.user.count(),
-
-        prisma.user.count({
-          where: { role: "doctor" },
-        }),
-
-        prisma.user.count({
-          where: { role: "patient" },
-        }),
-
-        prisma.medicalRecord.count({
-          where: {
-            createdAt: {
-              gte: startOfToday,
-              lte: endOfToday,
-            },
-          },
-        }),
-
-        prisma.medicalRecord.count(),
-      ]);
+      const stats = await adminMonitoringService.getDashboardStats();
 
       /**
        * =========================
@@ -106,13 +62,7 @@ export const GET = withRBAC(
         event: "admin_dashboard_stats",
         userId: user.id,
         ip: request.headers.get("x-forwarded-for"),
-        details: {
-          totalUsers,
-          doctors,
-          patients,
-          todayScans,
-          totalScans,
-        },
+        details: stats,
       });
 
       /**
@@ -120,13 +70,7 @@ export const GET = withRBAC(
        * 5) إرجاع البيانات للواجهة
        * =========================
        */
-      return NextResponse.json({
-        totalUsers,
-        doctors,
-        patients,
-        todayScans,
-        totalScans,
-      });
+      return NextResponse.json(stats);
     } catch (error) {
       /**
        * =========================
@@ -140,9 +84,13 @@ export const GET = withRBAC(
         userId: user.id,
         ip: request.headers.get("x-forwarded-for"),
         details: {
-          error: error?.message,
+          error: error instanceof Error ? error.message : String(error),
         },
       });
+
+      if (error instanceof AppError) {
+        return NextResponse.json({ error: error.message }, { status: error.statusCode });
+      }
 
       return NextResponse.json(
         { error: "حدث خطأ أثناء جلب الإحصائيات" },

@@ -45,9 +45,8 @@ export default function ServicesPage() {
             {services.map((service, idx) => (
               <UnifiedCard
                 key={idx}
-                className="rounded-3xl p-10 border border-(--ui-border) flex flex-col items-center text-center hover:scale-105 hover:shadow-lg hover:border-(--color-primary-500) transition-all animate-fadeIn min-h-65"
+                className="rounded-3xl p-10 border border-(--ui-border) flex flex-col items-center text-center hover:scale-105 hover:shadow-lg hover:border-(--color-primary-500) transition-all animate-fadeIn min-h-65 min-w-0"
                 glass
-                style={{ minWidth: 0 }}
               >
                 {/* يمكنك إضافة أيقونات ثابتة أو حسب idx هنا */}
                 <h2 className="text-2xl md:text-3xl font-extrabold mb-4 text-(--ui-foreground)">

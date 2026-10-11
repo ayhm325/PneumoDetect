@@ -10,10 +10,11 @@
  *  - جميع العمليات مسجلة في Audit Log
  */
 
-import prisma from "./prismaClient";
 import { withRBAC } from "../../../../lib/auth/withRBAC";
 import { rateLimit } from "../../../../lib/security/rateLimiter";
 import { logAudit } from "../../../../lib/security/auditLogger";
+import { AppError } from "../../../../src/lib/errors/appError";
+import { adminMonitoringService } from "../../../../src/services/admin";
 
 /**
  * =========================
@@ -63,95 +64,7 @@ export const GET = withRBAC(
     }
 
     try {
-      /**
-       * =========================
-       * 3) جلب الإحصائيات الأساسية
-       * =========================
-       * يتم التنفيذ بالتوازي باستخدام Promise.all
-       * لتحسين الأداء وتقليل زمن الاستجابة
-       */
-      const [
-        totalUsers,     // عدد المستخدمين الكلي
-        doctors,        // عدد الأطباء
-        patients,       // عدد المرضى
-        todayScans,     // عدد التحاليل المنفذة اليوم
-        allUsers,       // جميع المستخدمين (Debug)
-        allDoctors,     // جميع الأطباء (Debug)
-        allPatients,    // جميع المرضى (Debug)
-        allAnalysis,    // جميع التحاليل (Debug)
-      ] = await Promise.all([
-        // العدد الكلي للمستخدمين
-        prisma.user.count(),
-
-        // عدد المستخدمين بدور doctor
-        prisma.user.count({
-          where: { role: "doctor" },
-        }),
-
-        // عدد المستخدمين بدور patient
-        prisma.user.count({
-          where: { role: "patient" },
-        }),
-
-        // عدد التحاليل التي تمت اليوم
-        prisma.analysis.count({
-          where: {
-            createdAt: {
-              gte: new Date(
-                new Date().setHours(0, 0, 0, 0),
-              ),
-            },
-          },
-        }),
-
-        /**
-         * =========================
-         * بيانات Debug (حساسة)
-         * =========================
-         * لذلك يتم حمايتها:
-         * - RBAC
-         * - Environment Check
-         */
-        prisma.user.findMany({
-          select: {
-            id: true,
-            fullName: true,
-            email: true,
-            role: true,
-            isActive: true,
-            isDeleted: true,
-            createdAt: true,
-          },
-        }),
-
-        prisma.user.findMany({
-          where: { role: "doctor" },
-          select: {
-            id: true,
-            fullName: true,
-            email: true,
-            role: true,
-            isActive: true,
-            isDeleted: true,
-            createdAt: true,
-          },
-        }),
-
-        prisma.user.findMany({
-          where: { role: "patient" },
-          select: {
-            id: true,
-            fullName: true,
-            email: true,
-            role: true,
-            isActive: true,
-            isDeleted: true,
-            createdAt: true,
-          },
-        }),
-
-        prisma.analysis.findMany(),
-      ]);
+      const result = await adminMonitoringService.getDashboardStatsDebug();
 
       /**
        * =========================
@@ -164,10 +77,10 @@ export const GET = withRBAC(
         userId: user.id,
         ip: request.headers.get("x-forwarded-for"),
         details: {
-          totalUsers,
-          doctors,
-          patients,
-          todayScans,
+          totalUsers: result.totalUsers,
+          doctors: result.doctors,
+          patients: result.patients,
+          todayScans: result.todayScans,
         },
       });
 
@@ -176,18 +89,7 @@ export const GET = withRBAC(
        * 5) إرجاع البيانات
        * =========================
        */
-      return Response.json({
-        totalUsers,
-        doctors,
-        patients,
-        todayScans,
-        debug: {
-          allUsers,
-          allDoctors,
-          allPatients,
-          allAnalysis,
-        },
-      });
+      return Response.json(result);
     } catch (error) {
       /**
        * =========================
@@ -200,9 +102,13 @@ export const GET = withRBAC(
         userId: user.id,
         ip: request.headers.get("x-forwarded-for"),
         details: {
-          error: error?.message,
+          error: error instanceof Error ? error.message : String(error),
         },
       });
+
+      if (error instanceof AppError) {
+        return Response.json({ error: error.message }, { status: error.statusCode });
+      }
 
       return Response.json(
         { error: "حدث خطأ أثناء جلب الإحصائيات" },

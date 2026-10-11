@@ -22,6 +22,7 @@ import {
 import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
 import { formatTime } from "../../../lib/date";
+import { Button, Card } from "../../../../src/components/ui";
 
 export default function Page() {
   const { showSuccess, showError, showInfo, showWarning } = useToast();
@@ -1055,18 +1056,24 @@ export default function Page() {
                 <div className="mt-1">{t("socketMismatchDescription")}</div>
               </div>
               <div className="flex gap-2">
-                <button
-                  className="rounded bg-(--ui-surface) px-3 py-1 text-sm font-medium text-(--ui-danger) border border-(--ui-border) hover:bg-(--ui-surface-2)"
+                <Button
+                  variant="secondary"
+                  fullWidth={false}
+                  size="sm"
+                  className="px-3"
                   onClick={() => window.location.reload()}
                 >
                   {t("socketMismatchRetry")}
-                </button>
-                <button
-                  className="rounded bg-(--ui-danger) px-3 py-1 text-sm font-medium text-(--ui-danger-foreground) hover:bg-(--ui-danger)/90"
+                </Button>
+                <Button
+                  variant="danger"
+                  fullWidth={false}
+                  size="sm"
+                  className="px-3"
                   onClick={() => router.push(`/${locale}/login`)}
                 >
                   {t("socketMismatchRelogin")}
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -1084,7 +1091,7 @@ export default function Page() {
           {/* Chat Container */}
           <div className="flex h-[calc(100%-120px)] gap-6 overflow-hidden">
             {/* Left Sidebar */}
-            <div className="flex w-80 shrink-0 flex-col rounded-xl card-glass shadow-(--shadow-soft) border border-(--ui-border)">
+            <Card className="flex w-80 shrink-0 flex-col overflow-hidden p-0">
               <div className="border-b border-(--ui-border) p-4">
                 <div className="relative">
                   <FaSearch className="absolute right-3 top-1/2 -translate-y-1/2 text-(--ui-muted-foreground)" />
@@ -1145,8 +1152,11 @@ export default function Page() {
                               {conv?.lastMessage || ""}
                             </p>
                             {!conv && (
-                              <button
-                                className="rounded bg-(--ui-info-bg) px-2 py-1 text-xs text-(--ui-info-foreground) border border-(--ui-info-border) hover:bg-(--ui-info-bg)/70"
+                              <Button
+                                variant="secondary"
+                                fullWidth={false}
+                                size="sm"
+                                className="h-7 px-2 text-xs"
                                 onClick={async (e) => {
                                   e.stopPropagation();
                                   try {
@@ -1193,7 +1203,7 @@ export default function Page() {
                                 }}
                               >
                                 {t("startNewChat")}
-                              </button>
+                              </Button>
                             )}
                           </div>
                         </div>
@@ -1202,10 +1212,10 @@ export default function Page() {
                   );
                 })}
               </div>
-            </div>
+            </Card>
 
             {/* Right Side - Chat Window */}
-            <div className="flex flex-1 flex-col rounded-xl card-glass shadow-(--shadow-soft) border border-(--ui-border)">
+            <Card className="flex flex-1 flex-col overflow-hidden p-0">
               {currentChat ? (
                 <>
                   {/* Chat Header */}
@@ -1288,10 +1298,9 @@ export default function Page() {
                                     <Image
                                       src={url}
                                       alt={t("imageAlt")}
-                                      className="max-w-full rounded"
+                                      className="max-w-full rounded object-contain"
                                       width={400}
                                       height={300}
-                                      style={{ objectFit: "contain" }}
                                     />
                                   );
                                 if (mime && mime.includes("pdf"))
@@ -1385,12 +1394,11 @@ export default function Page() {
                                 percent: uploadProgress.percent,
                               })}
                             </div>
-                            <div className="w-full h-2 rounded bg-(--ui-border) overflow-hidden">
-                              <div
-                                className="h-2 bg-(--ui-info)"
-                                style={{ width: `${uploadProgress.percent}%` }}
-                              />
-                            </div>
+                            <progress
+                              value={uploadProgress.percent}
+                              max={100}
+                              className="h-2 w-full overflow-hidden rounded bg-(--ui-border) [&::-webkit-progress-bar]:bg-(--ui-border) [&::-webkit-progress-value]:bg-(--ui-info) [&::-moz-progress-bar]:bg-(--ui-info)"
+                            />
                           </div>
                         )}
                         <input
@@ -1417,12 +1425,14 @@ export default function Page() {
                           className="flex-1 rounded-lg border border-(--ui-border) bg-(--ui-surface) px-4 py-3 text-sm text-(--ui-foreground) placeholder:text-(--ui-muted-foreground) focus:border-(--ui-ring) focus:outline-none focus:ring-2 focus:ring-(--ui-ring)/20"
                         />
                       </div>
-                      <button
+                      <Button
                         onClick={handleSendMessage}
-                        className="rounded-lg btn-gradient p-3 text-white"
+                        fullWidth={false}
+                        size="sm"
+                        className="h-11 w-11 p-0"
                       >
                         <FaPaperPlane />
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 </>
@@ -1436,7 +1446,7 @@ export default function Page() {
                   </div>
                 </div>
               )}
-            </div>
+            </Card>
           </div>
         </div>
       </div>

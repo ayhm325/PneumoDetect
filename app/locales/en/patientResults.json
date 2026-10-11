@@ -62,7 +62,8 @@
     "date": "Date:",
     "aiSummary": "AI Summary",
     "findings": "Findings",
-    "notes": "Notes"
+    "notes": "Notes",
+    "clinicalStatus": "Clinical Status:"
   },
   "titles": {
     "default": "Medical Record"
@@ -94,5 +95,10 @@
   "report1AiSummary": "Results are normal, no indications of any issues in the lungs or chest.",
   "report1Findings": "Lungs are clear, heart size is normal, no rib fractures.",
   "report1Images": "Image",
-  "report1Notes": "Follow-up recommended in 6 months."
+  "report1Notes": "Follow-up recommended in 6 months.",
+  "clinicalStatuses": {
+    "stable": "Stable",
+    "critical": "Critical",
+    "recovering": "Recovering"
+  }
 }

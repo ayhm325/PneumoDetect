@@ -1066,7 +1066,7 @@ export default function PatientChatPage() {
                       className={`flex ${msg.sender === "patient" ? "justify-start" : "justify-end"}`}
                     >
                       <div
-                        className={`max-w-[70%] rounded-2xl px-4 py-3 ${msg.sender === "patient" ? "bg-(--ui-info) text-(--ui-info-foreground)" : "card-glass border border-(--ui-border) text-(--ui-foreground) shadow"}`}
+                        className={`max-w-[70%] rounded-2xl px-4 py-3 ${msg.sender === "patient" ? "bg-(--ui-info) text-(--ui-info-foreground)" : "border border-(--ui-border) bg-(--ui-surface) text-(--ui-foreground) shadow-sm"}`}
                       >
                         {(msg.file &&
                           typeof msg.file === "object" &&
@@ -1177,12 +1177,11 @@ export default function PatientChatPage() {
                           percent: uploadProgress.percent,
                         })}
                       </div>
-                      <div className="w-full h-2 rounded bg-(--ui-surface-2) border border-(--ui-border) overflow-hidden">
-                        <div
-                          className="h-2 bg-(--ui-info)"
-                          style={{ width: `${uploadProgress.percent}%` }}
-                        />
-                      </div>
+                      <progress
+                        value={uploadProgress.percent}
+                        max={100}
+                        className="h-2 w-full overflow-hidden rounded border border-(--ui-border) bg-(--ui-surface-2) [&::-webkit-progress-bar]:bg-(--ui-surface-2) [&::-webkit-progress-value]:bg-(--ui-info) [&::-moz-progress-bar]:bg-(--ui-info)"
+                      />
                     </div>
                   )}
                   <input
@@ -1197,7 +1196,7 @@ export default function PatientChatPage() {
                 <button
                   onClick={handleSendMessage}
                   disabled={!messageInput.trim() && !file}
-                  className="p-2 btn-gradient rounded-full disabled:opacity-50"
+                  className="rounded-full bg-(--ui-info) p-2 text-(--ui-info-foreground) transition-colors hover:bg-(--ui-info)/90 disabled:opacity-50"
                 >
                   <FaPaperPlane />
                 </button>

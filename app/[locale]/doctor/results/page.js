@@ -25,6 +25,7 @@ import {
 import { formatDate } from "../../../lib/date";
 import { useLocale, useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
+import { Button, Card } from "../../../../src/components/ui";
 
 export default function DoctorResultsPage() {
   const { showSuccess, showError, showInfo, showWarning } = useToast();
@@ -364,7 +365,7 @@ export default function DoctorResultsPage() {
 
           {/* Stats Cards */}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="card-glass rounded-xl p-6 shadow-(--shadow-soft) border border-(--ui-border)">
+            <Card size="sm">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-(--ui-muted-foreground)">
@@ -376,9 +377,9 @@ export default function DoctorResultsPage() {
                 </div>
                 <FaXRay className="text-3xl text-(--ui-info)" />
               </div>
-            </div>
+            </Card>
 
-            <div className="card-glass rounded-xl p-6 shadow-(--shadow-soft) border border-(--ui-border)">
+            <Card size="sm">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-(--ui-muted-foreground)">
@@ -390,9 +391,9 @@ export default function DoctorResultsPage() {
                 </div>
                 <FaCheckCircle className="text-3xl text-(--ui-success)" />
               </div>
-            </div>
+            </Card>
 
-            <div className="card-glass rounded-xl p-6 shadow-(--shadow-soft) border border-(--ui-border)">
+            <Card size="sm">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-(--ui-muted-foreground)">
@@ -404,9 +405,9 @@ export default function DoctorResultsPage() {
                 </div>
                 <FaHourglassHalf className="text-3xl text-(--ui-warning)" />
               </div>
-            </div>
+            </Card>
 
-            <div className="card-glass rounded-xl p-6 shadow-(--shadow-soft) border border-(--ui-border)">
+            <Card size="sm">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-(--ui-muted-foreground)">
@@ -418,11 +419,11 @@ export default function DoctorResultsPage() {
                 </div>
                 <FaCalendarAlt className="text-3xl text-(--ui-info)" />
               </div>
-            </div>
+            </Card>
           </div>
 
           {/* Filters */}
-          <div className="card-glass rounded-xl p-6 shadow-(--shadow-soft) border border-(--ui-border)">
+          <Card>
             <div className="flex flex-wrap items-center gap-4">
               {/* Search */}
               <div className="flex-1 min-w-62.5">
@@ -449,14 +450,15 @@ export default function DoctorResultsPage() {
                 <option value="pending">{t("status.pending")}</option>
               </select>
             </div>
-          </div>
+          </Card>
 
           {/* Scans Grid */}
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {filteredScans.map((scan, idx) => (
-              <div
+              <Card
                 key={`${scan.id ?? "scan"}-${idx}`}
-                className="group card-glass rounded-xl p-6 shadow-(--shadow-soft) border border-(--ui-border) transition-all hover:shadow-(--shadow-lift)"
+                variant="interactive"
+                className="group"
               >
                 {/* Header */}
                 <div className="mb-4 flex items-start justify-between">
@@ -536,25 +538,26 @@ export default function DoctorResultsPage() {
 
                 {/* Actions */}
                 <div className="flex gap-2">
-                  <button
+                  <Button
                     onClick={() => handleViewScan(scan)}
-                    className="flex-1 flex items-center justify-center gap-2 rounded-lg btn-gradient px-4 py-2 text-sm font-medium text-white transition-all"
+                    size="sm"
+                    className="flex items-center justify-center gap-2"
                   >
                     <FaEye />
                     {t("actions.view")}
-                  </button>
+                  </Button>
                 </div>
-              </div>
+              </Card>
             ))}
           </div>
 
           {filteredScans.length === 0 && (
-            <div className="card-glass rounded-xl p-12 text-center shadow-(--shadow-soft) border border-(--ui-border)">
+            <Card className="p-12 text-center">
               <FaXRay className="mx-auto mb-4 text-5xl text-(--ui-muted-foreground) opacity-50" />
               <p className="text-lg text-(--ui-muted-foreground)">
                 {t("emptyState")}
               </p>
-            </div>
+            </Card>
           )}
         </div>
       </div>
@@ -600,10 +603,7 @@ export default function DoctorResultsPage() {
 
             {/* Viewer Content */}
             <div
-              className="p-6 overflow-y-auto"
-              style={{
-                maxHeight: isFullscreen ? "calc(100vh - 80px)" : "70vh",
-              }}
+              className={`overflow-y-auto p-6 ${isFullscreen ? "max-h-[calc(100vh-80px)]" : "max-h-[70vh]"}`}
             >
               <div className="mb-6 relative w-full overflow-hidden rounded-lg border border-(--ui-border) aspect-video bg-(--color-neutral)">
                 <Image
@@ -701,16 +701,17 @@ export default function DoctorResultsPage() {
                 />
 
                 <div className="mt-3 flex items-center justify-end gap-2">
-                  <button
+                  <Button
                     type="button"
                     onClick={handleMarkReviewed}
                     disabled={savingReview}
-                    className="px-4 py-2 rounded-xl btn-gradient text-sm font-semibold disabled:opacity-60"
+                    fullWidth={false}
+                    size="sm"
                   >
                     {savingReview
                       ? t("viewer.review.saving")
                       : t("viewer.review.markReviewed")}
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>

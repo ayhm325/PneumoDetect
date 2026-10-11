@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
+import UnifiedChatInput from "../UnifiedChatInput";
 
 export default function ChatWithDoctor({ initialMessages = [] }) {
   const t = useTranslations("patient");
@@ -44,46 +45,35 @@ export default function ChatWithDoctor({ initialMessages = [] }) {
             <div className="inline-flex items-center gap-2 rounded-md bg-(--ui-surface-2)/60 px-3 py-2 text-sm text-(--ui-foreground)">
               <span className="inline-block h-2 w-2 animate-bounce rounded-full bg-(--ui-muted-foreground)/70" />
               <span
-                className="inline-block h-2 w-2 animate-bounce rounded-full bg-(--ui-muted-foreground)/70"
-                style={{ animationDelay: "0.1s" }}
+                className="inline-block h-2 w-2 animate-bounce rounded-full bg-(--ui-muted-foreground)/70 [animation-delay:0.1s]"
               />
               <span
-                className="inline-block h-2 w-2 animate-bounce rounded-full bg-(--ui-muted-foreground)/70"
-                style={{ animationDelay: "0.2s" }}
+                className="inline-block h-2 w-2 animate-bounce rounded-full bg-(--ui-muted-foreground)/70 [animation-delay:0.2s]"
               />
               <span>{t("components.chat.typing")}</span>
             </div>
           )}
           <div ref={bottomRef} />
         </div>
-        <form
-          className="flex items-center gap-2 border-t border-(--ui-border) p-3"
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (!text.trim()) return;
-            setMessages((prev) => [...prev, { role: "patient", text }]);
-            setText("");
-            // UI-only mock reply
-            setTyping(true);
-            setTimeout(() => {
-              setTyping(false);
-              setMessages((prev) => [
-                ...prev,
-                { role: "doctor", text: t("components.chat.mockReply") },
-              ]);
-            }, 1000);
-          }}
-        >
-          <input
-            value={text}
-            onChange={(e) => setText(e.target.value)}
+        {/* Unified chat input for both patient and doctor */}
+        <div className="border-t border-(--ui-border) p-3">
+          <UnifiedChatInput
+            onSend={(msg) => {
+              setMessages((prev) => [...prev, { role: "patient", text: msg }]);
+              setText("");
+              setTyping(true);
+              setTimeout(() => {
+                setTyping(false);
+                setMessages((prev) => [
+                  ...prev,
+                  { role: "doctor", text: t("components.chat.mockReply") },
+                ]);
+              }, 1000);
+            }}
             placeholder={t("components.chat.placeholder")}
-            className="flex-1 rounded-md border border-(--ui-border) bg-(--ui-surface) px-3 py-2 text-sm text-(--ui-foreground) outline-none placeholder:text-(--ui-muted-foreground) focus:ring-2 focus:ring-(--ui-info)"
+            buttonLabel={t("components.chat.send")}
           />
-          <button className="btn-gradient rounded-md px-3 py-2 text-sm text-white">
-            {t("components.chat.send")}
-          </button>
-        </form>
+        </div>
       </div>
     </section>
   );

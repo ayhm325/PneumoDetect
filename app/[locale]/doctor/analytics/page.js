@@ -16,6 +16,7 @@ import {
   FaEye,
 } from "react-icons/fa";
 import { useLocale, useTranslations } from "next-intl";
+import { Card } from "../../../../src/components/ui";
 
 export default function Page() {
   const { showSuccess, showError, showInfo, showWarning } = useToast();
@@ -111,7 +112,7 @@ export default function Page() {
           {/* Stats Cards */}
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {/* Total Patients */}
-            <div className="card-glass group relative overflow-hidden rounded-xl border border-(--ui-border) p-6 shadow-(--shadow-soft) transition-all hover:shadow-(--shadow-lift)">
+            <Card variant="interactive" className="group relative overflow-hidden">
               <div className="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 transform rounded-full bg-(--ui-info)/10 transition-transform group-hover:scale-150"></div>
               <div className="relative">
                 <div className="flex items-center justify-between">
@@ -143,10 +144,10 @@ export default function Page() {
                   </p>
                 </div>
               </div>
-            </div>
+            </Card>
 
             {/* Total Scans */}
-            <div className="card-glass group relative overflow-hidden rounded-xl border border-(--ui-border) p-6 shadow-(--shadow-soft) transition-all hover:shadow-(--shadow-lift)">
+            <Card variant="interactive" className="group relative overflow-hidden">
               <div className="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 transform rounded-full bg-(--ui-info)/10 transition-transform group-hover:scale-150"></div>
               <div className="relative">
                 <div className="flex items-center justify-between">
@@ -178,10 +179,10 @@ export default function Page() {
                   </p>
                 </div>
               </div>
-            </div>
+            </Card>
 
             {/* Completed */}
-            <div className="card-glass group relative overflow-hidden rounded-xl border border-(--ui-border) p-6 shadow-(--shadow-soft) transition-all hover:shadow-(--shadow-lift)">
+            <Card variant="interactive" className="group relative overflow-hidden">
               <div className="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 transform rounded-full bg-(--ui-success)/10 transition-transform group-hover:scale-150"></div>
               <div className="relative">
                 <div className="flex items-center justify-between">
@@ -213,10 +214,10 @@ export default function Page() {
                   </p>
                 </div>
               </div>
-            </div>
+            </Card>
 
             {/* Pending */}
-            <div className="card-glass group relative overflow-hidden rounded-xl border border-(--ui-border) p-6 shadow-(--shadow-soft) transition-all hover:shadow-(--shadow-lift)">
+            <Card variant="interactive" className="group relative overflow-hidden">
               <div className="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 transform rounded-full bg-(--ui-warning)/10 transition-transform group-hover:scale-150"></div>
               <div className="relative">
                 <div className="flex items-center justify-between">
@@ -248,13 +249,13 @@ export default function Page() {
                   </p>
                 </div>
               </div>
-            </div>
+            </Card>
           </div>
 
           {/* Charts Section */}
           <div className="grid gap-6 lg:grid-cols-3">
             {/* Patient Distribution Chart */}
-            <div className="card-glass lg:col-span-2 rounded-xl border border-(--ui-border) p-6 shadow-(--shadow-soft)">
+            <Card className="lg:col-span-2">
               <div className="mb-6 flex items-center justify-between">
                 <h2 className="flex items-center gap-2 text-xl font-bold text-(--ui-foreground)">
                   <FaCalendarAlt className="text-(--ui-info)" />
@@ -269,18 +270,11 @@ export default function Page() {
                       {item.day}
                     </div>
                     <div className="flex-1">
-                      <div className="relative h-10 rounded-lg bg-(--ui-surface)">
-                        <div
-                          className="absolute right-0 top-0 flex h-full items-center justify-end rounded-lg bg-(--ui-info) px-3 transition-all duration-500"
-                          style={{ width: `${(item.value / maxValue) * 100}%` }}
-                        >
-                          {item.value > 0 && (
-                            <span className="text-sm font-bold text-(--ui-info-foreground)">
-                              {item.value}
-                            </span>
-                          )}
-                        </div>
-                      </div>
+                      <progress
+                        value={item.value}
+                        max={maxValue}
+                        className="h-10 w-full overflow-hidden rounded-lg bg-(--ui-surface) [&::-webkit-progress-bar]:bg-(--ui-surface) [&::-webkit-progress-value]:bg-(--ui-info) [&::-moz-progress-bar]:bg-(--ui-info)"
+                      />
                     </div>
                     <div className="w-12 text-sm text-(--ui-muted-foreground)">
                       {item.value} {t("units.patients")}
@@ -288,10 +282,10 @@ export default function Page() {
                   </div>
                 ))}
               </div>
-            </div>
+            </Card>
 
             {/* Scan Types Distribution */}
-            <div className="card-glass rounded-xl border border-(--ui-border) p-6 shadow-(--shadow-soft)">
+            <Card>
               <h2 className="mb-6 flex items-center gap-2 text-xl font-bold text-(--ui-foreground)">
                 <FaXRay className="text-(--ui-info)" />
                 {t("scanTypesTitle")}
@@ -308,23 +302,22 @@ export default function Page() {
                         {scan.count}
                       </span>
                     </div>
-                    <div className="relative h-3 rounded-full bg-(--ui-surface)">
-                      <div
-                        className="absolute right-0 top-0 h-full rounded-full bg-(--ui-info) transition-all duration-500"
-                        style={{ width: `${scan.percentage}%` }}
-                      ></div>
-                    </div>
+                    <progress
+                      value={scan.percentage}
+                      max={100}
+                      className="h-3 w-full overflow-hidden rounded-full bg-(--ui-surface) [&::-webkit-progress-bar]:bg-(--ui-surface) [&::-webkit-progress-value]:bg-(--ui-info) [&::-moz-progress-bar]:bg-(--ui-info)"
+                    />
                     <p className="mt-1 text-xs text-(--ui-muted-foreground)">
                       {scan.percentage}% {t("scanTypesOfTotal")}
                     </p>
                   </div>
                 ))}
               </div>
-            </div>
+            </Card>
           </div>
 
           {/* Recent Activity */}
-          <div className="card-glass rounded-xl border border-(--ui-border) p-6 shadow-(--shadow-soft)">
+          <Card>
             <h2 className="mb-6 flex items-center gap-2 text-xl font-bold text-(--ui-foreground)">
               <FaClock className="text-(--ui-info)" />
               {t("recentActivityTitle")}
@@ -373,7 +366,7 @@ export default function Page() {
                 </div>
               ))}
             </div>
-          </div>
+          </Card>
         </div>
       </div>
     </DoctorLayout>

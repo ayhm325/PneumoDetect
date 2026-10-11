@@ -1,8 +1,8 @@
-import prisma from "../../../../../lib/prismaClient";
 import { withRBAC } from "../../../../../lib/auth/withRBAC";
 import { rateLimit } from "../../../../../lib/security/rateLimiter";
 import { logAudit } from "../../../../../lib/security/auditLogger";
-import { createNotificationBestEffort } from "../../../../../lib/notifications";
+import { AppError } from "../../../../../src/lib/errors/appError";
+import { adminPatientService } from "../../../../../src/services/admin";
 
 /* ============================================================================
    PATCH /api/admin/patients/[id]
@@ -13,9 +13,6 @@ import { createNotificationBestEffort } from "../../../../../lib/notifications";
 ============================================================================ */
 export const PATCH = withRBAC(
   async (request, user, context) => {
-    // =========================
-    // التحكم بعدد الطلبات (Rate Limiting)
-    // =========================
     const rl = await rateLimit(request);
     if (rl.limited) {
       logAudit({
@@ -30,190 +27,74 @@ export const PATCH = withRBAC(
       );
     }
 
-    // =========================
-    // جلب معرف المريض من المعاملات
-    // =========================
     const resolvedParams =
       typeof context?.params?.then === "function"
         ? await context.params
         : context?.params;
-    const { id } = resolvedParams || {};
+    const id = String(resolvedParams?.id || "").trim();
     if (!id) {
       return new Response(JSON.stringify({ error: "Missing patient id" }), {
         status: 400,
       });
     }
 
-    // =========================
-    // جلب بيانات المريض للتأكد من وجوده والحصول على userId
-    // =========================
-    let patient;
     try {
-      patient = await prisma.patient.findUnique({ where: { id } });
-    } catch (e) {
-      return new Response(
-        JSON.stringify({ error: "Database error: " + (e.message || e) }),
-        { status: 500 }
-      );
-    }
-    if (!patient) {
-      return new Response(JSON.stringify({ error: "Patient not found" }), {
-        status: 404,
-      });
-    }
-
-    const userId = patient.userId;
-    if (!userId) {
-      return new Response(
-        JSON.stringify({
-          error: "Patient record missing userId, cannot update user.",
-        }),
-        { status: 400 }
-      );
-    }
-
-    // =========================
-    // جلب البيانات من الـ body
-    // =========================
-    let body;
-    try {
-      body = await request.json();
-    } catch (e) {
-      return new Response(JSON.stringify({ error: "Invalid JSON body" }), {
-        status: 400,
-      });
-    }
-
-    const {
-      name,
-      email,
-      phone,
-      gender,
-      doctorId,
-      status,
-      bloodType,
-      birthDate,
-      medicalId,
-      allergies,
-      chronicDiseases,
-    } = body;
-
-    // =========================
-    // تحويل القيم القديمة إلى قيم متوافقة مع Prisma enums
-    // =========================
-    let normalizedStatus = status;
-    if (status === "banned") normalizedStatus = "suspended";
-
-    try {
-      const prevDoctorId = patient.doctorId || null;
-
-      // =========================
-      // تحديث المستخدم والمريض في Transaction لضمان atomicity
-      // =========================
-      const result = await prisma.$transaction(async (tx) => {
-        // تحديث بيانات المستخدم
-        const updatedUser = await tx.user.update({
-          where: { id: userId },
-          data: {
-            ...(name ? { fullName: name } : {}),
-            ...(email ? { email } : {}),
-          },
+      const contentType = request.headers.get("content-type") || "";
+      if (!contentType.toLowerCase().includes("application/json")) {
+        return new Response(JSON.stringify({ error: "invalid_content_type" }), {
+          status: 400,
         });
+      }
 
-        // تحديث بيانات المريض
-        const patientUpdate = {
-          ...(phone !== undefined ? { phone } : {}),
-          ...(gender ? { gender } : {}),
-          ...(medicalId ? { medicalId } : {}),
-          ...(bloodType ? { bloodType } : {}),
-          ...(birthDate ? { birthDate: new Date(birthDate) } : {}),
-          // يمكن إضافة الحقول الأخرى مثل allergies أو chronicDiseases إذا كان Schema يدعمها
-        };
-
-        if (doctorId) patientUpdate.doctorId = doctorId;
-        if (normalizedStatus) patientUpdate.status = normalizedStatus;
-
-        const updatedPatient = await tx.patient.update({
-          where: { id },
-          data: patientUpdate,
+      const body = await request.json().catch(() => null);
+      if (!body) {
+        return new Response(JSON.stringify({ error: "invalid_json" }), {
+          status: 400,
         });
+      }
 
-        // تحديث حالة المستخدم بناءً على حالة المريض
-        if (normalizedStatus && userId) {
-          await tx.user.update({
-            where: { id: userId },
-            data: { isActive: normalizedStatus === "active" },
-          });
-        }
-
-        return { user: updatedUser, patient: updatedPatient };
+      const patient = await adminPatientService.updatePatientById({
+        id,
+        name: body?.name,
+        email: body?.email,
+        phone: body?.phone,
+        gender: body?.gender,
+        doctorId: body?.doctorId,
+        status: body?.status,
+        bloodType: body?.bloodType,
+        birthDate: body?.birthDate,
+        medicalId: body?.medicalId,
       });
 
-      // =========================
-      // إرجاع المريض مع بيانات المستخدم المحدثة
-      // =========================
-      const patientWithUser = await prisma.patient.findUnique({
-        where: { id },
-        include: {
-          user: {
-            select: {
-              id: true,
-              fullName: true,
-              email: true,
-              role: true,
-              isActive: true,
-              createdAt: true,
-              updatedAt: true,
-            },
-          },
-        },
-      });
-
-      // =========================
-      // إشعار الطبيب الجديد في حالة تغيير الطبيب
-      // =========================
-      try {
-        const nextDoctorId = doctorId ? String(doctorId).trim() : null;
-        if (nextDoctorId && nextDoctorId !== prevDoctorId) {
-          const patientName =
-            patientWithUser?.user?.fullName || patient?.fullName || "";
-          await createNotificationBestEffort(prisma, {
-            userId: nextDoctorId,
-            type: "info",
-            message: {
-              ar: `تم إسناد مريض إليك: ${patientName || "مريض جديد"}.`,
-              en: `A patient has been assigned to you: ${
-                patientName || "a new patient"
-              }.`,
-            },
-          });
-        }
-      } catch {}
-
-      // =========================
-      // تسجيل النشاط في سجل التدقيق
-      // =========================
       logAudit({
         event: "admin_patient_updated",
         userId: user.id,
         ip: request.headers.get("x-forwarded-for"),
-        details: { patientId: id, updatedFields: body },
+        details: { patientId: id },
       });
 
-      return new Response(JSON.stringify(patientWithUser), { status: 200 });
+      return new Response(JSON.stringify(patient), { status: 200 });
     } catch (error) {
-      // تسجيل الأخطاء في سجل التدقيق
       logAudit({
         event: "admin_patient_update_error",
         userId: user.id,
         ip: request.headers.get("x-forwarded-for"),
-        details: { patientId: id, error: error?.message },
+        details: {
+          patientId: id,
+          error: error instanceof Error ? error.message : String(error),
+        },
       });
+
+      if (error instanceof AppError) {
+        return new Response(JSON.stringify({ error: error.message }), {
+          status: error.statusCode,
+        });
+      }
 
       return new Response(JSON.stringify({ error: "Server error" }), {
         status: 500,
       });
     }
   },
-  ["admin"] // صلاحية الوصول: الأدمن فقط
+  ["admin"],
 );

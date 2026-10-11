@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
-import prisma from "../../../lib/prismaClient.js";
 import { withRBAC } from "../../../lib/auth/withRBAC";
 import { rateLimit } from "../../../lib/security/rateLimiter";
 import { logAudit } from "../../../lib/security/auditLogger";
+import { AppError } from "../../../src/lib/errors/appError";
+import { patientDoctorChangeRequestService } from "../../../src/services/patient";
 
 // ==============================
 // GET /api/doctor-change-requests
@@ -30,48 +31,34 @@ export const GET = withRBAC(
     }
 
     try {
-      // جلب جميع الأطباء بحالة active أو pending
-      // مع بيانات المستخدم المرتبطة بكل طبيب
-      const doctors = await prisma.doctor.findMany({
-        where: { status: { in: ["active", "pending"] } },
-        select: {
-          userId: true,
-          status: true,
-          phone: true,
-          clinic: true,
-          createdAt: true,
-          user: {
-            select: {
-              id: true,
-              fullName: true,
-              email: true,
-              isActive: true,
-              role: true,
-              createdAt: true,
-            },
-          },
-        },
-        // ترتيب الأطباء حسب تاريخ الإنشاء (الأقدم أولًا)
-        orderBy: { createdAt: "asc" },
-      });
+      const result = await patientDoctorChangeRequestService.listDoctorsForPatientChange(
+        user.id,
+      );
 
       // تسجيل عملية جلب قائمة الأطباء في سجل التدقيق
       logAudit({
         event: "doctor_change_doctors_listed",
         userId: user.id,
         ip: request.headers.get("x-forwarded-for"),
-        details: { count: doctors.length },
+        details: { count: result.doctors.length },
       });
 
       // إرجاع القائمة بنجاح
-      return NextResponse.json({ success: true, doctors });
+      return NextResponse.json(result);
     } catch (error) {
+      if (error instanceof AppError) {
+        return NextResponse.json(
+          { success: false, error: error.message },
+          { status: error.statusCode },
+        );
+      }
+
       // تسجيل أي خطأ يحدث أثناء جلب البيانات
       logAudit({
         event: "doctor_change_doctors_list_error",
         userId: user.id,
         ip: request.headers.get("x-forwarded-for"),
-        details: { error: error.message },
+        details: { error: error instanceof Error ? error.message : String(error) },
       });
 
       // إرجاع خطأ عام من الخادم
@@ -109,65 +96,28 @@ export const POST = withRBAC(
     }
 
     try {
-      // قراءة بيانات الطلب (JSON body)
-      const body = await request.json();
-
-      // معرف المستخدم الحالي
-      const userId = user.id;
-
-      // جلب سجل المريض المرتبط بالمستخدم
-      const patient = await prisma.patient.findFirst({ where: { userId } });
-      if (!patient)
+      const contentType = request.headers.get("content-type") || "";
+      if (!contentType.toLowerCase().includes("application/json")) {
         return NextResponse.json(
-          { success: false, error: "Patient not found" },
-          { status: 404 },
-        );
-
-      // استخراج معرف الطبيب المطلوب من عدة احتمالات
-      const requestedDoctorIdRaw =
-        body.requestedDoctorId || body.newDoctorId || body.newDoctor;
-
-      // تنظيف القيمة إذا كانت نصًا
-      const requestedDoctorId =
-        typeof requestedDoctorIdRaw === "string"
-          ? requestedDoctorIdRaw.trim()
-          : requestedDoctorIdRaw;
-
-      // سبب طلب التغيير (اختياري)
-      const reason = body.reason || "";
-
-      // التحقق من وجود الطبيب المطلوب
-      if (!requestedDoctorId) {
-        return NextResponse.json(
-          { success: false, error: "Missing requestedDoctorId" },
+          { success: false, error: "invalid_content_type" },
           { status: 400 },
         );
       }
 
-      // منع إرسال طلب تغيير لنفس الطبيب الحالي
-      if (patient.doctorId && requestedDoctorId === patient.doctorId) {
+      const body = await request.json().catch(() => null);
+      if (!body) {
         return NextResponse.json(
-          {
-            success: false,
-            error: "Requested doctor is the same as current doctor",
-          },
+          { success: false, error: "invalid_json" },
           { status: 400 },
         );
       }
 
-      // إنشاء طلب تغيير طبيب جديد في جدول changeRequest
-      const cr = await prisma.changeRequest.create({
-        data: {
-          userId: userId,
-          type: "doctor_change",
-          status: "pending",
-          details: {
-            patientId: patient.id,
-            currentDoctorId: patient.doctorId || null,
-            requestedDoctorId,
-            reason,
-          },
-        },
+      const result = await patientDoctorChangeRequestService.createDoctorChangeRequest({
+        userId: user.id,
+        requestedDoctorId: body.requestedDoctorId,
+        newDoctorId: body.newDoctorId,
+        newDoctor: body.newDoctor,
+        reason: body.reason,
       });
 
       // تسجيل عملية إنشاء الطلب في سجل التدقيق
@@ -175,23 +125,34 @@ export const POST = withRBAC(
         event: "doctor_change_requested",
         userId: user.id,
         ip: request.headers.get("x-forwarded-for"),
-        details: { patientId: patient.id, requestedDoctorId },
+        details: {
+          requestId: result.request?.id || null,
+          requestedDoctorId:
+            body.requestedDoctorId || body.newDoctorId || body.newDoctor || null,
+        },
       });
 
       // إرجاع الطلب الذي تم إنشاؤه بنجاح
-      return NextResponse.json({ success: true, request: cr }, { status: 201 });
+      return NextResponse.json(result, { status: 201 });
     } catch (error) {
+      if (error instanceof AppError) {
+        return NextResponse.json(
+          { success: false, error: error.message },
+          { status: error.statusCode },
+        );
+      }
+
       // تسجيل أي خطأ غير متوقع
       logAudit({
         event: "doctor_change_request_error",
         userId: user.id,
         ip: request.headers.get("x-forwarded-for"),
-        details: { error: error.message },
+        details: { error: error instanceof Error ? error.message : String(error) },
       });
 
       // إرجاع الخطأ
       return NextResponse.json(
-        { success: false, error: error.message },
+        { success: false, error: "Server error" },
         { status: 500 },
       );
     }

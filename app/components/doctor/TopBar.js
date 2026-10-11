@@ -10,7 +10,6 @@ export default function TopBar() {
           width={36}
           height={36}
           className="rounded-full"
-          style={{ width: "100%", height: "auto" }}
         />
         <span className="font-bold text-lg text-(--ui-foreground)">
           Dr. Ahmed Ali

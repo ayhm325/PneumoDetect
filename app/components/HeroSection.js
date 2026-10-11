@@ -57,14 +57,12 @@ export default function HeroSection() {
 
   const { theme } = useTheme();
   const isDark = theme === "dark";
-  const heroLightBg = "#F0FAF4";
-  const heroGreenShadow =
-    "0 24px 80px rgba(34,197,94,0.14), 0 6px 24px rgba(34,197,94,0.08)";
+  const heroGreenShadowClass =
+    "shadow-[0_24px_80px_rgba(34,197,94,0.14),0_6px_24px_rgba(34,197,94,0.08)]";
 
   return (
     <section
-      className="relative flex flex-col items-center justify-center min-h-[90vh] w-full py-20 px-4 sm:px-6 lg:px-8 overflow-hidden"
-      style={isDark ? undefined : { backgroundColor: heroLightBg }}
+      className={`relative flex min-h-[90vh] w-full flex-col items-center justify-center overflow-hidden px-4 py-20 sm:px-6 lg:px-8 ${isDark ? "" : "bg-[#F0FAF4]"}`}
     >
       {/* Background SVG and Animated Waves removed as requested */}
 
@@ -73,7 +71,7 @@ export default function HeroSection() {
         {particles.map((particle) => (
           <div
             key={particle.id}
-            className="absolute rounded-full bg-(--ui-ring)/20 blur-xl animate-float"
+            className="absolute animate-float rounded-full bg-(--ui-ring)/20 blur-xl"
             style={{
               width: `${particle.width}px`,
               height: `${particle.height}px`,
@@ -97,12 +95,11 @@ export default function HeroSection() {
           <div
             key={i}
             className="group relative animate-float"
-            style={{ animationDelay: `${i * 0.2}s` }}
           >
             <div className="absolute inset-0 brand-gradient rounded-3xl blur-2xl opacity-40 group-hover:opacity-60 transition-opacity" />
             <div
-              className="relative p-4 sm:p-5 rounded-3xl card-glass shadow-2xl transform group-hover:scale-110 group-hover:-translate-y-2 transition-all duration-300"
-              style={isDark ? undefined : { boxShadow: heroGreenShadow }}
+              className={`relative rounded-3xl card-glass p-4 shadow-2xl transition-all duration-300 group-hover:-translate-y-2 group-hover:scale-110 sm:p-5 ${!isDark ? heroGreenShadowClass : ""}`}
+              style={{ animationDelay: `${i * 0.2}s` }}
             >
               <Image
                 src={icon.src}
@@ -128,14 +125,7 @@ export default function HeroSection() {
               {t("content.hero.subtitle")}
             </p>
             <p className="text-(--ui-muted-foreground) max-w-xl mb-6 leading-relaxed">
-              {t("content.hero.desc")}
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 mb-6">
-              <Link
-                href={withLocale("/signup")}
-                className="inline-flex items-center gap-3 px-6 py-3 rounded-full btn-gradient text-base font-bold shadow-md hover:-translate-y-0.5 transition-transform"
-              >
+                  className={`rounded-2xl card-glass p-4 shadow-sm ${!isDark ? `bg-[#F0FAF4] ${heroGreenShadowClass}` : ""}`}
                 {t("content.hero.primaryCta")}
               </Link>
               <Link
@@ -177,8 +167,7 @@ export default function HeroSection() {
               {heroImages.map((img, i) => (
                 <div
                   key={i}
-                  className="rounded-2xl overflow-hidden shadow-lg bg-(--ui-surface-2)"
-                  style={isDark ? undefined : { boxShadow: heroGreenShadow }}
+                  className={`overflow-hidden rounded-2xl bg-(--ui-surface-2) shadow-lg ${!isDark ? heroGreenShadowClass : ""}`}
                 >
                   <div className="relative w-full h-44">
                     <Image
@@ -197,8 +186,7 @@ export default function HeroSection() {
             <div className="hidden sm:grid grid-cols-2 gap-6 items-start h-72 md:h-88 lg:h-112">
               {/* Large image (spans left column) */}
               <div
-                className="rounded-2xl overflow-hidden shadow-2xl transform hover:-translate-y-2 hover:scale-105 h-full"
-                style={isDark ? undefined : { boxShadow: heroGreenShadow }}
+                className={`h-full transform overflow-hidden rounded-2xl shadow-2xl hover:-translate-y-2 hover:scale-105 ${!isDark ? heroGreenShadowClass : ""}`}
               >
                 <div className="relative w-full h-full">
                   <Image
@@ -214,8 +202,7 @@ export default function HeroSection() {
               {/* Right column: two stacked images, each half of the container */}
               <div className="grid grid-rows-2 gap-6 h-full">
                 <div
-                  className="rounded-2xl overflow-hidden shadow-2xl transform hover:-translate-y-2 hover:scale-105 h-full"
-                  style={isDark ? undefined : { boxShadow: heroGreenShadow }}
+                  className={`h-full transform overflow-hidden rounded-2xl shadow-2xl hover:-translate-y-2 hover:scale-105 ${!isDark ? heroGreenShadowClass : ""}`}
                 >
                   <div className="relative w-full h-full">
                     <Image
@@ -228,8 +215,7 @@ export default function HeroSection() {
                   </div>
                 </div>
                 <div
-                  className="rounded-2xl overflow-hidden shadow-2xl transform hover:-translate-y-2 hover:scale-105 h-full"
-                  style={isDark ? undefined : { boxShadow: heroGreenShadow }}
+                  className={`h-full transform overflow-hidden rounded-2xl shadow-2xl hover:-translate-y-2 hover:scale-105 ${!isDark ? heroGreenShadowClass : ""}`}
                 >
                   <div className="relative w-full h-full">
                     <Image

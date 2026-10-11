@@ -24,10 +24,7 @@ export default function BlogPage() {
 
   return (
     <div
-      className="flex min-h-screen items-center justify-center bg-cover bg-center py-20"
-      style={{
-        backgroundImage: "url(/icons/blog.jpg)",
-      }}
+      className="flex min-h-screen items-center justify-center bg-cover bg-center py-20 bg-[url('/icons/blog.jpg')]"
     >
       <div className="card-glass relative z-10 mx-auto w-full max-w-4xl rounded-3xl border border-(--ui-border) bg-(--ui-surface)/60 p-8 px-4 backdrop-blur-md shadow-(--shadow-lift)">
         <div className="mb-4 flex justify-end">

@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import prisma from "../../../../lib/prismaClient.js";
 import { withRBAC } from "../../../../lib/auth/withRBAC";
 import { rateLimit } from "../../../../lib/security/rateLimiter";
 import { logAudit } from "../../../../lib/security/auditLogger";
-import { getNotificationCache, setNotificationCache, clearNotificationCache } from "../../../../lib/cache/notificationCache";
+import { AppError } from "../../../../src/lib/errors/appError";
+import { patientPortalService } from "../../../../src/services/patient";
 
 
 // دالة مساعدة لتقليل التكرار: تحقق من rateLimit وسجل Audit
@@ -33,14 +33,7 @@ export const HEAD = withRBAC(
       });
     }
     try {
-      // استخدم cache إذا متاح
-      let unread = await getNotificationCache(user.id);
-      if (typeof unread !== "number") {
-        unread = await prisma.notification.count({
-          where: { userId: user.id, isRead: false, isDeleted: false },
-        });
-        setNotificationCache(user.id, unread);
-      }
+      const unread = await patientPortalService.getUnreadNotificationsCount(user.id);
       return new Response(null, {
         status: 200,
         headers: {
@@ -53,7 +46,7 @@ export const HEAD = withRBAC(
         event: "patient_notifications_unread_error",
         userId: user.id,
         ip: request.headers.get("x-forwarded-for"),
-        details: { error: e?.message },
+        details: { error: e instanceof Error ? e.message : String(e) },
       });
       return new Response(null, {
         status: 200,
@@ -73,45 +66,36 @@ export const GET = withRBAC(
       return NextResponse.json({ error: "rate_limited" }, { status: 429 });
     }
     try {
-      // دعم pagination
       const url = new URL(request.url);
       const cursor = url.searchParams.get("cursor");
-      const take = Math.min(Number(url.searchParams.get("take")) || 20, 100);
-      let where = { userId: user.id, isDeleted: false };
-      let notifications, nextCursor;
-      if (cursor) {
-        notifications = await prisma.notification.findMany({
-          where,
-          orderBy: { createdAt: "desc" },
-          take: take + 1,
-          cursor: { id: cursor },
-          skip: 1,
-        });
-      } else {
-        notifications = await prisma.notification.findMany({
-          where,
-          orderBy: { createdAt: "desc" },
-          take: take + 1,
-        });
-      }
-      if (notifications.length > take) {
-        nextCursor = notifications[take].id;
-        notifications = notifications.slice(0, take);
-      }
+      const take = Number(url.searchParams.get("take")) || 20;
+
+      const result = await patientPortalService.listNotifications({
+        userId: user.id,
+        cursor,
+        take,
+      });
+
       logAudit({
         event: "patient_notifications_listed",
         userId: user.id,
         ip: request.headers.get("x-forwarded-for"),
-        details: { count: notifications.length },
+        details: { count: result.notifications.length },
       });
-      return NextResponse.json({ notifications, nextCursor }, { status: 200 });
+
+      return NextResponse.json(result, { status: 200 });
     } catch (e) {
       logAudit({
         event: "patient_notifications_list_error",
         userId: user.id,
         ip: request.headers.get("x-forwarded-for"),
-        details: { error: e?.message },
+        details: { error: e instanceof Error ? e.message : String(e) },
       });
+
+      if (e instanceof AppError) {
+        return NextResponse.json({ error: e.message }, { status: e.statusCode });
+      }
+
       return NextResponse.json({ error: "server_error" }, { status: 500 });
     }
   },
@@ -124,46 +108,46 @@ export const PUT = withRBAC(
       return NextResponse.json({ error: "rate_limited" }, { status: 429 });
     }
     try {
-      const id = request.nextUrl.searchParams.get("id");
+      const hasIdParam = request.nextUrl.searchParams.has("id");
+      const idValue = request.nextUrl.searchParams.get("id");
+      const id = typeof idValue === "string" ? idValue.trim() : null;
+      if (hasIdParam && !id) {
+        return NextResponse.json(
+          { error: "Invalid notification id" },
+          { status: 400 },
+        );
+      }
+
       let body = {};
-      try {
-        body = await request.json();
-      } catch {}
+      const contentType = request.headers.get("content-type") || "";
+      if (contentType.toLowerCase().includes("application/json")) {
+        body = await request.json().catch(() => null);
+        if (!body) {
+          return NextResponse.json({ error: "invalid_json" }, { status: 400 });
+        }
+      }
 
       const nextIsRead =
         typeof body?.isRead === "boolean" ? body.isRead : undefined;
-
-      if (id) {
-        const existing = await prisma.notification.findUnique({
-          where: { id },
-        });
-        if (!existing || existing.userId !== user.id) {
-          return NextResponse.json({ error: "not_found" }, { status: 404 });
-        }
-        const updated = await prisma.notification.update({
-          where: { id },
-          data: {
-            ...(typeof nextIsRead === "boolean" ? { isRead: nextIsRead, readAt: nextIsRead ? new Date() : null } : {}),
-          },
-        });
-        clearNotificationCache(user.id);
-        return NextResponse.json({ success: true, updated }, { status: 200 });
-      }
-
-      // Mark all as read (batch update)
-      const result = await prisma.notification.updateMany({
-        where: { userId: user.id, isDeleted: false, isRead: false },
-        data: { isRead: true, readAt: new Date() },
+      const result = await patientPortalService.updateNotifications({
+        userId: user.id,
+        id,
+        isRead: nextIsRead,
       });
-      clearNotificationCache(user.id);
-      return NextResponse.json({ success: true, updatedCount: result.count }, { status: 200 });
+
+      return NextResponse.json(result, { status: 200 });
     } catch (e) {
       logAudit({
         event: "patient_notifications_update_error",
         userId: user.id,
         ip: request.headers.get("x-forwarded-for"),
-        details: { error: e?.message },
+        details: { error: e instanceof Error ? e.message : String(e) },
       });
+
+      if (e instanceof AppError) {
+        return NextResponse.json({ error: e.message }, { status: e.statusCode });
+      }
+
       return NextResponse.json({ error: "server_error" }, { status: 500 });
     }
   },
@@ -176,36 +160,34 @@ export const DELETE = withRBAC(
       return NextResponse.json({ error: "rate_limited" }, { status: 429 });
     }
     try {
-      const id = request.nextUrl.searchParams.get("id");
-      if (id) {
-        const existing = await prisma.notification.findUnique({
-          where: { id },
-        });
-        if (!existing || existing.userId !== user.id) {
-          return NextResponse.json({ error: "not_found" }, { status: 404 });
-        }
-        await prisma.notification.update({
-          where: { id },
-          data: { isDeleted: true, archivedAt: new Date() },
-        });
-        clearNotificationCache(user.id);
-        return NextResponse.json({ success: true }, { status: 200 });
+      const hasIdParam = request.nextUrl.searchParams.has("id");
+      const idValue = request.nextUrl.searchParams.get("id");
+      const id = typeof idValue === "string" ? idValue.trim() : null;
+      if (hasIdParam && !id) {
+        return NextResponse.json(
+          { error: "Invalid notification id" },
+          { status: 400 },
+        );
       }
 
-      // batch soft delete + archive
-      const result = await prisma.notification.updateMany({
-        where: { userId: user.id, isDeleted: false },
-        data: { isDeleted: true, archivedAt: new Date() },
+      const result = await patientPortalService.deleteNotifications({
+        userId: user.id,
+        id,
       });
-      clearNotificationCache(user.id);
-      return NextResponse.json({ success: true, deletedCount: result.count }, { status: 200 });
+
+      return NextResponse.json(result, { status: 200 });
     } catch (e) {
       logAudit({
         event: "patient_notifications_delete_error",
         userId: user.id,
         ip: request.headers.get("x-forwarded-for"),
-        details: { error: e?.message },
+        details: { error: e instanceof Error ? e.message : String(e) },
       });
+
+      if (e instanceof AppError) {
+        return NextResponse.json({ error: e.message }, { status: e.statusCode });
+      }
+
       return NextResponse.json({ error: "server_error" }, { status: 500 });
     }
   },

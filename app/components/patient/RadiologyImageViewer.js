@@ -1,13 +1,20 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function RadiologyImageViewer({ images = [], report }) {
   const [index, setIndex] = useState(0);
   const [zoom, setZoom] = useState(1);
   const [brightness, setBrightness] = useState(100);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const imageViewportRef = useRef(null);
+
+  useEffect(() => {
+    if (!imageViewportRef.current) return;
+    imageViewportRef.current.style.transform = `translate(${offset.x}px, ${offset.y}px) scale(${zoom})`;
+    imageViewportRef.current.style.filter = `brightness(${brightness}%)`;
+  }, [offset, zoom, brightness]);
 
   const img = images[index];
 
@@ -46,17 +53,9 @@ export default function RadiologyImageViewer({ images = [], report }) {
 
         <div className="relative h-80 w-full overflow-hidden rounded-lg border border-(--ui-border) bg-(--color-neutral)">
           {img ? (
-            <Image
-              src={img}
-              alt="Radiology"
-              fill
-              sizes="(min-width: 1024px) 900px, 100vw"
-              style={{
-                transform: `translate(${offset.x}px, ${offset.y}px) scale(${zoom})`,
-                filter: `brightness(${brightness}%)`,
-              }}
-              className="object-contain select-none"
-              draggable={false}
+            <div
+              ref={imageViewportRef}
+              className="absolute inset-0 transition-transform duration-75"
               onMouseDown={(e) => {
                 const startX = e.clientX;
                 const startY = e.clientY;
@@ -73,7 +72,16 @@ export default function RadiologyImageViewer({ images = [], report }) {
                 window.addEventListener("mousemove", onMove);
                 window.addEventListener("mouseup", onUp);
               }}
-            />
+            >
+              <Image
+                src={img}
+                alt="Radiology"
+                fill
+                sizes="(min-width: 1024px) 900px, 100vw"
+                className="object-contain select-none"
+                draggable={false}
+              />
+            </div>
           ) : (
             <div className="flex h-full w-full items-center justify-center text-(--ui-muted-foreground)">
               لا توجد صور

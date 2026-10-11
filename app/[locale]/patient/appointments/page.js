@@ -17,6 +17,7 @@ import {
 import { useTranslations, useLocale } from "next-intl";
 import toLatin from "./toLatin";
 import { formatArabicDate } from "../../../lib/arabicMonths";
+import { Button, Card } from "../../../../src/components/ui";
 
 export default function PatientAppointmentsPage() {
   const router = useRouter();
@@ -294,9 +295,10 @@ export default function PatientAppointmentsPage() {
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {upcoming.map((a) => (
-              <div
+              <Card
                 key={a.id}
-                className="card-glass p-7 rounded-2xl shadow-lg flex flex-col gap-4 border border-(--ui-border)"
+                variant="interactive"
+                className="flex flex-col gap-4"
               >
                 <div className="flex justify-between items-center mb-2">
                   <span
@@ -363,22 +365,27 @@ export default function PatientAppointmentsPage() {
                     </span>
                   ) : (
                     <>
-                      <button
+                      <Button
                         onClick={() => confirmAppointment(a.id)}
-                        className="bg-(--ui-success) hover:bg-(--ui-success)/90 text-(--ui-success-foreground) px-6 py-2 rounded-lg flex items-center gap-2 text-lg font-bold shadow-sm transition"
+                        fullWidth={false}
+                        size="sm"
+                        className="px-6"
                       >
                         <FaCheckCircle /> {t("appointments.actions.confirm")}
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         onClick={() => openCancelModal(a.id)}
-                        className="bg-(--ui-danger) hover:bg-(--ui-danger)/90 text-(--ui-danger-foreground) px-6 py-2 rounded-lg flex items-center gap-2 text-lg font-bold shadow-sm transition"
+                        variant="danger"
+                        fullWidth={false}
+                        size="sm"
+                        className="px-6"
                       >
                         <FaTimesCircle /> {t("appointments.actions.cancel")}
-                      </button>
+                      </Button>
                     </>
                   )}
                 </div>
-              </div>
+              </Card>
             ))}
           </div>
         )}
@@ -394,9 +401,10 @@ export default function PatientAppointmentsPage() {
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {past.map((a) => (
-              <div
+              <Card
                 key={a.id}
-                className="card-glass p-7 rounded-2xl shadow-lg flex flex-col gap-4 border border-(--ui-border) opacity-80"
+                variant="interactive"
+                className="flex flex-col gap-4 opacity-80"
               >
                 <div className="flex justify-between items-center mb-2">
                   <span
@@ -455,7 +463,7 @@ export default function PatientAppointmentsPage() {
                     : {a.raw.patientReason}
                   </div>
                 )}
-              </div>
+              </Card>
             ))}
           </div>
         )}
@@ -464,10 +472,8 @@ export default function PatientAppointmentsPage() {
       {/* نافذة سبب الإلغاء */}
       {showCancelModal && (
         <div className="fixed inset-0 bg-(--color-neutral)/50 flex items-center justify-center z-50">
-          <form
-            onSubmit={handleCancelSubmit}
-            className="card-glass border border-(--ui-border) p-6 rounded-lg w-full max-w-md text-(--ui-foreground)"
-          >
+          <Card className="w-full max-w-md text-(--ui-foreground)">
+            <form onSubmit={handleCancelSubmit}>
             <h3 className="text-lg font-bold mb-4">
               {t("appointments.form.cancelReasonTitle")}
             </h3>
@@ -482,30 +488,35 @@ export default function PatientAppointmentsPage() {
               rows={3}
             />
             <div className="flex gap-2 justify-end">
-              <button
+              <Button
                 type="button"
                 onClick={() => setShowCancelModal(false)}
-                className="px-4 py-2 rounded border border-(--ui-border) bg-(--ui-surface-2) text-(--ui-foreground) hover:bg-(--ui-surface-2)/70"
+                variant="secondary"
+                fullWidth={false}
+                size="sm"
+                className="px-4"
               >
                 {t("appointments.form.cancel")}
-              </button>
-              <button
+              </Button>
+              <Button
                 type="submit"
-                className="px-4 py-2 rounded bg-(--ui-danger) text-(--ui-danger-foreground) hover:bg-(--ui-danger)/90"
+                variant="danger"
+                fullWidth={false}
+                size="sm"
+                className="px-4"
               >
                 {t("appointments.form.submit")}
-              </button>
+              </Button>
             </div>
-          </form>
+            </form>
+          </Card>
         </div>
       )}
 
       {showBookModal && (
         <div className="fixed inset-0 bg-(--color-neutral)/50 flex items-center justify-center z-50">
-          <form
-            onSubmit={createAppointment}
-            className="card-glass border border-(--ui-border) p-6 rounded-lg w-full max-w-md text-(--ui-foreground)"
-          >
+          <Card className="w-full max-w-md text-(--ui-foreground)">
+            <form onSubmit={createAppointment}>
             <h3 className="text-lg font-bold mb-4">{t("appointments.new")}</h3>
 
             <label className="block mb-2 text-sm text-(--ui-muted-foreground)">
@@ -584,21 +595,27 @@ export default function PatientAppointmentsPage() {
             />
 
             <div className="flex gap-2 justify-end">
-              <button
+              <Button
                 type="button"
                 onClick={() => setShowBookModal(false)}
-                className="px-4 py-2 rounded border border-(--ui-border) bg-(--ui-surface-2) text-(--ui-foreground) hover:bg-(--ui-surface-2)/70"
+                variant="secondary"
+                fullWidth={false}
+                size="sm"
+                className="px-4"
               >
                 {t("appointments.form.cancel")}
-              </button>
-              <button
+              </Button>
+              <Button
                 type="submit"
-                className="btn-gradient px-4 py-2 rounded text-white"
+                fullWidth={false}
+                size="sm"
+                className="px-4"
               >
                 {t("appointments.form.submit")}
-              </button>
+              </Button>
             </div>
-          </form>
+            </form>
+          </Card>
         </div>
       )}
     </>

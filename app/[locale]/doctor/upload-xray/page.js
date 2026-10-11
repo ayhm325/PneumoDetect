@@ -4,7 +4,7 @@ import UploadXRayPageContent from "../../../components/doctor/pages/UploadXRayPa
 export default function UploadXRayPage() {
   return (
     <DoctorLayout>
-      <div className="p-8 bg-(--ui-surface) text-(--ui-foreground) min-h-screen">
+      <div className="min-h-screen bg-[var(--ui-surface)] text-[var(--ui-foreground)]">
         <UploadXRayPageContent />
       </div>
     </DoctorLayout>

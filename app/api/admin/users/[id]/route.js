@@ -1,7 +1,8 @@
 import { withRBAC } from "../../../../../lib/auth/withRBAC.js";
-import prisma from "../../../../../lib/prismaClient";
 import { rateLimit } from "../../../../../lib/security/rateLimiter";
 import { logAudit } from "../../../../../lib/security/auditLogger";
+import { AppError } from "../../../../../src/lib/errors/appError";
+import { adminUserService } from "../../../../../src/services/admin";
 
 /**
  * DELETE /api/admin/users/[id]
@@ -45,7 +46,7 @@ export const DELETE = withRBAC(
  * - يعكس الحالة في جدول User وأيضاً في Doctor/Patient إذا كان مرتبط
  */
 export const PATCH = withRBAC(
-  async (request, user) => {
+  async (request, user, context) => {
     const rl = await rateLimit(request);
     if (rl.limited) {
       logAudit({
@@ -57,66 +58,31 @@ export const PATCH = withRBAC(
       return Response.json({ error: "Rate limit exceeded" }, { status: 429 });
     }
 
+    const resolvedParams =
+      typeof context?.params?.then === "function"
+        ? await context.params
+        : context?.params;
+    const id = String(resolvedParams?.id || "").trim();
+    if (!id) {
+      return Response.json({ error: "missing_user_id" }, { status: 400 });
+    }
+
     try {
-      // =========================
-      // استخراج معرف المستخدم من URL
-      // =========================
-      const url = new URL(request.url);
-      const id = url.pathname.split("/").pop();
-      if (!id) {
-        return Response.json({ error: "User ID required" }, { status: 400 });
+      const contentType = request.headers.get("content-type") || "";
+      if (!contentType.toLowerCase().includes("application/json")) {
+        return Response.json({ error: "invalid_content_type" }, { status: 400 });
       }
 
-      // =========================
-      // قراءة body لتحديد isActive
-      // =========================
-      const body = await request.json().catch(() => ({}));
-      let isActive = body.isActive;
-      if (typeof isActive === "undefined" && typeof body.status === "string") {
-        isActive = body.status === "active";
+      const body = await request.json().catch(() => null);
+      if (!body) {
+        return Response.json({ error: "invalid_json" }, { status: 400 });
       }
 
-      if (typeof isActive !== "boolean") {
-        return Response.json(
-          { error: "isActive (boolean) is required in body" },
-          { status: 400 }
-        );
-      }
-
-      // =========================
-      // التحقق من وجود Doctor/Patient مرتبط
-      // =========================
-      const doctor = await prisma.doctor.findUnique({ where: { userId: id } });
-      const patient = await prisma.patient.findUnique({ where: { userId: id } });
-
-      // =========================
-      // تحديث الجداول في معاملة واحدة لضمان الاتساق
-      // =========================
-      const updates = [];
-      updates.push(prisma.user.update({ where: { id }, data: { isActive } }));
-
-      if (doctor) {
-        // استخدم status enum للطبيب: active/banned
-        updates.push(
-          prisma.doctor.update({
-            where: { userId: id },
-            data: { status: isActive ? "active" : "banned" },
-          })
-        );
-      }
-
-      if (patient) {
-        // استخدم status enum للمريض: active/suspended
-        updates.push(
-          prisma.patient.update({
-            where: { userId: id },
-            data: { status: isActive ? "active" : "suspended" },
-          })
-        );
-      }
-
-      // تنفيذ التحديثات ضمن معاملة
-      await prisma.$transaction(updates);
+      const result = await adminUserService.toggleUserState({
+        id,
+        isActive: body?.isActive,
+        status: body?.status,
+      });
 
       // =========================
       // تسجيل النشاط
@@ -125,28 +91,30 @@ export const PATCH = withRBAC(
         event: "admin_user_toggled_active",
         userId: user.id,
         ip: request.headers.get("x-forwarded-for"),
-        details: { targetUserId: id, isActive },
+        details: {
+          targetUserId: id,
+          isActive:
+            typeof body?.isActive === "boolean"
+              ? body.isActive
+              : body?.status === "active",
+        },
       });
 
-      // =========================
-      // إعادة المستخدم بعد التحديث مع إخفاء كلمة المرور
-      // =========================
-      const updatedUser = await prisma.user.findUnique({
-        where: { id },
-        include: { doctor: true, patient: true },
-      });
-      const { password: _pw, ...safeUser } = updatedUser || {};
-
-      return Response.json({ success: true, user: safeUser });
+      return Response.json(result);
     } catch (error) {
       logAudit({
         event: "admin_user_toggle_error",
         userId: user.id,
         ip: request.headers.get("x-forwarded-for"),
-        details: { error: error.message },
+        details: { error: error instanceof Error ? error.message : String(error) },
       });
+
+      if (error instanceof AppError) {
+        return Response.json({ error: error.message }, { status: error.statusCode });
+      }
+
       return Response.json({ error: "Internal error" }, { status: 500 });
     }
   },
-  ["admin"]
+  ["admin"],
 );

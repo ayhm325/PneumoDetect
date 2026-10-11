@@ -15,6 +15,7 @@ import {
 } from "react-icons/fa";
 import { useTranslations } from "next-intl";
 import useLocale from "../../../hooks/useLocale";
+import { Button, Card } from "../../../../src/components/ui";
 
 export default function DoctorSettingsPage() {
   const { showSuccess, showError, showInfo, showWarning } = useToast();
@@ -164,7 +165,7 @@ export default function DoctorSettingsPage() {
           </div>
 
           {/* Profile Settings */}
-          <div className="card-glass rounded-xl p-8 shadow-(--shadow-soft) border border-(--ui-border)">
+          <Card size="lg">
             <div className="mb-6 flex items-center gap-3">
               <FaUserMd className="text-2xl text-(--ui-info)" />
               <h2 className="text-2xl font-bold text-(--ui-foreground)">
@@ -244,17 +245,19 @@ export default function DoctorSettingsPage() {
               </div>
             </div>
 
-            <button
+            <Button
               onClick={handleSaveProfile}
-              className="mt-6 flex items-center gap-2 rounded-lg btn-gradient px-6 py-3 font-medium text-white transition-all focus:outline-none focus:ring-2 focus:ring-(--ui-ring)/30"
+              fullWidth={false}
+              size="sm"
+              className="mt-6 flex items-center gap-2 px-6"
             >
               <FaSave />
               {t("profile.save")}
-            </button>
-          </div>
+            </Button>
+          </Card>
 
           {/* Security Settings */}
-          <div className="card-glass rounded-xl p-8 shadow-(--shadow-soft) border border-(--ui-border)">
+          <Card size="lg">
             <div className="mb-6 flex items-center gap-3">
               <FaLock className="text-2xl text-(--ui-info)" />
               <h2 className="text-2xl font-bold text-(--ui-foreground)">
@@ -360,14 +363,16 @@ export default function DoctorSettingsPage() {
               </div>
             </div>
 
-            <button
+            <Button
               onClick={handleChangePassword}
-              className="mt-6 flex items-center gap-2 rounded-lg btn-gradient px-6 py-3 font-medium text-white transition-all focus:outline-none focus:ring-2 focus:ring-(--ui-ring)/30"
+              fullWidth={false}
+              size="sm"
+              className="mt-6 flex items-center gap-2 px-6"
             >
               <FaLock />
               {t("change_password")}
-            </button>
-          </div>
+            </Button>
+          </Card>
         </div>
       </div>
     </DoctorLayout>

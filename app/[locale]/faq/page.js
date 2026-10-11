@@ -72,8 +72,7 @@ export default async function FAQPage(props) {
           {faqs.map((category, catIdx) => (
             <div
               key={catIdx}
-              className="animate-slideUp"
-              style={{ animationDelay: `${catIdx * 0.1}s` }}
+              className={`animate-slideUp delay-[${catIdx * 100}ms]`}
             >
               <h2 className="text-3xl font-bold mb-6 text-(--ui-foreground) flex items-center gap-3">
                 <span className="w-2 h-8 bg-(--ui-ring) rounded-full opacity-80"></span>

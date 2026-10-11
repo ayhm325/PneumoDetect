@@ -8,11 +8,11 @@
  *  - يسجل جميع العمليات في Audit Log
  */
 
-import prisma from "../../../../lib/prismaClient";
 import { withRBAC } from "../../../../lib/auth/withRBAC";
 import { rateLimit } from "../../../../lib/security/rateLimiter";
 import { logAudit } from "../../../../lib/security/auditLogger";
-import { serializeLocalizedMessage } from "../../../../lib/notifications";
+import { AppError } from "../../../../src/lib/errors/appError";
+import { adminMonitoringService } from "../../../../src/services/admin";
 
 /**
  * Handler POST
@@ -46,113 +46,26 @@ export const POST = withRBAC(
     }
 
     try {
+      const contentType = request.headers.get("content-type") || "";
+      if (!contentType.toLowerCase().includes("application/json")) {
+        return Response.json({ error: "invalid_content_type" }, { status: 400 });
+      }
+
       /**
        * =========================
        * 2) قراءة وتحليل Body
        * =========================
        */
-      const body = await request.json();
-
-      /**
-       * الأدوار المستهدفة:
-       * - إذا تم إرسال roles صحيحة وغير فارغة نستخدمها
-       * - غير ذلك الافتراضي: patient + doctor
-       */
-      const roles =
-        Array.isArray(body?.roles) && body.roles.length > 0
-          ? body.roles
-          : ["patient", "doctor"];
-
-      /**
-       * نوع الإشعار (info / warning / ... إلخ)
-       * القيمة الافتراضية: info
-       */
-      const type = body?.type || "info";
-
-      /**
-       * محتوى الرسالة:
-       * - إما نص string
-       * - أو كائن يحتوي لغات متعددة
-       */
-      const message = body?.message;
-
-      /**
-       * =========================
-       * 3) التحقق من صحة البيانات
-       * =========================
-       */
-      if (
-        !message ||
-        (typeof message !== "string" && typeof message !== "object")
-      ) {
-        return Response.json(
-          { error: "missing_message" },
-          { status: 400 },
-        );
+      const body = await request.json().catch(() => null);
+      if (!body) {
+        return Response.json({ error: "invalid_json" }, { status: 400 });
       }
 
-      /**
-       * =========================
-       * 4) جلب المستخدمين المستهدفين
-       * =========================
-       * - حسب الأدوار
-       * - تجاهل الحسابات المحذوفة
-       */
-      const users = await prisma.user.findMany({
-        where: {
-          role: { in: roles },
-          isDeleted: false,
-        },
-        select: {
-          id: true, // نحتاج فقط ID
-        },
+      const result = await adminMonitoringService.broadcastAnnouncement({
+        roles: body?.roles,
+        type: body?.type,
+        message: body?.message,
       });
-
-      /**
-       * =========================
-       * 5) تجهيز الرسالة متعددة اللغات
-       * =========================
-       * - إذا كانت String: نستخدمها لكل اللغات
-       * - إذا كانت Object: نمررها كما هي
-       * - نضيف meta لتحديد نوع الإشعار
-       */
-      const serializedMessage = serializeLocalizedMessage({
-        ...(typeof message === "string"
-          ? { ar: message, en: message }
-          : message),
-        meta: {
-          kind: "admin_announcement",
-        },
-      });
-
-      /**
-       * =========================
-       * 6) إدخال الإشعارات على دفعات
-       * =========================
-       * لتجنب:
-       * - ضغط على قاعدة البيانات
-       * - تجاوز حدود createMany
-       */
-      const CHUNK_SIZE = 500;
-      let created = 0;
-
-      for (let i = 0; i < users.length; i += CHUNK_SIZE) {
-        const chunk = users.slice(i, i + CHUNK_SIZE);
-
-        const data = chunk.map((u) => ({
-          userId: u.id,
-          type,
-          message: serializedMessage,
-          isRead: false,
-          isDeleted: false,
-        }));
-
-        const result = await prisma.notification.createMany({
-          data,
-        });
-
-        created += result?.count || 0;
-      }
 
       /**
        * =========================
@@ -164,14 +77,14 @@ export const POST = withRBAC(
         userId: user.id,
         ip: request.headers.get("x-forwarded-for"),
         details: {
-          roles,
-          created,
+          roles: result.roles,
+          created: result.created,
         },
       });
 
       return Response.json({
-        success: true,
-        created,
+        success: result.success,
+        created: result.created,
       });
     } catch (error) {
       /**
@@ -184,9 +97,13 @@ export const POST = withRBAC(
         userId: user?.id,
         ip: request.headers.get("x-forwarded-for"),
         details: {
-          error: error?.message,
+          error: error instanceof Error ? error.message : String(error),
         },
       });
+
+      if (error instanceof AppError) {
+        return Response.json({ error: error.message }, { status: error.statusCode });
+      }
 
       return Response.json(
         { error: "server_error" },

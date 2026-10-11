@@ -24,6 +24,7 @@ import {
 } from "react-icons/fa";
 import { useLocale, useTranslations } from "next-intl";
 import { formatDate } from "../../../lib/date";
+import { Button, Card } from "../../../../src/components/ui";
 
 // You may need to get locale and labels from props or context, adjust as needed
 export default function DoctorPatientsPage({ locale }) {
@@ -245,7 +246,7 @@ export default function DoctorPatientsPage({ locale }) {
 
           {/* Stats Cards */}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="card-glass rounded-xl p-6">
+            <Card size="sm">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-(--ui-muted-foreground)">
@@ -257,9 +258,9 @@ export default function DoctorPatientsPage({ locale }) {
                 </div>
                 <FaUsers className="text-3xl text-(--ui-info)" />
               </div>
-            </div>
+            </Card>
 
-            <div className="card-glass rounded-xl p-6">
+            <Card size="sm">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-(--ui-muted-foreground)">
@@ -271,9 +272,9 @@ export default function DoctorPatientsPage({ locale }) {
                 </div>
                 <FaCheckCircle className="text-3xl text-(--ui-success)" />
               </div>
-            </div>
+            </Card>
 
-            <div className="card-glass rounded-xl p-6">
+            <Card size="sm">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-(--ui-muted-foreground)">
@@ -285,9 +286,9 @@ export default function DoctorPatientsPage({ locale }) {
                 </div>
                 <FaExclamationTriangle className="text-3xl text-(--ui-danger)" />
               </div>
-            </div>
+            </Card>
 
-            <div className="card-glass rounded-xl p-6">
+            <Card size="sm">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-(--ui-muted-foreground)">
@@ -299,11 +300,11 @@ export default function DoctorPatientsPage({ locale }) {
                 </div>
                 <FaClock className="text-3xl text-(--ui-warning)" />
               </div>
-            </div>
+            </Card>
           </div>
 
           {/* Filters */}
-          <div className="card-glass rounded-xl p-6">
+          <Card>
             <div className="flex flex-wrap items-center gap-4">
               {/* Search */}
               <div className="flex-1 min-w-62.5">
@@ -334,14 +335,15 @@ export default function DoctorPatientsPage({ locale }) {
                 </select>
               </div>
             </div>
-          </div>
+          </Card>
 
           {/* Patients Grid */}
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {filteredPatients.map((patient) => (
-              <div
+              <Card
                 key={patient.id}
-                className="group card-glass rounded-xl p-6 transition-all hover:shadow-2xl"
+                variant="interactive"
+                className="group"
               >
                 {/* Header */}
                 <div className="mb-4 flex items-start justify-between">
@@ -432,39 +434,45 @@ export default function DoctorPatientsPage({ locale }) {
 
                 {/* Actions */}
                 <div className="flex gap-2">
-                  <button
+                  <Button
                     onClick={() => handleViewDetails(patient)}
-                    className="btn-gradient flex-1 flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium"
+                    size="sm"
+                    className="flex items-center justify-center gap-2"
                   >
                     <FaEye />
                     {t("actions.view")}
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={() => handleViewResults(patient)}
-                    className="flex items-center justify-center rounded-lg bg-(--ui-surface-2) border border-(--ui-border) px-3 py-2 text-(--ui-foreground) transition-all hover:opacity-90"
+                    variant="secondary"
+                    fullWidth={false}
+                    size="sm"
+                    className="px-3"
                     title={t("actions.results")}
                   >
                     <FaFileAlt />
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={() => handleStartChat(patient)}
-                    className="flex items-center justify-center rounded-lg bg-(--ui-success) px-3 py-2 text-white transition-all hover:opacity-90"
+                    fullWidth={false}
+                    size="sm"
+                    className="px-3"
                     title={t("actions.chat")}
                   >
                     <FaComments />
-                  </button>
+                  </Button>
                 </div>
-              </div>
+              </Card>
             ))}
           </div>
 
           {filteredPatients.length === 0 && (
-            <div className="card-glass rounded-xl p-12 text-center">
+            <Card className="p-12 text-center">
               <FaUsers className="mx-auto mb-4 text-5xl text-(--ui-muted-foreground) opacity-50" />
               <p className="text-lg text-(--ui-muted-foreground)">
                 {t("emptyState")}
               </p>
-            </div>
+            </Card>
           )}
         </div>
       </div>

@@ -5,6 +5,7 @@ import { createNavigation } from "next-intl/navigation";
 const { useRouter, usePathname } = createNavigation();
 import { useLocale, useTranslations } from "next-intl";
 import { useTheme } from "../theme-provider";
+import { Button, Card } from "../../src/components/ui";
 
 /* =======================
    Theme Toggle Button
@@ -15,9 +16,12 @@ function ThemeToggleButton() {
   const t = useTranslations("navbar");
 
   return (
-    <button
+    <Button
       onClick={() => setTheme(isDark ? "light" : "dark")}
-      className="group relative p-2.5 rounded-full bg-(--ui-surface-2) border border-(--ui-border) hover:scale-110 transition-all shadow"
+      variant="ghost"
+      fullWidth={false}
+      size="sm"
+      className="h-10 w-10 rounded-full p-0"
       aria-label={
         isDark ? t("theme.switchToLightAria") : t("theme.switchToDarkAria")
       }
@@ -62,7 +66,7 @@ function ThemeToggleButton() {
           <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
         </svg>
       )}
-    </button>
+    </Button>
   );
 }
 
@@ -91,32 +95,8 @@ export default function Navbar() {
   }
 
   return (
-    <>
-      <style
-        dangerouslySetInnerHTML={{
-          __html: `
-        @keyframes float {
-          0% { transform: translate(0px, 0px) scale(1); }
-          33% { transform: translate(30px, -50px) scale(1.1); }
-          66% { transform: translate(-20px, 20px) scale(0.9); }
-          100% { transform: translate(0px, 0px) scale(1); }
-        }
-        @keyframes float-delayed {
-          0% { transform: translate(0px, 0px) scale(1); }
-          33% { transform: translate(-30px, 50px) scale(0.9); }
-          66% { transform: translate(20px, -20px) scale(1.1); }
-          100% { transform: translate(0px, 0px) scale(1); }
-        }
-        .animate-float {
-          animation: float 20s infinite ease-in-out;
-        }
-        .animate-float-delayed {
-          animation: float-delayed 25s infinite ease-in-out;
-        }
-      `,
-        }}
-      />
-      <nav className="w-full flex items-center justify-between py-2 px-4 lg:px-12 relative z-50 overflow-hidden text-(--ui-foreground)">
+    <nav className="relative z-50 overflow-hidden px-4 py-3 text-(--ui-foreground) lg:px-8">
+      <Card size="sm" className="relative flex items-center justify-between gap-3 py-2">
         {/* خلفية التدرج المتحركة الجديدة (Mesh Gradient) */}
         <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none opacity-60">
           {/* الخلفية الأساسية */}
@@ -180,17 +160,19 @@ export default function Navbar() {
         </a>
 
         {/* عناصر التحكم (الوضع الليلي وتبديل اللغة) */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <ThemeToggleButton />
-          <button
+          <Button
             onClick={handleSwitchLocale}
-            className="px-5 py-2.5 rounded-full font-bold btn-gradient hover:scale-105 transition"
+            fullWidth={false}
+            size="sm"
+            className="rounded-full px-5"
             aria-label={t("langSwitchAria")}
           >
             {t("langSwitch")}
-          </button>
+          </Button>
         </div>
-      </nav>
-    </>
+      </Card>
+    </nav>
   );
 }

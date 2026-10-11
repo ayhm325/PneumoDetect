@@ -9,22 +9,20 @@ import { useTranslations } from "next-intl";
 function ConfidenceBar({ confidence = 0, label, labelTitle }) {
   const pct = Math.round(Number(confidence) * 100 || 0);
 
-  const gradient =
+  const progressTone =
     pct >= 75
-      ? "from-(--ui-success) to-(--ui-ring)"
+      ? "[&::-webkit-progress-value]:bg-(--ui-success) [&::-moz-progress-bar]:bg-(--ui-success)"
       : pct >= 50
-        ? "from-(--ui-warning) to-(--ui-ring)"
-        : "from-(--ui-danger) to-(--ui-ring)";
+        ? "[&::-webkit-progress-value]:bg-(--ui-warning) [&::-moz-progress-bar]:bg-(--ui-warning)"
+        : "[&::-webkit-progress-value]:bg-(--ui-danger) [&::-moz-progress-bar]:bg-(--ui-danger)";
 
   return (
     <div>
-      <div className="w-full bg-(--ui-surface-2)/40 rounded-full h-4 overflow-hidden shadow-inner border border-(--ui-border)">
-        <div
-          className={`h-4 rounded-full bg-linear-to-r ${gradient} transition-all duration-700 ease-out shadow-(--shadow-soft)`}
-          style={{ width: `${pct}%` }}
-          aria-hidden
-        />
-      </div>
+      <progress
+        value={pct}
+        max={100}
+        className={`h-4 w-full overflow-hidden rounded-full border border-(--ui-border) bg-(--ui-surface-2)/40 shadow-inner [&::-webkit-progress-bar]:bg-(--ui-surface-2)/40 [&::-webkit-progress-value]:rounded-full ${progressTone}`}
+      />
       <div className="mt-2 flex items-center justify-between text-sm text-(--ui-muted-foreground)">
         <span className="font-medium text-(--ui-foreground)">{pct}%</span>
         <span className="text-(--ui-muted-foreground)" title={labelTitle}>
@@ -280,10 +278,7 @@ export default function AnalysisPage() {
             <div className="rounded-3xl overflow-hidden card-glass transition-transform duration-300 hover:scale-[1.01]">
               <div className="p-4">
                 {previewUrl ? (
-                  <div
-                    className="relative w-full hover:scale-105 transition-transform duration-300"
-                    style={{ paddingBottom: "75%" }}
-                  >
+                  <div className="relative w-full pb-[75%] transition-transform duration-300 hover:scale-105">
                     <Image
                       src={previewUrl}
                       alt={t("analysis.preview.alt")}
@@ -321,14 +316,11 @@ export default function AnalysisPage() {
             {/* شريط التقدم عند التحميل */}
             {uploadProgress !== null && (
               <div className="mt-4">
-                <div className="relative w-full h-10 bg-(--ui-surface-2)/40 rounded-2xl overflow-hidden border border-(--ui-border)">
-                  <div
-                    className="absolute top-0 left-0 h-full bg-linear-to-r from-(--ui-success) via-(--ui-warning) to-(--ui-danger) transition-all duration-500"
-                    style={{ width: `${uploadProgress}%` }}
-                    role="progressbar"
-                    aria-valuenow={uploadProgress}
-                    aria-valuemin={0}
-                    aria-valuemax={100}
+                <div className="relative w-full h-10 rounded-2xl overflow-hidden border border-(--ui-border) bg-(--ui-surface-2)/40">
+                  <progress
+                    value={uploadProgress}
+                    max={100}
+                    className="absolute inset-0 h-full w-full appearance-none [&::-webkit-progress-bar]:bg-(--ui-surface-2)/40 [&::-webkit-progress-value]:bg-linear-to-r [&::-webkit-progress-value]:from-(--ui-success) [&::-webkit-progress-value]:via-(--ui-warning) [&::-webkit-progress-value]:to-(--ui-danger) [&::-moz-progress-bar]:bg-(--ui-success)"
                   />
                   <div className="absolute inset-0 flex items-center justify-center text-sm font-semibold text-(--ui-foreground) drop-shadow-sm">
                     {uploadProgress}% • {formatMB(uploadLoaded)} MB / {formatMB(uploadTotal)} MB{" "}
@@ -354,10 +346,9 @@ export default function AnalysisPage() {
                   <button
                     type="button"
                     onClick={() => setShowModal(true)}
-                    style={{ border: "none", padding: 0, background: "transparent" }}
-                    className="block w-full"
+                    className="block w-full border-0 bg-transparent p-0"
                   >
-                    <div className="relative" style={{ paddingBottom: "75%" }}>
+                    <div className="relative pb-[75%]">
                       <Image
                         src={analysisResult.heatmap_url ?? analysisResult.heatmapUrl}
                         alt={t("analysis.results.heatmap")}

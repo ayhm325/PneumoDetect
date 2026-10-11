@@ -4,27 +4,8 @@
 import { withRBAC } from "../../../../lib/auth/withRBAC";
 import { rateLimit } from "../../../../lib/security/rateLimiter";
 import { logAudit } from "../../../../lib/security/auditLogger";
-import fs from "fs/promises";
-import path from "path";
-
-// مسار ملف الإعدادات
-const SETTINGS_FILE = path.resolve(process.cwd(), "data", "settings.json");
-
-// دالة قراءة الإعدادات من ملف JSON
-async function readSettings() {
-  try {
-    const raw = await fs.readFile(SETTINGS_FILE, "utf-8");
-    return JSON.parse(raw);
-  } catch (e) {
-    return null; // إعادة null إذا لم يوجد الملف أو حدث خطأ
-  }
-}
-
-// دالة كتابة الإعدادات إلى ملف JSON
-async function writeSettings(obj) {
-  await fs.mkdir(path.dirname(SETTINGS_FILE), { recursive: true });
-  await fs.writeFile(SETTINGS_FILE, JSON.stringify(obj, null, 2), "utf-8");
-}
+import { AppError } from "../../../../src/lib/errors/appError";
+import { adminSettingsService } from "../../../../src/services/admin";
 
 /////////////////////////
 // GET /api/admin/settings
@@ -36,19 +17,25 @@ export const GET = withRBAC(
     if (rl.limited)
       return Response.json({ error: "Rate limit exceeded" }, { status: 429 });
 
-    const settings = await readSettings();
-    if (!settings)
-      return Response.json({ error: "Settings not found" }, { status: 404 });
+    try {
+      const result = await adminSettingsService.getSettings();
 
-    logAudit({
-      event: "admin_settings_read",
-      userId: user.id,
-      ip: request.headers.get("x-forwarded-for"),
-    });
+      logAudit({
+        event: "admin_settings_read",
+        userId: user.id,
+        ip: request.headers.get("x-forwarded-for"),
+      });
 
-    return Response.json({ settings });
+      return Response.json(result);
+    } catch (error) {
+      if (error instanceof AppError) {
+        return Response.json({ error: error.message }, { status: error.statusCode });
+      }
+
+      return Response.json({ error: "Failed to load settings" }, { status: 500 });
+    }
   },
-  ["admin"]
+  ["admin"],
 );
 
 /////////////////////////
@@ -62,53 +49,43 @@ export const PATCH = withRBAC(
       return Response.json({ error: "Rate limit exceeded" }, { status: 429 });
 
     try {
-      const body = await request.json();
-
-      // تحديد المفاتيح المسموح تعديلها فقط
-      const allowedKeys = [
-        "systemName",
-        "defaultLanguage",
-        "registrationEnabled",
-        "allowPatientChangeDoctor",
-        "maxDoctorChangeRequests",
-        "appointmentInterval",
-        "rolePermissions",
-        "sessionDuration",
-        "enableTwoFactor",
-      ];
-
-      const current = (await readSettings()) || {};
-      const updated = { ...current };
-
-      for (const key of allowedKeys) {
-        if (Object.prototype.hasOwnProperty.call(body, key)) {
-          updated[key] = body[key];
-        }
+      const contentType = request.headers.get("content-type") || "";
+      if (!contentType.toLowerCase().includes("application/json")) {
+        return Response.json({ error: "invalid_content_type" }, { status: 400 });
       }
 
-      // حفظ التعديلات في الملف
-      await writeSettings(updated);
+      const body = await request.json().catch(() => null);
+      if (!body) {
+        return Response.json({ error: "invalid_json" }, { status: 400 });
+      }
+
+      const result = await adminSettingsService.updateSettings({ patch: body || {} });
 
       logAudit({
         event: "admin_settings_updated",
         userId: user.id,
         ip: request.headers.get("x-forwarded-for"),
-        details: { updatedKeys: Object.keys(body) },
+        details: { updatedKeys: result.updatedKeys },
       });
 
-      return Response.json({ success: true, settings: updated });
+      return Response.json({ success: result.success, settings: result.settings });
     } catch (error) {
       logAudit({
         event: "admin_settings_update_error",
         userId: user.id,
         ip: request.headers.get("x-forwarded-for"),
-        details: { error: error.message },
+        details: { error: error instanceof Error ? error.message : String(error) },
       });
+
+      if (error instanceof AppError) {
+        return Response.json({ error: error.message }, { status: error.statusCode });
+      }
+
       return Response.json(
         { error: "Failed to update settings" },
-        { status: 500 }
+        { status: 500 },
       );
     }
   },
-  ["admin"]
+  ["admin"],
 );

@@ -15,12 +15,7 @@ export default function ChatAttachments({ attachments, onAttach }) {
     <div className={styles.attachments}>
       <label className={styles.uploadLabel}>
         {t("actions.attachment")}
-        <input
-          type="file"
-          multiple
-          onChange={handleFileChange}
-          style={{ display: "none" }}
-        />
+        <input type="file" multiple onChange={handleFileChange} className="hidden" />
       </label>
       <div className={styles.filesList}>
         {attachments.map((file, idx) => (

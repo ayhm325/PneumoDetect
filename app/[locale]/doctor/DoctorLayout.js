@@ -84,7 +84,7 @@ export default function DoctorLayout({
     {
       href: `${basePrefix}/doctor/settings`,
       label: t("settings"),
-      icon: <FaUserAlt style={{ color: "#2b6cb0" }} />,
+      icon: <FaUserAlt className="text-(--ui-info)" />,
     },
     { href: "__logout__", label: t("logout"), icon: "🚪" },
   ];

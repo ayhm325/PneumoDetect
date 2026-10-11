@@ -2,6 +2,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
+import { Card } from "../../src/components/ui";
 
 export default function Footer() {
   const locale = useLocale();
@@ -22,30 +23,17 @@ export default function Footer() {
   const supportLinks = (t.raw && t.raw("supportLinks")) || [];
 
   return (
-    <footer className="relative w-full glass-blue-glassmorph text-(--ui-foreground) overflow-hidden border-t border-(--ui-border)" style={{backgroundColor: 'rgba(255,255,255,0.65)', WebkitBackdropFilter: 'blur(18px) saturate(140%)', backdropFilter: 'blur(18px) saturate(140%)'}}>
+    <footer className="relative w-full text-(--ui-foreground) overflow-hidden border-t border-(--ui-border) bg-(--ui-surface)">
       {/*  الخلفية    */}
       <div className="absolute top-0 left-0 w-full h-1 brand-gradient" />
 
       {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-5">
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage: `
-              linear-gradient(45deg, color-mix(in srgb, var(--ui-ring) 18%, transparent) 25%, transparent 25%),
-              linear-gradient(-45deg, color-mix(in srgb, var(--ui-info) 18%, transparent) 25%, transparent 25%),
-              linear-gradient(45deg, transparent 75%, color-mix(in srgb, var(--ui-ring) 18%, transparent) 75%),
-              linear-gradient(-45deg, transparent 75%, color-mix(in srgb, var(--ui-info) 18%, transparent) 75%)
-            `,
-            backgroundSize: "40px 40px",
-          }}
-        />
-      </div>
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_15%,var(--ui-accent-glow),transparent_35%),radial-gradient(circle_at_85%_80%,color-mix(in_srgb,var(--color-secondary-500)_24%,transparent),transparent_35%)] opacity-40" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="py-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Brand Section */}
-          <div className="space-y-4">
+          <Card size="sm" className="space-y-4">
             <Link
               href={homeHref}
               className="inline-flex items-center gap-3 group"
@@ -94,21 +82,21 @@ export default function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={social.label}
-                  className="w-24 h-24 rounded-md bg-transparent hover:bg-(--ui-surface) flex items-center justify-center transform hover:scale-105 transition-all duration-200"
+                  className="ui-future-chip flex h-12 w-12 items-center justify-center rounded-lg transition-all duration-200 hover:scale-105"
                 >
                   <Image
                     src={social.src}
                     alt={social.label}
-                    width={48}
-                    height={48}
+                    width={22}
+                    height={22}
                   />
                 </a>
               ))}
             </div>
-          </div>
+          </Card>
 
           {/* Quick Links */}
-          <div>
+          <Card size="sm">
             <h3 className="text-lg font-bold mb-4 text-(--ui-foreground)">
               {t("quickLinksHeading")}
             </h3>
@@ -125,10 +113,10 @@ export default function Footer() {
                 </li>
               ))}
             </ul>
-          </div>
+          </Card>
 
           {/* Support Links */}
-          <div>
+          <Card size="sm">
             <h3 className="text-lg font-bold mb-4 text-(--ui-foreground)">
               {t("supportHeading")}
             </h3>
@@ -145,10 +133,10 @@ export default function Footer() {
                 </li>
               ))}
             </ul>
-          </div>
+          </Card>
 
           {/* Contact Info */}
-          <div>
+          <Card size="sm">
             <h3 className="text-lg font-bold mb-4 text-(--ui-foreground)">
               {t("contactHeading")}
             </h3>
@@ -192,7 +180,7 @@ export default function Footer() {
                 </div>
               </li>
             </ul>
-          </div>
+          </Card>
         </div>
 
         {/* Bottom Bar */}

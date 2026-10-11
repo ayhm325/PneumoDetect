@@ -21,6 +21,7 @@ import {
 } from "react-icons/fa";
 import { formatDateTimeForLocale } from "../../../../lib/notifications";
 import { useLocale, useTranslations } from "next-intl";
+import { Button, Card } from "../../../../src/components/ui";
 
 export default function DoctorAppointmentsPage() {
   const { showSuccess, showError, showInfo, showWarning } = useToast();
@@ -291,21 +292,23 @@ export default function DoctorAppointmentsPage() {
               </p>
             </div>
 
-            <button
+            <Button
               onClick={() => {
                 setShowAddModal(true);
                 showInfo(t("toast.addSoon"));
               }}
-              className="flex items-center gap-2 rounded-lg btn-gradient px-4 py-2 font-bold text-white transition-all focus:outline-none focus:ring-2 focus:ring-(--ui-ring)/40"
+              fullWidth={false}
+              size="sm"
+              className="flex items-center gap-2 px-4"
             >
               <FaPlus />
               {t("addButton")}
-            </button>
+            </Button>
           </div>
 
           {/* Stats Cards */}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="rounded-xl card-glass p-6 shadow-(--shadow-soft) border border-(--ui-border)">
+            <Card size="sm">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-(--ui-muted-foreground)">
@@ -317,9 +320,9 @@ export default function DoctorAppointmentsPage() {
                 </div>
                 <FaCalendarAlt className="text-3xl text-(--ui-info)" />
               </div>
-            </div>
+            </Card>
 
-            <div className="rounded-xl card-glass p-6 shadow-(--shadow-soft) border border-(--ui-border)">
+            <Card size="sm">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-(--ui-muted-foreground)">
@@ -331,9 +334,9 @@ export default function DoctorAppointmentsPage() {
                 </div>
                 <FaCheckCircle className="text-3xl text-(--ui-success)" />
               </div>
-            </div>
+            </Card>
 
-            <div className="rounded-xl card-glass p-6 shadow-(--shadow-soft) border border-(--ui-border)">
+            <Card size="sm">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-(--ui-muted-foreground)">
@@ -345,9 +348,9 @@ export default function DoctorAppointmentsPage() {
                 </div>
                 <FaHourglassHalf className="text-3xl text-(--ui-warning)" />
               </div>
-            </div>
+            </Card>
 
-            <div className="rounded-xl card-glass p-6 shadow-(--shadow-soft) border border-(--ui-border)">
+            <Card size="sm">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-(--ui-muted-foreground)">
@@ -359,11 +362,11 @@ export default function DoctorAppointmentsPage() {
                 </div>
                 <FaTimesCircle className="text-3xl text-(--ui-danger)" />
               </div>
-            </div>
+            </Card>
           </div>
 
           {/* Filters and Search */}
-          <div className="rounded-xl card-glass p-6 shadow-(--shadow-soft) border border-(--ui-border)">
+          <Card>
             <div className="flex flex-wrap items-center gap-4">
               {/* Search */}
               <div className="flex-1 min-w-62.5">
@@ -394,22 +397,22 @@ export default function DoctorAppointmentsPage() {
                 </select>
               </div>
             </div>
-          </div>
+          </Card>
 
           {/* Appointments List */}
           <div className="space-y-4">
             {filteredAppointments.length === 0 ? (
-              <div className="rounded-xl card-glass p-12 text-center shadow-(--shadow-soft) border border-(--ui-border)">
+              <Card className="p-12 text-center">
                 <FaCalendarAlt className="mx-auto mb-4 text-5xl text-(--ui-muted-foreground)" />
                 <p className="text-lg text-(--ui-muted-foreground)">
                   {t("emptyState")}
                 </p>
-              </div>
+              </Card>
             ) : (
               filteredAppointments.map((apt) => (
-                <div
+                <Card
                   key={apt.id}
-                  className="rounded-xl card-glass p-6 shadow-(--shadow-soft) border border-(--ui-border) transition-all hover:shadow-(--shadow-lift)"
+                  variant="interactive"
                 >
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     {/* Left Section */}
@@ -482,33 +485,41 @@ export default function DoctorAppointmentsPage() {
                     {/* Right Section - Actions */}
                     <div className="flex gap-2">
                       {apt.status === "pending" && (
-                        <button
+                        <Button
                           onClick={() => handleConfirm(apt.id)}
-                          className="flex items-center gap-2 rounded-lg bg-(--ui-success) px-4 py-2 text-sm font-bold text-(--ui-success-foreground) transition-all hover:bg-(--ui-success)/90 focus:outline-none focus:ring-2 focus:ring-(--ui-ring)/40"
+                          fullWidth={false}
+                          size="sm"
+                          className="flex items-center gap-2 px-4"
                         >
                           <FaCheckCircle />
                           {t("actions.confirm")}
-                        </button>
+                        </Button>
                       )}
                       {apt.status !== "cancelled" && (
-                        <button
+                        <Button
                           onClick={() => handleCancel(apt.id)}
-                          className="flex items-center gap-2 rounded-lg bg-(--ui-warning) px-4 py-2 text-sm font-bold text-(--ui-warning-foreground) transition-all hover:bg-(--ui-warning)/90 focus:outline-none focus:ring-2 focus:ring-(--ui-ring)/40"
+                          variant="secondary"
+                          fullWidth={false}
+                          size="sm"
+                          className="flex items-center gap-2 px-4"
                         >
                           <FaTimesCircle />
                           {t("actions.cancel")}
-                        </button>
+                        </Button>
                       )}
-                      <button
+                      <Button
                         onClick={() => handleDelete(apt.id)}
-                        className="flex items-center gap-2 rounded-lg bg-(--ui-danger) px-4 py-2 text-sm font-bold text-(--ui-danger-foreground) transition-all hover:bg-(--ui-danger)/90 focus:outline-none focus:ring-2 focus:ring-(--ui-ring)/40"
+                        variant="danger"
+                        fullWidth={false}
+                        size="sm"
+                        className="flex items-center gap-2 px-4"
                       >
                         <FaTrash />
                         {t("actions.delete")}
-                      </button>
+                      </Button>
                     </div>
                   </div>
-                </div>
+                </Card>
               ))
             )}
           </div>
@@ -517,10 +528,8 @@ export default function DoctorAppointmentsPage() {
 
       {showAddModal && (
         <div className="fixed inset-0 bg-(--color-neutral)/50 flex items-center justify-center z-50 p-4">
-          <form
-            onSubmit={createAppointment}
-            className="card-glass border border-(--ui-border) p-6 rounded-lg w-full max-w-md text-(--ui-foreground)"
-          >
+          <Card className="w-full max-w-md text-(--ui-foreground)">
+            <form onSubmit={createAppointment}>
             <h3 className="text-lg font-bold mb-4">{t("addButton")}</h3>
 
             <label className="block mb-2 text-sm">{t("patient")}</label>
@@ -596,21 +605,27 @@ export default function DoctorAppointmentsPage() {
             {/* phone removed from booking form */}
 
             <div className="flex gap-2 justify-end">
-              <button
+              <Button
                 type="button"
                 onClick={() => setShowAddModal(false)}
-                className="px-4 py-2 rounded border border-(--ui-border) bg-(--ui-surface-2) text-(--ui-foreground) hover:bg-(--ui-surface-2)/70"
+                variant="secondary"
+                fullWidth={false}
+                size="sm"
+                className="px-4"
               >
                 {t("actions.cancel")}
-              </button>
-              <button
+              </Button>
+              <Button
                 type="submit"
-                className="btn-gradient px-4 py-2 rounded text-white"
+                fullWidth={false}
+                size="sm"
+                className="px-4"
               >
                 {t("appointments.form.submit")}
-              </button>
+              </Button>
             </div>
-          </form>
+            </form>
+          </Card>
         </div>
       )}
     </DoctorLayout>

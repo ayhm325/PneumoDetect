@@ -1,79 +1,49 @@
 import { NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
-import prisma from "../../../../lib/prismaClient.js";
-import { getUnreadCount } from "../../../../lib/chatUtils.js";
-import { getJwtSecret } from "../../../../lib/auth/jwtSecret.js";
-import { getJwtVerifyOptions } from "../../../../lib/auth/jwtClaims.js";
+import { withRBAC } from "../../../../lib/auth/withRBAC";
+import { rateLimit } from "../../../../lib/security/rateLimiter";
+import { logAudit } from "../../../../lib/security/auditLogger";
+import { AppError } from "../../../../src/lib/errors/appError";
+import { chatPatientService } from "../../../../src/services/chat";
 
 export function POST() {
   return NextResponse.json({ error: "Method Not Allowed" }, { status: 405 });
 }
 
-export async function GET(request) {
-  try {
-    // Accept token from cookie OR Authorization header (Bearer) as fallback
-    let token = request.cookies.get("token")?.value;
-    if (!token) {
-      const hdr =
-        request.headers.get("authorization") ||
-        request.headers.get("Authorization");
-      if (hdr && hdr.startsWith("Bearer ")) token = hdr.slice(7).trim();
-    }
-    if (!token) {
-      return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
+export const GET = withRBAC(
+  async (request, user) => {
+    const rl = await rateLimit(request);
+    if (rl.limited) {
+      logAudit({
+        event: "rate_limit_exceeded",
+        userId: user.id,
+        ip: request.headers.get("x-forwarded-for"),
+        details: { endpoint: "GET /api/chat/admin" },
+      });
+      return NextResponse.json({ error: "rate_limit_exceeded" }, { status: 429 });
     }
 
-    let user;
     try {
-      user = jwt.verify(token, getJwtSecret(), getJwtVerifyOptions());
-    } catch {
-      return NextResponse.json({ error: "invalid_token" }, { status: 401 });
-    }
+      const result = await chatPatientService.listChatsForAdminUser(user.id);
+      logAudit({
+        event: "admin_chats_listed",
+        userId: user.id,
+        ip: request.headers.get("x-forwarded-for"),
+        details: { chatCount: result.chats.length },
+      });
+      return NextResponse.json(result);
+    } catch (error) {
+      if (error instanceof AppError) {
+        return NextResponse.json({ error: error.message }, { status: error.statusCode });
+      }
 
-    if (user.role !== "admin") {
-      return NextResponse.json({ error: "forbidden" }, { status: 403 });
+      logAudit({
+        event: "admin_chats_list_error",
+        userId: user.id,
+        ip: request.headers.get("x-forwarded-for"),
+        details: { error: error instanceof Error ? error.message : String(error) },
+      });
+      return NextResponse.json({ error: "server_error" }, { status: 500 });
     }
-
-    const chats = await prisma.chat.findMany({
-      orderBy: { updatedAt: "desc" },
-      select: {
-        id: true,
-        updatedAt: true,
-        patient: {
-          select: { id: true, fullName: true, email: true, status: true },
-        },
-        doctor: {
-          select: {
-            userId: true,
-            user: { select: { id: true, fullName: true, email: true } },
-          },
-        },
-        messages: {
-          orderBy: { createdAt: "desc" },
-          take: 1,
-          select: {
-            id: true,
-            sender: true,
-            text: true,
-            fileUrl: true,
-            mimeType: true,
-            fileName: true,
-            status: true,
-            createdAt: true,
-          },
-        },
-      },
-    });
-    // إضافة عدد الرسائل غير المقروءة لكل محادثة
-    const chatsWithUnread = await Promise.all(
-      chats.map(async (chat) => {
-        const unreadCount = await getUnreadCount(chat.id, null, null);
-        return { ...chat, unreadCount };
-      })
-    );
-    return NextResponse.json({ chats: chatsWithUnread });
-  } catch (error) {
-    console.error("/api/chat/admin error", error);
-    return NextResponse.json({ error: "server_error" }, { status: 500 });
-  }
-}
+  },
+  ["admin"],
+);

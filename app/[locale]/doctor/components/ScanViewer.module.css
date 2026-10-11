@@ -37,3 +37,30 @@
   border: 1px solid var(--ui-border);
   margin-bottom: 18px;
 }
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: color-mix(in srgb, var(--color-neutral) 40%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.imageContainer {
+  transition: transform 0.2s ease;
+  transform-origin: center;
+}
+
+.zoom10 { transform: scale(1); }
+.zoom12 { transform: scale(1.2); }
+.zoom14 { transform: scale(1.4); }
+.zoom16 { transform: scale(1.6); }
+.zoom18 { transform: scale(1.8); }
+.zoom20 { transform: scale(2); }
+.zoom22 { transform: scale(2.2); }
+.zoom24 { transform: scale(2.4); }
+.zoom26 { transform: scale(2.6); }
+.zoom28 { transform: scale(2.8); }
+.zoom30 { transform: scale(3); }

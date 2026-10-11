@@ -108,7 +108,7 @@ export default function ForgotPasswordForm() {
 
           {success && (
             <div
-              className={`p-3 flex items-start gap-3 mt-2 ${authText} border border-green-500 rounded-xl bg-green-50`}
+              className={`ui-future-chip p-3 flex items-start gap-3 mt-2 ${authText} border border-[var(--ui-success-border)] rounded-xl bg-[var(--ui-success-bg)]`}
             >
               <span className="text-xl">✅</span>
               <div>
@@ -154,7 +154,7 @@ export default function ForgotPasswordForm() {
 
               {error && (
                 <div
-                  className={`p-3 flex items-center gap-3 mt-4 ${authText} border border-red-500 rounded-xl bg-red-50`}
+                  className={`ui-future-chip p-3 flex items-center gap-3 mt-4 ${authText} border border-[var(--ui-danger-border)] rounded-xl bg-[var(--ui-danger-bg)]`}
                   role="alert"
                 >
                   <span className="text-xl">⚠️</span>
@@ -175,7 +175,7 @@ export default function ForgotPasswordForm() {
                     {t("loading")}
                   </span>
                 ) : (
-                  <span className="text-green-100">{t("submit")}</span>
+                  <span className="text-white">{t("submit")}</span>
                 )}
               </button>
             </>
@@ -184,7 +184,7 @@ export default function ForgotPasswordForm() {
           <div className="flex flex-col gap-3 text-center text-sm mt-6">
             <Link
               href={withLocale("/login")}
-              className={`${authIcon} hover:${authIcon} font-semibold`}
+              className={`${authIcon} font-semibold hover:text-[var(--color-primary-900)]`}
             >
               {t("backToLogin")}
             </Link>
@@ -192,7 +192,7 @@ export default function ForgotPasswordForm() {
               {t("noAccount")}{" "}
               <Link
                 href={withLocale("/signup")}
-                className={`${authIcon} hover:${authIcon} font-semibold`}
+                className={`${authIcon} font-semibold hover:text-[var(--color-primary-900)]`}
               >
                 {t("signup")}
               </Link>

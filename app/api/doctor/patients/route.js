@@ -1,7 +1,8 @@
 import { withRBAC } from "../../../../lib/auth/withRBAC";
-import prisma from "../../../../lib/prismaClient";
 import { rateLimit } from "../../../../lib/security/rateLimiter";
 import { logAudit } from "../../../../lib/security/auditLogger";
+import { AppError } from "../../../../src/lib/errors/appError";
+import { doctorPortalService } from "../../../../src/services/doctor";
 
 // GET /api/doctor/patients
 export const GET = withRBAC(
@@ -17,60 +18,12 @@ export const GET = withRBAC(
       return Response.json({ error: "Rate limit exceeded" }, { status: 429 });
     }
     try {
-      // جلب المرضى النشطين المرتبطين بالطبيب الحالي فقط
-      const patients = await prisma.patient.findMany({
-        where: { status: "active", doctorId: user.id },
-        include: {
-          medicalRecords: {
-            where: { doctorId: user.id },
-            orderBy: { createdAt: "desc" },
-            select: {
-              id: true,
-              doctorNotes: true,
-              createdAt: true,
-            },
-          },
-          user: {
-            select: {
-              id: true,
-              fullName: true,
-              email: true,
-              createdAt: true,
-              isActive: true,
-            },
-          },
-        },
-        orderBy: { fullName: "asc" },
-      });
-
-      const shaped = patients.map((p) => {
-        const latest =
-          p.medicalRecords && p.medicalRecords[0] ? p.medicalRecords[0] : null;
-        // Explicit field for UI: doctor-authored diagnosis/notes (latest for this doctor)
-        const latestDoctorDiagnosis = latest?.doctorNotes
-          ? String(latest.doctorNotes)
-          : "";
-        const diagnosisUpdatedAt = latest?.createdAt ? latest.createdAt : null;
-
-        // عدد الفحوصات هو عدد السجلات الطبية المرتبطة بالمريض
-        const medicalRecordsCount = Array.isArray(p.medicalRecords)
-          ? p.medicalRecords.length
-          : 0;
-
-        // Avoid leaking relation details by default; UI should use explicit fields
-        const { medicalRecords, ...rest } = p;
-        return {
-          ...rest,
-          latestDoctorDiagnosis,
-          diagnosisUpdatedAt,
-          medicalRecordsCount,
-        };
-      });
+      const shaped = await doctorPortalService.listPatients(user.id);
       logAudit({
         event: "doctor_patients_listed",
         userId: user.id,
         ip: request.headers.get("x-forwarded-for"),
-        details: { count: patients.length },
+        details: { count: shaped.length },
       });
       return Response.json(shaped);
     } catch (error) {
@@ -78,8 +31,13 @@ export const GET = withRBAC(
         event: "doctor_patients_list_error",
         userId: user.id,
         ip: request.headers.get("x-forwarded-for"),
-        details: { error: error.message },
+        details: { error: error instanceof Error ? error.message : String(error) },
       });
+
+      if (error instanceof AppError) {
+        return Response.json({ error: error.message }, { status: error.statusCode });
+      }
+
       return Response.json({ error: "Internal error" }, { status: 500 });
     }
   },

@@ -1,24 +1,42 @@
+import { predictService } from "../../../src/services/predict";
+import { AppError } from "../../../src/lib/errors/appError";
+
 export async function POST(request) {
-  // استخراج البيانات المرسلة في جسم الطلب
-  const body = await request.json();
+  try {
+    const contentType = request.headers.get("content-type") || "";
+    if (!contentType.toLowerCase().includes("application/json")) {
+      return new Response(JSON.stringify({ error: "invalid_content_type" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
 
-  // تحديد رابط خدمة النموذج (Python API)
-  // في حال لم يتم تعريفه في environment variables، يتم استخدام localhost
-  const modelUrl = process.env.PY_MODEL_URL || "http://127.0.0.1:8000/predict";
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return new Response(JSON.stringify({ error: "invalid_json" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
 
-  // إرسال الطلب إلى نموذج الذكاء الاصطناعي
-  const res = await fetch(modelUrl, {
-    method: "POST", // طريقة الطلب POST
-    headers: { "Content-Type": "application/json" }, // نوع المحتوى JSON
-    body: JSON.stringify(body), // تحويل البيانات إلى JSON
-  });
+    const result = await predictService.forwardPrediction({ payload: body });
+    return new Response(JSON.stringify(result.body), {
+      status: result.status,
+      headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
+    });
+  } catch (error) {
+    if (error instanceof AppError) {
+      return new Response(JSON.stringify({ error: error.message }), {
+        status: error.statusCode,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
 
-  // قراءة الاستجابة من النموذج
-  const data = await res.json();
-
-  // إعادة الاستجابة للعميل بنفس الحالة والبيانات
-  return new Response(JSON.stringify(data), {
-    status: res.status, // نفس حالة الاستجابة من النموذج
-    headers: { "Content-Type": "application/json" }, // تعيين الهيدر
-  });
+    return new Response(JSON.stringify({ error: "server_error" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
 }

@@ -2,7 +2,7 @@
 import React, { useMemo, useState } from "react";
 import ChatList from "./ChatList";
 import ChatMessage from "./ChatMessage";
-import ChatInput from "./ChatInput";
+import UnifiedChatInput from "@/app/components/ui/UnifiedChatInput";
 import ChatAttachments from "./ChatAttachments";
 import styles from "./ChatPanel.module.css";
 
@@ -101,7 +101,14 @@ export default function ChatPanel() {
           )) || <div>{t("selectChatPrompt")}</div>}
         </div>
         <ChatAttachments attachments={attachments} onAttach={handleAttach} />
-        <ChatInput onSend={handleSend} />
+        {/* Unified chat input for both doctor and patient */}
+        <div className={styles.inputBar}>
+          <UnifiedChatInput
+            onSend={handleSend}
+            placeholder={t("messageInput")}
+            buttonLabel={t("actions.send")}
+          />
+        </div>
       </div>
     </div>
   );

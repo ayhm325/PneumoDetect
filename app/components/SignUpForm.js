@@ -258,7 +258,7 @@ export default function SignUpForm() {
               <button
                 type="button"
                 onClick={() => handleUserTypeChange("doctor")}
-                className={`group flex items-center justify-center p-0 rounded-full transition-all duration-300 w-16 h-16 ${form.userType === "doctor" ? "ring-4 ring-green-800 scale-110 shadow-xl" : "ring-2 ring-green-800/40 hover:ring-green-800/40 hover:scale-105"}`}
+                className={`group flex items-center justify-center p-0 rounded-full transition-all duration-300 w-16 h-16 ${form.userType === "doctor" ? "ring-4 ring-[var(--ui-ring)] scale-110 shadow-[var(--shadow-glow)]" : "ring-2 ring-[var(--ui-border-strong)] hover:ring-[var(--ui-ring)]/70 hover:scale-105"}`}
                 title={t("signup.doctorRole")}
               >
                 <FaStethoscope className={`text-3xl ${authIcon}`} />
@@ -266,7 +266,7 @@ export default function SignUpForm() {
               <button
                 type="button"
                 onClick={() => handleUserTypeChange("patient")}
-                className={`group flex items-center justify-center p-0 rounded-full transition-all duration-300 w-16 h-16 ${form.userType === "patient" ? "ring-4 ring-green-800 scale-110 shadow-xl" : "ring-2 ring-green-800/40 hover:ring-green-800/40 hover:scale-105"}`}
+                className={`group flex items-center justify-center p-0 rounded-full transition-all duration-300 w-16 h-16 ${form.userType === "patient" ? "ring-4 ring-[var(--ui-ring)] scale-110 shadow-[var(--shadow-glow)]" : "ring-2 ring-[var(--ui-border-strong)] hover:ring-[var(--ui-ring)]/70 hover:scale-105"}`}
                 title={t("signup.patientRole")}
               >
                 <FaBed className={`text-3xl ${authIcon}`} />
@@ -375,9 +375,9 @@ export default function SignUpForm() {
                   </div>
                 ) : doctorsError ? (
                   <div
-                    className={`p-3 flex items-center justify-center gap-2 ${authText} border border-yellow-500 rounded-md bg-yellow-50`}
+                    className={`ui-future-chip p-3 flex items-center justify-center gap-2 ${authText} border border-[var(--ui-warning-border)] rounded-md bg-[var(--ui-warning-bg)]`}
                   >
-                    <span className="text-yellow-600" aria-hidden="true">
+                    <span className="text-[var(--ui-warning)]" aria-hidden="true">
                       ⚠️
                     </span>
                     {doctorsError}
@@ -387,7 +387,7 @@ export default function SignUpForm() {
                     <button
                       type="button"
                       onClick={() => setDoctorPickerOpen(!doctorPickerOpen)}
-                      className={`w-full px-4 py-4 border-2 border-green-500/30 rounded-xl ${authText} flex items-center justify-between hover:bg-green-500/10 transition`}
+                      className={`ui-future-panel w-full px-4 py-4 border border-[var(--ui-border)] rounded-xl ${authText} flex items-center justify-between hover:border-[var(--ui-border-strong)] transition`}
                     >
                       <span>
                         {selectedDoctor
@@ -399,14 +399,14 @@ export default function SignUpForm() {
                       </span>
                     </button>
                     {doctorPickerOpen && (
-                      <div className="absolute z-50 w-full mt-2 max-h-64 overflow-auto border border-green-500/30 rounded-xl bg-background/90 backdrop-blur-sm">
+                      <div className="ui-future-panel absolute z-50 w-full mt-2 max-h-64 overflow-auto border border-[var(--ui-border)] rounded-xl bg-[var(--ui-surface)]/95 backdrop-blur-sm">
                         <button
                           type="button"
                           onClick={() => {
                             setForm({ ...form, doctorId: "" });
                             setDoctorPickerOpen(false);
                           }}
-                          className={`w-full px-4 py-2 text-left ${authText} hover:bg-green-500/20`}
+                          className={`w-full px-4 py-2 text-left ${authText} hover:bg-[var(--ui-surface-2)]`}
                         >
                           {t("signup.doctorPlaceholder")}
                         </button>
@@ -418,7 +418,7 @@ export default function SignUpForm() {
                               setForm({ ...form, doctorId: doc.id });
                               setDoctorPickerOpen(false);
                             }}
-                            className={`w-full px-4 py-2 text-left ${authText} hover:bg-green-500/20`}
+                            className={`w-full px-4 py-2 text-left ${authText} hover:bg-[var(--ui-surface-2)]`}
                           >
                             {doc.name}
                             {doc.specialty ? ` - ${doc.specialty}` : ""}
@@ -494,13 +494,13 @@ export default function SignUpForm() {
             </div>
           </div>
 
-          <div className="border-t border-green-800 pt-6 space-y-6 mt-6">
+          <div className="border-t border-[var(--ui-border)] pt-6 space-y-6 mt-6">
             {error && (
               <div
                 role="alert"
-                className={`p-3 flex items-center justify-center gap-3 ${authText} border border-green-800 rounded-xl bg-green-100/50`}
+                className={`ui-future-chip p-3 flex items-center justify-center gap-3 ${authText} border border-[var(--ui-danger-border)] rounded-xl bg-[var(--ui-danger-bg)]`}
               >
-                <span className="text-red-600" aria-hidden="true">
+                <span className="text-[var(--ui-danger)]" aria-hidden="true">
                   ⚠️
                 </span>
                 {error}
@@ -509,7 +509,7 @@ export default function SignUpForm() {
             {success && (
               <div
                 role="status"
-                className={`p-3 flex items-center justify-center gap-3 ${authText} border border-green-800 rounded-xl bg-green-100/50`}
+                className={`ui-future-chip p-3 flex items-center justify-center gap-3 ${authText} border border-[var(--ui-success-border)] rounded-xl bg-[var(--ui-success-bg)]`}
               >
                 <FaCheck className={`${authIcon}`} />
                 {success}
@@ -526,7 +526,7 @@ export default function SignUpForm() {
                 <span>{t("signup.loading")}</span>
               ) : (
                 <>
-                  <FaUserPlus className="text-green-100" />
+                  <FaUserPlus className="text-white" />
                   {t("signup.submit")}
                 </>
               )}
@@ -536,7 +536,7 @@ export default function SignUpForm() {
               {t("signup.haveAccount")}{" "}
               <Link
                 href={withLocale(locale, "/login")}
-                className={`underline ${authText} hover:text-green-600`}
+                className={`underline ${authText} hover:text-[var(--color-primary-500)]`}
               >
                 {t("signup.loginCta")}
               </Link>
@@ -546,14 +546,14 @@ export default function SignUpForm() {
               {t("signup.termsAgreement")}{" "}
               <Link
                 href={withLocale(locale, "/privacy")}
-                className={`underline ${authText} hover:text-green-600`}
+                className={`underline ${authText} hover:text-[var(--color-primary-500)]`}
               >
                 {t("signup.privacyPolicy")}
               </Link>{" "}
               {t("signup.and")}{" "}
               <Link
                 href={withLocale(locale, "/terms")}
-                className={`underline ${authText} hover:text-green-600`}
+                className={`underline ${authText} hover:text-[var(--color-primary-500)]`}
               >
                 {t("signup.termsConditions")}
               </Link>

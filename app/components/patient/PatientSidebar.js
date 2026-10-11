@@ -78,8 +78,7 @@ export default function PatientSidebar({ open = true, onClose }) {
         />
       )}
       <aside
-        className={`fixed inset-y-0 right-0 z-50 w-72 rounded-l-xl border border-(--ui-border) bg-(--ui-surface)/90 p-4 shadow-lg transition-transform lg:hidden`}
-        style={{ transform: open ? "translateX(0)" : "translateX(100%)" }}
+        className={`fixed inset-y-0 right-0 z-50 w-72 rounded-l-xl border border-(--ui-border) bg-(--ui-surface)/90 p-4 shadow-lg transition-transform lg:hidden ${open ? "translate-x-0" : "translate-x-full"}`}
       >
         <div className="mb-6 flex items-center justify-center">
           <span className="text-2xl font-bold brand-gradient-text tracking-wide whitespace-nowrap">

@@ -1,8 +1,9 @@
-import prisma from "../../../../lib/prismaClient";
 import { NextResponse } from "next/server";
 import { withRBAC } from "../../../../lib/auth/withRBAC";
 import { rateLimit } from "../../../../lib/security/rateLimiter";
 import { logAudit } from "../../../../lib/security/auditLogger";
+import { AppError } from "../../../../src/lib/errors/appError";
+import { adminMonitoringService } from "../../../../src/services/admin";
 
 /* ============================================================================
    GET /api/admin/notifications
@@ -30,27 +31,23 @@ export const GET = withRBAC(
     }
 
     try {
-      // جلب إشعارات الأدمن مرتبة من الأحدث للأقدم
-      const notifications = await prisma.notification.findMany({
-        where: {
-          userId: user.id,      // الأدمن الحالي فقط
-          isDeleted: false,     // تجاهل الإشعارات المحذوفة
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-        take: 50, // حماية من تحميل عدد كبير من السجلات
+      const result = await adminMonitoringService.listNotifications({
+        userId: user.id,
       });
 
-      return NextResponse.json({ notifications });
+      return NextResponse.json(result);
     } catch (error) {
       // تسجيل الخطأ في سجل التدقيق
       logAudit({
         event: "admin_notifications_list_error",
         userId: user.id,
         ip: request.headers.get("x-forwarded-for"),
-        details: { error: error?.message },
+        details: { error: error instanceof Error ? error.message : String(error) },
       });
+
+      if (error instanceof AppError) {
+        return NextResponse.json({ error: error.message }, { status: error.statusCode });
+      }
 
       return NextResponse.json(
         { error: "Internal error" },
@@ -92,71 +89,36 @@ export const PUT = withRBAC(
 
       // قراءة body إن وجد (بأمان)
       let body = {};
-      try {
-        body = await request.json();
-      } catch {
-        // body اختياري
+      const contentType = request.headers.get("content-type") || "";
+      if (contentType.toLowerCase().includes("application/json")) {
+        body = await request.json().catch(() => null);
+        if (!body) {
+          return NextResponse.json({ error: "invalid_json" }, { status: 400 });
+        }
       }
 
       // تحديد قيمة isRead الجديدة إن وُجدت
       const nextIsRead =
         typeof body?.isRead === "boolean" ? body.isRead : undefined;
-
-      /* =========================
-         تحديث إشعار واحد
-      ========================= */
-      if (id) {
-        // التأكد أن الإشعار موجود ويخص هذا الأدمن
-        const existing = await prisma.notification.findUnique({
-          where: { id },
-        });
-
-        if (!existing || existing.userId !== user.id) {
-          return NextResponse.json(
-            { error: "not_found" },
-            { status: 404 },
-          );
-        }
-
-        // تحديث حالة القراءة فقط
-        const updated = await prisma.notification.update({
-          where: { id },
-          data: {
-            ...(typeof nextIsRead === "boolean"
-              ? { isRead: nextIsRead }
-              : {}),
-          },
-        });
-
-        return NextResponse.json(
-          { success: true, updated },
-          { status: 200 },
-        );
-      }
-
-      /* =========================
-         تعليم جميع الإشعارات كمقروءة
-      ========================= */
-      await prisma.notification.updateMany({
-        where: {
-          userId: user.id,
-          isDeleted: false,
-          isRead: false,
-        },
-        data: {
-          isRead: true,
-        },
+      const result = await adminMonitoringService.updateNotifications({
+        userId: user.id,
+        notificationId: id,
+        isRead: nextIsRead,
       });
 
-      return NextResponse.json({ success: true }, { status: 200 });
+      return NextResponse.json(result, { status: 200 });
     } catch (error) {
       // تسجيل أي خطأ غير متوقع
       logAudit({
         event: "admin_notifications_update_error",
         userId: user.id,
         ip: request.headers.get("x-forwarded-for"),
-        details: { error: error?.message },
+        details: { error: error instanceof Error ? error.message : String(error) },
       });
+
+      if (error instanceof AppError) {
+        return NextResponse.json({ error: error.message }, { status: error.statusCode });
+      }
 
       return NextResponse.json(
         { error: "server_error" },

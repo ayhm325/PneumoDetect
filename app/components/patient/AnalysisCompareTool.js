@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function AnalysisCompareTool({
   leftImage,
@@ -9,6 +9,12 @@ export default function AnalysisCompareTool({
   comments,
 }) {
   const [slider, setSlider] = useState(50);
+  const rightPaneRef = useRef(null);
+
+  useEffect(() => {
+    if (!rightPaneRef.current) return;
+    rightPaneRef.current.style.width = `${slider}%`;
+  }, [slider]);
 
   return (
     <section className="card-glass rounded-xl border border-(--ui-border) shadow-sm">
@@ -31,10 +37,7 @@ export default function AnalysisCompareTool({
           )}
           {/* صورة اليمين مع قصّ حسب السلايدر */}
           {rightImage && (
-            <div
-              className="absolute left-0 top-0 h-full"
-              style={{ width: `${slider}%` }}
-            >
+            <div ref={rightPaneRef} className="absolute left-0 top-0 h-full w-1/2">
               <div className="relative h-full w-full">
                 <Image
                   src={rightImage}

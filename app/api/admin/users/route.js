@@ -1,18 +1,11 @@
-// Security: جميع الـ API محمية بواسطة withRBAC() لتطبيق المصادقة وRBAC.
-// Rate limiting و audit logging مفعلة لجميع الـ endpoints الحساسة للإدارة.
-
 import { withRBAC } from "../../../../lib/auth/withRBAC";
-import prisma from "../../../../lib/prismaClient";
 import { rateLimit } from "../../../../lib/security/rateLimiter";
 import { logAudit } from "../../../../lib/security/auditLogger";
+import { AppError } from "../../../../src/lib/errors/appError";
+import { adminUserService } from "../../../../src/services/admin";
 
-/////////////////////////
-// GET /api/admin/users
-// جلب كل المستخدمين مع تفاصيل الطبيب/المريض (إن وجد)
-/////////////////////////
 export const GET = withRBAC(
   async (request, user) => {
-    // تطبيق rate limiting
     const rl = await rateLimit(request);
     if (rl.limited) {
       logAudit({
@@ -25,17 +18,7 @@ export const GET = withRBAC(
     }
 
     try {
-      // جلب المستخدمين مع علاقاتهم (doctor/patient)
-      const users = await prisma.user.findMany({
-        include: { doctor: true, patient: true },
-        orderBy: { createdAt: "desc" },
-      });
-
-      // إزالة كلمة المرور قبل الإرجاع
-      const safeUsers = users.map((u) => {
-        const { password: _pw, ...rest } = u;
-        return rest;
-      });
+      const users = await adminUserService.listUsers();
 
       logAudit({
         event: "admin_users_listed",
@@ -44,24 +27,25 @@ export const GET = withRBAC(
         details: { count: users.length },
       });
 
-      return Response.json(safeUsers);
+      return Response.json(users);
     } catch (error) {
       logAudit({
         event: "admin_users_list_error",
         userId: user.id,
         ip: request.headers.get("x-forwarded-for"),
-        details: { error: error.message },
+        details: { error: error instanceof Error ? error.message : String(error) },
       });
+
+      if (error instanceof AppError) {
+        return Response.json({ error: error.message }, { status: error.statusCode });
+      }
+
       return Response.json({ error: "Internal error" }, { status: 500 });
     }
   },
-  ["admin"]
+  ["admin"],
 );
 
-/////////////////////////
-// POST /api/admin/users
-// إنشاء مستخدم إداري جديد
-/////////////////////////
 export const POST = withRBAC(
   async (request, user) => {
     const rl = await rateLimit(request);
@@ -76,62 +60,50 @@ export const POST = withRBAC(
     }
 
     try {
-      const body = await request.json();
-      const { name, email, password, status } = body;
-
-      // التحقق من الحقول المطلوبة
-      if (!name || !email || !password) {
-        return Response.json(
-          { error: "name, email and password are required" },
-          { status: 400 }
-        );
+      const contentType = request.headers.get("content-type") || "";
+      if (!contentType.toLowerCase().includes("application/json")) {
+        return Response.json({ error: "invalid_content_type" }, { status: 400 });
       }
 
-      // التحقق من وجود مستخدم بنفس البريد
-      const existing = await prisma.user.findUnique({ where: { email } });
-      if (existing) {
-        return Response.json(
-          { error: "User with this email already exists" },
-          { status: 409 }
-        );
+      const body = await request.json().catch(() => null);
+      if (!body) {
+        return Response.json({ error: "invalid_json" }, { status: 400 });
       }
 
-      // تشفير كلمة المرور
-      const bcryptMod = await import("../../../../lib/auth/bcryptWrapper.mjs");
-      const bcrypt = bcryptMod?.default || bcryptMod;
-      const hashed = await bcrypt.hash(password, 10);
-
-      // إنشاء المستخدم
-      const userCreated = await prisma.user.create({
-        data: {
-          fullName: name,
-          email,
-          password: hashed,
-          role: "admin",
-          isActive: (status || "active") === "active",
-        },
+      const createdUser = await adminUserService.createAdminUser({
+        name: body?.name,
+        email: body?.email,
+        password: body?.password,
+        status: body?.status,
       });
 
-      // تسجيل النشاط
       logAudit({
         event: "admin_user_created",
         userId: user.id,
         ip: request.headers.get("x-forwarded-for"),
-        details: { createdUserId: userCreated.id },
+        details: {
+          createdUserId:
+            createdUser && typeof createdUser === "object" && "id" in createdUser
+              ? createdUser.id
+              : null,
+        },
       });
 
-      // إزالة كلمة المرور قبل الإرجاع
-      const { password: _pw, ...safe } = userCreated;
-      return Response.json(safe, { status: 201 });
+      return Response.json(createdUser, { status: 201 });
     } catch (error) {
       logAudit({
         event: "admin_user_create_error",
         userId: user.id,
         ip: request.headers.get("x-forwarded-for"),
-        details: { error: error.message },
+        details: { error: error instanceof Error ? error.message : String(error) },
       });
+
+      if (error instanceof AppError) {
+        return Response.json({ error: error.message }, { status: error.statusCode });
+      }
+
       return Response.json({ error: "Internal error" }, { status: 500 });
     }
   },
-  ["admin"]
+  ["admin"],
 );

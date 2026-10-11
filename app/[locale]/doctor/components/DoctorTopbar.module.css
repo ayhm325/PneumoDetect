@@ -37,6 +37,10 @@
   gap: 1rem;
 }
 
+.notificationsWrap {
+  position: relative;
+}
+
 .iconBtn {
   background: none;
   border: none;

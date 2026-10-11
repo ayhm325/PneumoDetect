@@ -17,10 +17,7 @@ export default function ChatSystem() {
     { from: "doctor", text: "Thank you, doctor!", time: "10:30" },
   ];
   return (
-    <section
-      className="w-full bg-(--ui-surface) border border-(--ui-border) rounded-xl shadow p-6 mt-4 flex flex-col md:flex-row gap-4"
-      style={{ minHeight: 320 }}
-    >
+    <section className="mt-4 flex min-h-[320px] w-full flex-col gap-4 rounded-xl border border-(--ui-border) bg-(--ui-surface) p-6 shadow md:flex-row">
       {/* Chat Sidebar */}
       <aside className="w-full md:w-64 border-r border-(--ui-border) pr-4 mb-4 md:mb-0">
         <h4 className="font-bold mb-2">Patients</h4>

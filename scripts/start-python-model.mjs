@@ -20,7 +20,8 @@ if (!fs.existsSync(script)) {
   process.exit(1);
 }
 
-const child = spawn(python, [script], { stdio: "inherit" });
+const env = { ...process.env, PYTHONIOENCODING: "utf-8" };
+const child = spawn(python, [script], { stdio: "inherit", env });
 
 child.on("exit", (code) => process.exit(code ?? 0));
 child.on("error", (err) => {

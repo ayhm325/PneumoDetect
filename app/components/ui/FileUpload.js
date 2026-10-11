@@ -7,7 +7,7 @@ export default function FileUpload({
   multiple = false,
   label = "رفع ملف",
   className = "",
-  style = {},
+  style,
   children,
 }) {
   const inputRef = useRef();
@@ -23,14 +23,14 @@ export default function FileUpload({
 
   return (
     <div className={className} style={style}>
-      <label style={{ cursor: "pointer" }}>
+      <label className="block cursor-pointer">
         {children || label}
         <input
           type="file"
           accept={accept}
           multiple={multiple}
           ref={inputRef}
-          style={{ display: "none" }}
+          className="hidden"
           onChange={handleChange}
         />
       </label>

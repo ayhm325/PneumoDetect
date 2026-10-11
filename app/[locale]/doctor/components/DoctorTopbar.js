@@ -56,7 +56,7 @@ export default function DoctorTopbar({ doctorName, profileImage, onLogout }) {
         <span className={styles.doctorName}>{doctorName}</span>
       </div>
       <div className={styles.actions}>
-        <div style={{ position: "relative" }}>
+        <div className={styles.notificationsWrap}>
           <button
             className={styles.iconBtn}
             title={t("notificationsTitle")}

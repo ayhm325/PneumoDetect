@@ -1,7 +1,8 @@
-import prisma from "../../../../lib/prismaClient";
 import { withRBAC } from "../../../../lib/auth/withRBAC";
 import { rateLimit } from "../../../../lib/security/rateLimiter";
 import { logAudit } from "../../../../lib/security/auditLogger";
+import { AppError } from "../../../../src/lib/errors/appError";
+import { adminMonitoringService } from "../../../../src/services/admin";
 
 /* ============================================================================
    GET /api/admin/notifications-unread
@@ -25,47 +26,23 @@ export const GET = withRBAC(
     }
 
     try {
-      // =========================
-      // جلب البيانات بالتوازي لتحسين الأداء
-      // =========================
-      const [unread, pendingDoctorApprovals, pendingDoctorChangeRequests] =
-        await Promise.all([
-          // عدد الإشعارات غير المقروءة للأدمن الحالي
-          prisma.notification.count({
-            where: {
-              userId: user.id,
-              isRead: false,
-              isDeleted: false,
-            },
-          }),
+      const result = await adminMonitoringService.getNotificationsUnread({
+        userId: user.id,
+      });
 
-          // عدد الأطباء المعلقين (في انتظار الموافقة)
-          prisma.doctor.count({
-            where: { status: "pending" },
-          }),
-
-          // عدد طلبات تغيير الطبيب المعلقة
-          prisma.changeRequest.count({
-            where: {
-              type: "doctor_change",
-              status: "pending",
-              isDeleted: false,
-            },
-          }),
-        ]);
-
-      // مجموع "Badge" للأدمن
-      const badge = unread + pendingDoctorApprovals + pendingDoctorChangeRequests;
-
-      return Response.json({ unread, badge });
+      return Response.json(result);
     } catch (error) {
       // تسجيل أي خطأ في سجل التدقيق
       logAudit({
         event: "admin_notifications_unread_error",
         userId: user.id,
         ip: request.headers.get("x-forwarded-for"),
-        details: { error: error?.message },
+        details: { error: error instanceof Error ? error.message : String(error) },
       });
+
+      if (error instanceof AppError) {
+        return Response.json({ error: error.message }, { status: error.statusCode });
+      }
 
       return Response.json({ error: "Internal error" }, { status: 500 });
     }
