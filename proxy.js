@@ -168,51 +168,13 @@ export async function proxy(request) {
       return NextResponse.redirect(new URL(`/${locale}/login`, request.url));
     }
   } catch (e) {
-    // If helper isn't available (e.g. Edge runtime), decide fail-open vs fail-closed
-    const isAdminRoute = route && route.roles && route.roles.includes("admin");
-    if (e && e.code === "FS_UNAVAILABLE") {
-      if (isAdminRoute) {
-        // For admin routes prefer fail-closed
-        if (isApi)
-          return NextResponse.json(
-            { error: "revocation_check_unavailable" },
-            { status: 401 },
-          );
-        return NextResponse.redirect(new URL(`/${locale}/login`, request.url));
-      }
-      // Non-admin: fallback to previous fetch-based check (best-effort)
-      try {
-        const checkUrl = new URL("/api/auth/is-revoked", request.url);
-        const resp = await fetch(checkUrl.toString(), {
-          method: "POST",
-          headers: {
-            "content-type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
-          cache: "no-store",
-        });
-        if (resp && resp.ok) {
-          const body = await resp.json();
-          if (body?.revoked) {
-            if (isApi)
-              return NextResponse.json(
-                { error: "token_revoked" },
-                { status: 401 },
-              );
-            return NextResponse.redirect(
-              new URL(`/${locale}/login`, request.url),
-            );
-          }
-        }
-      } catch (e2) {
-        console.warn(
-          "[proxy] fallback is-revoked check failed",
-          e2 && e2.message,
-        );
-      }
-    } else {
-      console.warn("[proxy] is-revoked check error", e && e.message);
-    }
+    console.error("[proxy] is-revoked check error", e && e.message);
+    if (isApi)
+      return NextResponse.json(
+        { error: "revocation_check_unavailable" },
+        { status: 401 },
+      );
+    return NextResponse.redirect(new URL(`/${locale}/login`, request.url));
   }
   // Security: Lightweight gate for authentication. Distinguishes API vs UI routes.
   // API returns JSON 401/403, UI uses redirects. No inline RBAC.

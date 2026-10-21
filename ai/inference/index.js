@@ -9,8 +9,13 @@ import { runMockModel } from "./mockModel.js";
 import { runPyModel } from "./pyModel.js";
 
 // قراءة إعداد البيئة لتحديد استخدام النموذج الوهمي أم الحقيقي
-// إذا لم يُحدد ENV، الافتراضي هو استخدام النموذج الوهمي
-const useMock = (process.env.AI_USE_MOCK || "true").toLowerCase() !== "false";
+// في بيئة الإنتاج: الافتراضي دائماً هو النموذج الحقيقي لمنع تشغيل Mock بالخطأ
+// في بيئة التطوير والاختبارات: يمكن استخدام النموذج الوهمي إذا تم طلبه أو كافتراضي للتطوير
+const isProduction = process.env.NODE_ENV === "production";
+const rawUseMock = process.env.AI_USE_MOCK;
+const useMock = isProduction
+  ? String(rawUseMock || "false").toLowerCase() === "true"
+  : (rawUseMock || "true").toLowerCase() !== "false";
 
 /**
  * دالة لإرجاع كائن يمثل النموذج المختار

@@ -129,6 +129,8 @@ async function markUserOffline(socket) {
   }
 }
 
+import { isTokenRevoked } from "../lib/auth/revocation.server.js";
+
 io.use(async (socket, next) => {
   try {
     let token = socket.handshake.auth?.token;
@@ -140,10 +142,21 @@ io.use(async (socket, next) => {
     }
     if (!token) return next(new Error("unauthenticated"));
 
+    try {
+      const revoked = await isTokenRevoked(token);
+      if (revoked) return next(new Error("token_revoked"));
+    } catch (e) {
+      console.warn("socket auth: revocation check failed", e?.message || e);
+      return next(new Error("revocation_check_unavailable"));
+    }
+
     const user = jwt.verify(token, SECRET, getJwtVerifyOptions());
     socket.user = { id: user.id, role: user.role, email: user.email };
     return next();
   } catch (err) {
+    if (err.message === "token_revoked" || err.message === "revocation_check_unavailable") {
+      return next(err);
+    }
     return next(new Error("invalid_token"));
   }
 });
@@ -162,10 +175,35 @@ io.on("connection", (socket) => {
     });
   });
 
-  socket.on("join", async (chatId) => {
-    if (!chatId) return;
+  async function verifyUserChatAccess(userId, role, chatId) {
+    if (!chatId || !userId) return false;
+    try {
+      const chat = await prisma.chat.findUnique({ where: { id: chatId } });
+      if (!chat) return false;
+      if (role === "admin") return true;
+      if (role === "doctor") {
+        return chat.doctorId === userId;
+      }
+      if (role === "patient") {
+        const patient = await prisma.patient.findUnique({ where: { userId } });
+        return Boolean(patient && patient.id === chat.patientId);
+      }
+      return false;
+    } catch (e) {
+      console.warn("verifyUserChatAccess error", e?.message || e);
+      return false;
+    }
+  }
+
+  socket.on("join", async (chatId, ack) => {
+    if (!chatId) return ack?.({ error: "invalid_payload" });
+    const isAuthorized = await verifyUserChatAccess(socket.user?.id, socket.user?.role, chatId);
+    if (!isAuthorized) {
+      return ack?.({ error: "forbidden" });
+    }
+
     const roomKey = `chat:${chatId}`;
-    if (socket.rooms.has(roomKey)) return;
+    if (socket.rooms.has(roomKey)) return ack?.({ ok: true });
     socket.join(roomKey);
 
     let onlineIds = [];
@@ -186,6 +224,7 @@ io.on("connection", (socket) => {
     onlineByChat.set(String(chatId), set);
 
     socket.to(roomKey).emit("presence", { userId: socket.user.id, online: true });
+    ack?.({ ok: true });
   });
 
   socket.on("leave", (chatId) => {
@@ -203,8 +242,13 @@ io.on("connection", (socket) => {
     socket.to(roomKey).emit("presence", { userId: socket.user.id, online: false });
   });
 
-  socket.on("typing", ({ chatId, typing }) => {
+  socket.on("typing", async ({ chatId, typing }) => {
     if (!chatId) return;
+    const roomKey = `chat:${chatId}`;
+    if (!socket.rooms.has(roomKey)) {
+      const isAuthorized = await verifyUserChatAccess(socket.user?.id, socket.user?.role, chatId);
+      if (!isAuthorized) return;
+    }
     socket.to(`chat:${chatId}`).emit("typing", { userId: socket.user.id, typing });
   });
 
@@ -259,25 +303,57 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("delivered_ack", async ({ messageIds } = {}) => {
-    if (!Array.isArray(messageIds)) return;
+  socket.on("delivered_ack", async ({ messageIds } = {}, ack) => {
+    if (!Array.isArray(messageIds) || messageIds.length === 0) return ack?.({ ok: false });
+    const user = socket.user;
+    if (!user?.id) return ack?.({ error: "unauthenticated" });
+
     for (const id of messageIds) {
-      const msg = await prisma.message.findUnique({ where: { id } });
-      if (!msg || msg.status !== "sent") continue;
+      const msg = await prisma.message.findUnique({
+        where: { id },
+        include: { chat: true },
+      });
+      if (!msg || msg.status !== "sent" || !msg.chat) continue;
+
+      // Ensure the acknowledging socket is a legitimate recipient in this chat
+      const isAuthorized = await verifyUserChatAccess(user.id, user.role, msg.chatId);
+      if (!isAuthorized) continue;
+
+      // Senders cannot acknowledge delivery to themselves
+      const userSenderType = user.role === "doctor" ? "doctor" : "patient";
+      if (msg.sender === userSenderType) continue;
+
       await prisma.message.update({ where: { id }, data: { status: "delivered" } });
       io.to(`chat:${msg.chatId}`).emit("message_update", { id, status: "delivered" });
     }
+    ack?.({ ok: true });
   });
 
-  socket.on("read_ack", async ({ messageIds } = {}) => {
-    if (!Array.isArray(messageIds)) return;
+  socket.on("read_ack", async ({ messageIds } = {}, ack) => {
+    if (!Array.isArray(messageIds) || messageIds.length === 0) return ack?.({ ok: false });
+    const user = socket.user;
+    if (!user?.id) return ack?.({ error: "unauthenticated" });
+
     for (const id of messageIds) {
-      const msg = await prisma.message.findUnique({ where: { id } });
-      if (!msg || msg.status === "read") continue;
+      const msg = await prisma.message.findUnique({
+        where: { id },
+        include: { chat: true },
+      });
+      if (!msg || msg.status === "read" || !msg.chat) continue;
+
+      // Ensure the acknowledging socket is a legitimate recipient in this chat
+      const isAuthorized = await verifyUserChatAccess(user.id, user.role, msg.chatId);
+      if (!isAuthorized) continue;
+
+      // Senders cannot read-acknowledge their own messages
+      const userSenderType = user.role === "doctor" ? "doctor" : "patient";
+      if (msg.sender === userSenderType) continue;
+
       await prisma.message.update({ where: { id }, data: { status: "read" } });
       io.to(`chat:${msg.chatId}`).emit("message_update", { id, status: "read" });
-      io.to(`chat:${msg.chatId}`).emit("message_read", { messageId: id, userId: socket.user.id, timestamp: new Date() });
+      io.to(`chat:${msg.chatId}`).emit("message_read", { messageId: id, userId: user.id, timestamp: new Date() });
     }
+    ack?.({ ok: true });
   });
 
   socket.on("disconnect", (reason) => {

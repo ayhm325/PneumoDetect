@@ -43,7 +43,6 @@ export default function ForgotPasswordForm() {
     setSuccess(false);
     setLoading(true);
 
-    // Simulate sending reset email
     setTimeout(() => {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(form.email)) {
@@ -52,11 +51,13 @@ export default function ForgotPasswordForm() {
         return;
       }
 
-      // Simulate email sent
-      setSuccess(true);
-      setForm({ email: "" });
+      setError(
+        locale === "ar"
+          ? "خدمة استعادة كلمة المرور عبر البريد الإلكتروني غير مفعلة حالياً. يرجى مراجعة إدارة النظام."
+          : "Automated password recovery via email is currently not configured. Please contact system administration."
+      );
       setLoading(false);
-    }, 1200);
+    }, 500);
   };
 
   return (

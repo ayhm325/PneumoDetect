@@ -26,12 +26,19 @@ function generateUUID() {
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 }
 
-function toAiResult(prediction: string) {
-  const value = String(prediction || "").toLowerCase();
-  if (value.includes("normal") || value.includes("negative") || value.includes("no finding")) {
-    return "NEGATIVE" as const;
+function toAiResult(prediction: string): "POSITIVE" | "NEGATIVE" {
+  const value = String(prediction || "").trim().toUpperCase();
+  if (value === "NORMAL" || value === "NEGATIVE" || value === "NO FINDING") {
+    return "NEGATIVE";
   }
-  return "POSITIVE" as const;
+  if (value === "PNEUMONIA" || value === "POSITIVE") {
+    return "POSITIVE";
+  }
+  throw new AppError({
+    code: "inference_error",
+    message: `Invalid or unclassified model prediction: ${prediction}`,
+    statusCode: 502,
+  });
 }
 
 function clamp01(input: number) {
@@ -43,14 +50,25 @@ function clamp01(input: number) {
 async function detectFileType(buffer: Buffer): Promise<{ ext?: string; mime?: string } | null> {
   try {
     const fileTypeModule = await import("file-type");
-    if (fileTypeModule && typeof fileTypeModule.fileTypeFromBuffer === "function") {
-      const result = await fileTypeModule.fileTypeFromBuffer(buffer);
+    const fn = fileTypeModule?.fileTypeFromBuffer || fileTypeModule?.default?.fileTypeFromBuffer;
+    if (typeof fn === "function") {
+      const result = await fn(buffer);
       return result ?? null;
     }
-    return null;
   } catch {
-    return null;
   }
+
+  // Fast signature fallback for standard medical images in test/edge runtimes
+  if (buffer.length >= 8 && buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4e && buffer[3] === 0x47) {
+    return { ext: "png", mime: "image/png" };
+  }
+  if (buffer.length >= 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
+    return { ext: "jpg", mime: "image/jpeg" };
+  }
+  if (buffer.length >= 12 && buffer.subarray(0, 4).toString() === "RIFF" && buffer.subarray(8, 12).toString() === "WEBP") {
+    return { ext: "webp", mime: "image/webp" };
+  }
+  return null;
 }
 
 function normalizeInferenceResult(raw: RawInferenceResult): NormalizedInferenceResult {
@@ -120,36 +138,11 @@ export function createAnalysisService(deps: AnalysisServiceDeps): AnalysisServic
         detectedMime = detected.mime || "";
       }
 
-      if (!safeExt) {
-        const sourceName = image.name || "upload";
-        const rawExt = path.extname(sourceName) || "";
-        const ext = String(rawExt).toLowerCase();
-        if (allowedExtensions.has(ext)) {
-          safeExt = ext;
-        } else if (image.type && String(image.type).startsWith("image/")) {
-          const imageType = String(image.type).toLowerCase();
-          if (imageType.includes("jpeg") || imageType.includes("jpg")) safeExt = ".jpg";
-          else if (imageType.includes("png")) safeExt = ".png";
-          else if (imageType.includes("webp")) safeExt = ".webp";
-          else if (imageType.includes("gif")) safeExt = ".gif";
-          else if (imageType.includes("bmp") || imageType.includes("bitmap")) safeExt = ".bmp";
-          else if (imageType.includes("tiff") || imageType.includes("tif")) safeExt = ".tiff";
-          detectedMime = image.type;
-        }
-      }
-
-      if (!safeExt || (!detectedMime && !image.type)) {
+      // Do NOT trust client-supplied extensions or MIME types if content validation fails or is unsupported
+      if (!safeExt || !detectedMime || !detectedMime.startsWith("image/")) {
         throw new AppError({
           code: "invalid_file_type",
-          message: "Uploaded file is not a supported image type",
-          statusCode: 400,
-        });
-      }
-
-      if (detectedMime && !String(detectedMime).startsWith("image/")) {
-        throw new AppError({
-          code: "invalid_file_type",
-          message: "Detected file type is not an image",
+          message: "Uploaded file is not a supported image type or file content is invalid",
           statusCode: 400,
         });
       }
@@ -157,28 +150,27 @@ export function createAnalysisService(deps: AnalysisServiceDeps): AnalysisServic
       const uploadsDir = path.join(process.cwd(), "public", "uploads");
       if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 
-      const shouldUseSignedUrls = process.env.ENABLE_SIGNED_URLS === "1";
-      const signingSecret = shouldUseSignedUrls
-        ? process.env.UPLOAD_URL_SIGNING_SECRET || process.env.JWT_SECRET || ""
-        : "";
-      if (shouldUseSignedUrls && !signingSecret) {
-        throw new AppError({
-          code: "server_error",
-          message: "missing_upload_signing_secret",
-          statusCode: 500,
-        });
-      }
+      const signingSecret =
+        process.env.UPLOAD_URL_SIGNING_SECRET || process.env.JWT_SECRET || "pneumo-detect-default-secret-signing";
 
       const safeFileName = path.basename(`${generateUUID()}${safeExt}`);
       const savedFilePath = path.join(uploadsDir, safeFileName);
-      await fs.promises.writeFile(savedFilePath, image.buffer);
-
-      let imageUrl = `/uploads/${encodeURIComponent(safeFileName)}`;
-      if (shouldUseSignedUrls) {
-        const expires = Date.now() + (Number(process.env.UPLOAD_URL_EXP_MS) || 5 * 60 * 1000);
-        const sig = crypto.createHmac("sha256", signingSecret).update(`${safeFileName}:${expires}`).digest("hex");
-        imageUrl = `/uploads/${encodeURIComponent(safeFileName)}?exp=${expires}&sig=${sig}`;
+      
+      try {
+        await fs.promises.writeFile(savedFilePath, image.buffer);
+      } catch (storageErr) {
+        console.error("Failed to write uploaded image to disk", storageErr);
+        throw new AppError({
+          code: "server_error",
+          message: "failed_to_save_image",
+          statusCode: 500,
+          cause: storageErr,
+        });
       }
+
+      const expires = Date.now() + (Number(process.env.UPLOAD_URL_EXP_MS) || 24 * 60 * 60 * 1000);
+      const sig = crypto.createHmac("sha256", signingSecret).update(`${safeFileName}:${expires}`).digest("hex");
+      const imageUrl = `/uploads/${encodeURIComponent(safeFileName)}?exp=${expires}&sig=${sig}`;
 
       const inferenceInput: RunInferenceInput = {
         buffer: image.buffer,
@@ -202,27 +194,22 @@ export function createAnalysisService(deps: AnalysisServiceDeps): AnalysisServic
       }
 
       const normalized = normalizeInferenceResult(rawInference);
+      const aiResult = toAiResult(normalized.prediction);
 
       let saved: unknown = null;
-      let saveError: string | undefined;
       try {
         saved = await deps.analysisResultRepository.save({
           userId,
           imageUrl,
           analysisData: normalized,
         });
-      } catch (error) {
-        saveError = error instanceof Error ? error.message : String(error);
-        console.warn("analysisService: failed to save analysis result", saveError);
-      }
 
-      try {
         const patient = await deps.patientRepository.findByUserId(userId);
         if (patient?.id) {
           await deps.medicalRecordRepository.create({
             patientId: patient.id,
             doctorId: patient.doctorId,
-            aiResult: toAiResult(normalized.prediction),
+            aiResult,
             confidenceScore: clamp01(normalized.confidence),
             imageUrl,
           });
@@ -248,18 +235,20 @@ export function createAnalysisService(deps: AnalysisServiceDeps): AnalysisServic
           }
         }
       } catch (error) {
-        console.warn("analysisService: failed to create medical record or notifications", error);
+        console.error("analysisService: mandatory persistence failed", error);
+        throw new AppError({
+          code: "server_error",
+          message: "Failed to persist analysis record",
+          statusCode: 500,
+          cause: error,
+        });
       }
 
       const response: AnalyzeXrayResult = {
         success: true,
-        data: saved ?? normalized,
-        saved: Boolean(saved),
+        data: saved,
+        saved: true,
       };
-
-      if (!saved && saveError && process.env.NODE_ENV !== "production") {
-        response.saveError = saveError;
-      }
 
       return response;
     },

@@ -3,6 +3,7 @@ export type ErrorCode =
   | "invalid_token"
   | "invalid_token_payload"
   | "token_revoked"
+  | "revocation_check_unavailable"
   | "missing_file"
   | "missing_id"
   | "invalid_file_type"

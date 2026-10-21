@@ -64,10 +64,11 @@ export function createAuthService(deps: AuthServiceDeps): AuthService {
       const user = await deps.userRepository.findByEmailWithDoctor(email);
       if (!user) {
         deps.loginAttemptStore.increment(email, now);
+        // Prevent account enumeration by returning generic invalid credentials error
         throw new AppError({
-          code: "not_found",
-          message: "المستخدم غير موجود",
-          statusCode: 404,
+          code: "unauthenticated",
+          message: "invalid_credentials",
+          statusCode: 401,
         });
       }
 
@@ -116,7 +117,7 @@ export function createAuthService(deps: AuthServiceDeps): AuthService {
         deps.loginAttemptStore.increment(email, now);
         throw new AppError({
           code: "unauthenticated",
-          message: "كلمة المرور غير صحيحة",
+          message: "invalid_credentials",
           statusCode: 401,
         });
       }

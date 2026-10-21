@@ -71,6 +71,12 @@ export function createSessionService(deps: SessionServiceDeps): SessionService {
         await deps.sessionRepository.revoke(token, expMs);
       } catch (error) {
         console.error("sessionService.logout revoke failed", error);
+        throw new AppError({
+          code: "server_error",
+          message: "failed_to_revoke_token",
+          statusCode: 500,
+          cause: error,
+        });
       }
 
       return { ok: true };

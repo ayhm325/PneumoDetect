@@ -25,12 +25,15 @@ class PredictRequest(BaseModel):
 # ============================================
 app = FastAPI()
 
-# تمكين CORS للسماح بالوصول من أي دومين (مهم للـ frontend)
+# إعداد أصول CORS المصرح بها من البيئة (مع إزالة السماح العام بالوايلدكارد مع بيانات الاعتماد)
+allowed_origins_env = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000")
+origins = [o.strip() for o in allowed_origins_env.split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # السماح لجميع الدومينات
+    allow_origins=origins if origins else ["http://localhost:3000"],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -163,13 +166,18 @@ async def predict(req: PredictRequest):
             base_rgba = base_rgb.convert('RGBA')
             blended = Image.blend(base_rgba, heatmap_img, alpha=0.5)
 
-            # حفظ الصورة المدمجة
+            # حفظ الصورة المدمجة (ملاحظة: هذا تمثيل بصري لكثافة البكسل وليس خوارزمية Grad-CAM تدريبية)
             fname = f"heatmap_{uuid.uuid4().hex}.png"
             out_path = os.path.join(HEATMAP_DIR, fname)
             blended.save(out_path)
 
-            # مسار URL للـ heatmap لإرجاعه في الاستجابة
-            result['heatmap_url'] = f"http://127.0.0.1:8000/static/heatmaps/{fname}"
+            # مسار URL للـ heatmap يعتمد على متغير بيئة أو مسار نسبي لتجنب فرض 127.0.0.1
+            base_url = os.getenv("PUBLIC_HEATMAP_BASE_URL", "/static/heatmaps").rstrip("/")
+            if base_url.startswith("http"):
+                result['heatmap_url'] = f"{base_url}/{fname}"
+            else:
+                result['heatmap_url'] = f"{base_url}/{fname}"
+            result['explanation'] = "Intensity-based image highlight visualization."
         except Exception as e:
             # لا تفشل التنبؤ إذا حدث خطأ في توليد Heatmap
             print('Heatmap generation failed:', e)

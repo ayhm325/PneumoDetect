@@ -42,7 +42,13 @@ export async function authenticateToken(token: string): Promise<{ token: string;
     }
   } catch (error) {
     if (error instanceof AppError) throw error;
-    console.warn("authRequestService: revocation check failed", error);
+    console.error("authRequestService: revocation check failed", error);
+    throw new AppError({
+      code: "revocation_check_unavailable",
+      message: "Authentication verification service temporarily unavailable",
+      statusCode: 401,
+      cause: error,
+    });
   }
 
   try {
