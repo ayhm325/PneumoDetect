@@ -1,0 +1,19 @@
+.notifications {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.label {
+  font-size: 15px;
+  color: var(--ui-foreground);
+  margin-bottom: 4px;
+}
+.checkbox {
+  margin-right: 8px;
+}
+.option {
+  font-size: 15px;
+  color: var(--ui-foreground);
+  margin-bottom: 6px;
+}

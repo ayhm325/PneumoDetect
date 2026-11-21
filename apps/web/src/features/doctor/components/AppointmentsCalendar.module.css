@@ -1,0 +1,38 @@
+.calendar {
+  background: var(--color-background);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--ui-border);
+  box-shadow: var(--shadow-soft);
+  padding: 24px;
+  min-width: 400px;
+  min-height: 480px;
+}
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+.title {
+  font-size: 20px;
+  font-weight: bold;
+  color: var(--color-text);
+}
+.days {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.day {
+  font-size: 15px;
+  color: var(--ui-muted);
+  padding: 6px 12px;
+  border-radius: 4px;
+  background: var(--ui-surface);
+  border: 1px solid var(--ui-border);
+}
+.appointments {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}

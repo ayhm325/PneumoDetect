@@ -1,0 +1,17 @@
+.filters {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.input {
+  padding: 6px 12px;
+  border: 1px solid var(--ui-border);
+  border-radius: 4px;
+  font-size: 15px;
+}
+.select {
+  padding: 6px 12px;
+  border: 1px solid var(--ui-border);
+  border-radius: 4px;
+  font-size: 15px;
+}

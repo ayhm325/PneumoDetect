@@ -1,0 +1,27 @@
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.table th,
+.table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--ui-border);
+  text-align: right;
+}
+.table th {
+  background: var(--ui-surface);
+  border-bottom: 1px solid var(--ui-border-strong);
+  font-weight: bold;
+}
+.actionButton {
+  margin-left: 8px;
+  padding: 4px 10px;
+  background: var(--ui-info);
+  color: var(--ui-info-foreground);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.actionButton:hover {
+  background: color-mix(in srgb, var(--ui-info) 85%, var(--color-neutral));
+}

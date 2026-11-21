@@ -1,0 +1,37 @@
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--ui-surface);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.5rem;
+  box-shadow: var(--shadow-soft);
+}
+
+.urgent {
+  border-left: 4px solid var(--ui-danger);
+  background: var(--ui-danger-bg);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.type {
+  font-size: 0.95rem;
+  color: var(--ui-info);
+  font-weight: bold;
+}
+
+.text {
+  font-size: 1rem;
+  color: var(--ui-foreground);
+}
+
+.time {
+  font-size: 0.85rem;
+  color: var(--ui-muted-2);
+}

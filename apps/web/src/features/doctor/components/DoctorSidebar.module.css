@@ -1,0 +1,55 @@
+.sidebar {
+  width: 220px;
+  background: var(--ui-surface);
+  border-right: 1px solid var(--ui-border);
+  min-height: 100vh;
+  padding: 2rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar li {
+  margin-bottom: 1rem;
+}
+
+.icon {
+  font-size: 1.25rem;
+  margin-left: 0.5rem;
+  color: var(--ui-info);
+}
+
+.profileIcon {
+  color: #2b6cb0; /* blue */
+}
+
+.label {
+  font-size: 1rem;
+  color: var(--ui-foreground);
+}
+
+.active {
+  background: var(--ui-info-bg);
+  border-radius: 6px;
+}
+
+.sidebar a {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  text-decoration: none;
+  color: inherit;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.sidebar a:hover {
+  background: var(--ui-surface-2);
+}

@@ -1,0 +1,48 @@
+.message {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.doctor {
+  flex-direction: row-reverse;
+}
+.avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--ui-border);
+}
+.bubble {
+  background: color-mix(
+    in srgb,
+    var(--color-accent-100) 70%,
+    var(--color-background)
+  );
+  color: var(--color-text);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--ui-border);
+  padding: 8px 14px;
+  font-size: 15px;
+  max-width: 320px;
+  word-break: break-word;
+}
+.doctor .bubble {
+  background: var(--ui-info);
+  color: var(--ui-info-foreground);
+  border-color: transparent;
+}
+.time {
+  font-size: 12px;
+  color: var(--ui-muted);
+  margin-top: 4px;
+  margin-right: 6px;
+}
+
+.image {
+  display: block;
+  max-width: 320px;
+  height: auto;
+  border-radius: var(--radius-md);
+}

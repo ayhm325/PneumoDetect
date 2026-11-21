@@ -1,0 +1,32 @@
+.unified-chat-input-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+.unified-chat-input {
+  flex: 1;
+  padding: 7px 14px;
+  border: 1px solid var(--ui-border);
+  background: var(--color-background);
+  border-radius: 4px;
+  font-size: 15px;
+  color: var(--color-text);
+}
+.unified-chat-send-btn {
+  padding: 6px 14px;
+  background: var(--ui-info);
+  color: var(--ui-info-foreground);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 15px;
+  transition: background 0.2s;
+}
+.unified-chat-send-btn:hover:enabled {
+  background: color-mix(in srgb, var(--ui-info) 85%, var(--color-neutral));
+}
+.unified-chat-send-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

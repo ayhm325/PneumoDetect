@@ -1,0 +1,49 @@
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: color-mix(in srgb, var(--color-neutral) 30%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.content {
+  background: var(--ui-surface);
+  border-radius: 8px;
+  padding: 32px;
+  min-width: 320px;
+  box-shadow: var(--shadow-lift);
+}
+.closeBtn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+}
+.avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 16px;
+}
+.name {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+.status {
+  font-size: 14px;
+  color: var(--ui-muted-2);
+  margin-bottom: 16px;
+}
+.details {
+  font-size: 15px;
+  color: var(--ui-foreground);
+}

@@ -1,0 +1,44 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-background);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--ui-border);
+  box-shadow: var(--shadow-soft);
+  padding: 18px;
+  margin-bottom: 16px;
+  min-width: 220px;
+}
+.patient {
+  font-size: 16px;
+  font-weight: bold;
+  color: var(--color-text);
+  margin-bottom: 6px;
+}
+.date {
+  font-size: 14px;
+  color: var(--ui-muted);
+  margin-bottom: 4px;
+}
+.time {
+  font-size: 14px;
+  color: var(--ui-muted);
+  margin-bottom: 8px;
+}
+.status {
+  font-size: 13px;
+  color: var(--color-accent-500);
+  margin-bottom: 10px;
+}
+.editBtn {
+  padding: 6px 14px;
+  background: var(--ui-info);
+  color: var(--ui-info-foreground);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.editBtn:hover {
+  background: color-mix(in srgb, var(--ui-info) 85%, var(--color-neutral));
+}

@@ -1,0 +1,30 @@
+.attachments {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+.fileInput {
+  display: none;
+}
+.attachBtn {
+  padding: 4px 10px;
+  background: var(--ui-info);
+  color: var(--ui-info-foreground);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.attachBtn:hover {
+  background: color-mix(in srgb, var(--ui-info) 85%, var(--color-neutral));
+}
+.attachment {
+  font-size: 13px;
+  color: var(--color-text);
+  background: var(--ui-surface);
+  border: 1px solid var(--ui-border);
+  border-radius: 4px;
+  padding: 4px 8px;
+  margin-right: 6px;
+}
