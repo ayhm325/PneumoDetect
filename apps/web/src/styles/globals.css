@@ -1,3 +1,6 @@
+@import "tailwindcss";
+@import "./tokens.css";
+@import "./animations.css";
 /* Blue Glassmorphism Utility */
 .glass-blue-glassmorph {
   background: linear-gradient(
@@ -12,7 +15,7 @@
   border: 1.5px solid
     color-mix(in srgb, var(--color-accent-500) 18%, transparent);
 }
-@import "tailwindcss";
+
 
 /* Enable class-based dark mode for Tailwind v4 */
 /* Use Tailwind's dark mode class strategy by adding 'dark' class to <html> or <body> */
@@ -37,8 +40,8 @@
 }
 
 /* Design tokens and animations */
-@import "./tokens.css";
-@import "./styles/animations.css";
+
+
 
 :root {
   --color-background: var(--background);
