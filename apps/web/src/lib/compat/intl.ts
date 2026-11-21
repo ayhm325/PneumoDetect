@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 export function useLocale(): string {
@@ -8,17 +9,19 @@ export function useLocale(): string {
 export function useTranslations(namespace?: string) {
   const { t } = useTranslation(namespace);
 
-  const fn = Object.assign(
-    (key: string, values?: Record<string, unknown>) => {
-      const res = t(key, values as Record<string, string>);
-      return typeof res === "string" ? res : String(res ?? key);
-    },
-    {
-      raw: (key: string) => t(key, { returnObjects: true }),
-    },
+  return useMemo(
+    () =>
+      Object.assign(
+        (key: string, values?: Record<string, unknown>) => {
+          const res = t(key, values as Record<string, string>);
+          return typeof res === "string" ? res : String(res ?? key);
+        },
+        {
+          raw: (key: string) => t(key, { returnObjects: true }),
+        },
+      ),
+    [t],
   );
-
-  return fn;
 }
 
 export default useLocale;

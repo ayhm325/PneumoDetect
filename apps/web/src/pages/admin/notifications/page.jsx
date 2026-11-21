@@ -119,7 +119,7 @@ export default function AdminNotificationsPage() {
             notificationsJson.notifications.some((n) => !n.isRead);
           if (hasUnread) {
             // fire-and-forget; update UI optimistically
-            fetch("/api/admin/notifications", { method: "PUT" }).catch(
+            fetch("/api/admin/notifications", { method: "PATCH" }).catch(
               () => {},
             );
             // update local state to mark as read

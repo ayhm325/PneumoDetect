@@ -61,6 +61,9 @@ export default function SettingsPage() {
     (async () => {
       try {
         const res = await fetch("/api/admin/settings");
+        if (res.status === 404) {
+          return;
+        }
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));
           showError(err?.error || t("messages.saveFailed"));
