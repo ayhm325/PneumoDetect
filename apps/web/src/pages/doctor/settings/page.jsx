@@ -22,7 +22,7 @@ export default function DoctorSettingsPage() {
 
   // Use single namespace `doctorSettings` and access nested keys via `t(key)`
   const t = useTranslations("doctorSettings");
-  const { locale } = useLocale();
+  const locale = useLocale();
 
   // بيانات الطبيب الحقيقية
   const [profile, setProfile] = useState({

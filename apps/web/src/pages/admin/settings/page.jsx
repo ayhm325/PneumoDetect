@@ -35,7 +35,7 @@ const ToggleSwitch = ({ checked, onChange, label }) => (
 // --- الصفحة الرئيسية ---
 export default function SettingsPage() {
   const { showError, showSuccess } = useToast();
-  const { locale } = useLocale();
+  const locale = useLocale();
   const t = useTranslations("adminSettings");
   const isRTL = locale === "ar";
 

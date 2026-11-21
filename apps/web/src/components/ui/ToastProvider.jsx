@@ -212,3 +212,4 @@ export function Toast({ id, message, type, onClose }) {
   );
 }
 export default ToastProvider;
+export function ToastContainer() { return null; }

@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useRef, useState } from "react";
+import React, { createContext, useContext, useLayoutEffect, useRef, useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
@@ -31,6 +31,8 @@ export interface UnifiedPortalShellProps {
   navItems: PortalNavItem[];
   children: React.ReactNode;
 }
+
+const PortalShellContext = createContext(false);
 
 function SidebarNavItem({
   item,
@@ -150,6 +152,7 @@ export function UnifiedPortalShell({
   navItems,
   children,
 }: UnifiedPortalShellProps) {
+  const isInsideShell = useContext(PortalShellContext);
   const { i18n } = useTranslation();
   const isAr = i18n.language === "ar";
   const { theme, toggleTheme } = useTheme();
@@ -184,7 +187,12 @@ export function UnifiedPortalShell({
   const sidebarSurfaceClass =
     "bg-gradient-to-b from-slate-900 via-indigo-950 to-slate-900 border border-white/10 text-white shadow-2xl backdrop-blur-xl";
 
+  if (isInsideShell) {
+    return <>{children}</>;
+  }
+
   return (
+    <PortalShellContext.Provider value={true}>
     <div className="flex min-h-screen bg-[var(--ui-surface-2)] text-[var(--ui-foreground)]">
       {/* Desktop Floating Rounded Sidebar */}
       <aside
@@ -365,5 +373,6 @@ export function UnifiedPortalShell({
         </main>
       </div>
     </div>
+    </PortalShellContext.Provider>
   );
 }

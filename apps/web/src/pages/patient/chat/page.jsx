@@ -21,7 +21,7 @@ import { formatTime } from "@/lib/date";
 
 
 export default function PatientChatPage() {
-  const { locale } = useLocale();
+  const locale = useLocale();
   const { showSuccess, showError, showInfo, showWarning } = useToast();
   const t = useTranslations("patientChat");
 

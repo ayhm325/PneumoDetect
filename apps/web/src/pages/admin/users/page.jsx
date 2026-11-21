@@ -25,7 +25,7 @@ import {
 
 export default function UsersPage() {
   const { showSuccess, showError, showWarning, showInfo } = useToast();
-  const { locale } = useLocale();
+  const locale = useLocale();
   const t = useTranslations("adminUsers");
   const isRTL = locale === "ar";
 
