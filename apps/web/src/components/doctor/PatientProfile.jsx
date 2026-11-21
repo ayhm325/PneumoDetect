@@ -1,7 +1,7 @@
 import Image from "@/lib/compat/Image";
 
 export default function PatientProfile() {
-  // ?????? ????? ?????
+  // بيانات وهمية لمريض
   const patient = {
     name: "Mohamed Salah",
     age: 34,

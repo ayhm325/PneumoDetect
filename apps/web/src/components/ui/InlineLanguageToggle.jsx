@@ -23,7 +23,7 @@ export default function InlineLanguageToggle({ locale }) {
           : ui("language.switchToArabic")
       }
     >
-      <span>??</span>
+      <span>🌐</span>
       <span>
         {locale === "ar" ? ui("language.english") : ui("language.arabic")}
       </span>

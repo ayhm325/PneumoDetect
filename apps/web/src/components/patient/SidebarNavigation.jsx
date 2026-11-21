@@ -5,7 +5,7 @@ import ResultsSidebarItem from "./sidebar/ResultsSidebarItem";
 import ChatSidebarItem from "./sidebar/ChatSidebarItem";
 import ProfileSidebarItem from "./sidebar/ProfileSidebarItem";
 import LogoutSidebarItem from "./sidebar/LogoutSidebarItem";
-import { useTheme } from "@/app/theme-provider";
+import { useTheme } from "@/lib/compat/theme";
 import { useTranslations } from "@/lib/compat/intl";
 
 export default function SidebarNavigation() {
@@ -26,7 +26,7 @@ export default function SidebarNavigation() {
           className="flex items-center gap-3 px-3 py-2 rounded-lg text-(--ui-foreground) hover:bg-(--ui-surface-2)/60 transition-all"
           title={isDark ? t("theme.light") : t("theme.dark")}
         >
-          <span className="text-xl">{isDark ? "??" : "??"}</span>
+          <span className="text-xl">{isDark ? "☀️" : "🌙"}</span>
           <span className="text-sm font-medium">
             {isDark ? t("theme.light") : t("theme.dark")}
           </span>

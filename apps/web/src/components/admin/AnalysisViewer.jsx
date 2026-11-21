@@ -4,7 +4,7 @@ import Image from "@/lib/compat/Image";
 import { useTranslations } from "@/lib/compat/intl";
 
 function isValidImageUrl(url) {
-  // ???? ???? ?? http ?? /
+  // رابط يبدأ بـ http أو /
   return (
     typeof url === "string" && (url.startsWith("http") || url.startsWith("/"))
   );
@@ -22,7 +22,7 @@ export default function AnalysisViewer({ imageUrl }) {
       </div>
     );
   if (!isValidImageUrl(imageUrl)) {
-    // ??? ??? ??? ?? ?? ???? ???? ????
+    // إذا كان رمز أو نص وليس رابط صورة
     return <div className="text-center text-6xl py-12">{imageUrl}</div>;
   }
   return (

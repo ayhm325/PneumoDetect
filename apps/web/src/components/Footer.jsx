@@ -24,7 +24,7 @@ export default function Footer() {
 
   return (
     <footer className="relative w-full text-(--ui-foreground) overflow-hidden border-t border-(--ui-border) bg-(--ui-surface)">
-      {/*  ???????    */}
+      {/*  الخلفية    */}
       <div className="absolute top-0 left-0 w-full h-1 brand-gradient" />
 
       {/* Background Pattern */}
@@ -42,7 +42,7 @@ export default function Footer() {
                 <div className="absolute inset-0 brand-gradient rounded-xl blur-lg opacity-50 group-hover:opacity-75 transition-opacity" />
                 <div className="relative w-12 h-12 brand-gradient rounded-xl flex items-center justify-center">
                   <span className="text-3xl" aria-label={ui("aria.lungIcon")}>
-                    ??
+                    🫁
                   </span>
                 </div>
               </div>
@@ -142,7 +142,7 @@ export default function Footer() {
             </h3>
             <ul className="space-y-3 text-sm text-(--ui-muted-foreground)">
               <li className="flex items-start gap-3">
-                <span className="text-xl">??</span>
+                <span className="text-xl">📧</span>
                 <div>
                   <div className="text-(--ui-foreground) font-semibold mb-1">
                     {t("footer.contact.emailLabel")}
@@ -156,7 +156,7 @@ export default function Footer() {
                 </div>
               </li>
               <li className="flex items-start gap-3">
-                <span className="text-xl">??</span>
+                <span className="text-xl">📱</span>
                 <div>
                   <div className="text-(--ui-foreground) font-semibold mb-1">
                     {t("footer.contact.phoneLabel")}
@@ -171,7 +171,7 @@ export default function Footer() {
                 </div>
               </li>
               <li className="flex items-start gap-3">
-                <span className="text-xl">??</span>
+                <span className="text-xl">📍</span>
                 <div>
                   <div className="text-(--ui-foreground) font-semibold mb-1">
                     {t("footer.contact.addressLabel")}

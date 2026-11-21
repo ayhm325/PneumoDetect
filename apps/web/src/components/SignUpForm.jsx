@@ -16,7 +16,7 @@ import {
 } from "react-icons/fa6";
 import Link from "@/lib/compat/Link";
 import { useLocale, useTranslations } from "@/lib/compat/intl";
-import { useLocaleContext } from "../hooks/useLocaleContext";
+import { useLocaleContext } from "@/contexts/LocaleContext";
 import {
   glassContainer,
   iconBubble,
@@ -378,7 +378,7 @@ export default function SignUpForm() {
                     className={`ui-future-chip p-3 flex items-center justify-center gap-2 ${authText} border border-[var(--ui-warning-border)] rounded-md bg-[var(--ui-warning-bg)]`}
                   >
                     <span className="text-[var(--ui-warning)]" aria-hidden="true">
-                      ??
+                      ⚠️
                     </span>
                     {doctorsError}
                   </div>
@@ -395,7 +395,7 @@ export default function SignUpForm() {
                           : t("signup.doctorPlaceholder")}
                       </span>
                       <span className={`${authText}`}>
-                        {doctorPickerOpen ? "?" : "?"}
+                        {doctorPickerOpen ? "▲" : "▼"}
                       </span>
                     </button>
                     {doctorPickerOpen && (
@@ -501,7 +501,7 @@ export default function SignUpForm() {
                 className={`ui-future-chip p-3 flex items-center justify-center gap-3 ${authText} border border-[var(--ui-danger-border)] rounded-xl bg-[var(--ui-danger-bg)]`}
               >
                 <span className="text-[var(--ui-danger)]" aria-hidden="true">
-                  ??
+                  ⚠️
                 </span>
                 {error}
               </div>

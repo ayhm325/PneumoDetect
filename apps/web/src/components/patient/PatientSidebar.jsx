@@ -16,21 +16,21 @@ export default function PatientSidebar({ open = true, onClose }) {
     {
       href: withLocale("/patient/dashboard"),
       label: t("dashboard"),
-      icon: "??",
+      icon: "🏠",
     },
     {
       href: withLocale("/patient/appointments"),
       label: t("appointments"),
-      icon: "??",
+      icon: "📅",
     },
-    { href: withLocale("/patient/results"), label: t("results"), icon: "??" },
-    { href: withLocale("/patient/chat"), label: t("chat"), icon: "??" },
-    { href: withLocale("/patient/profile"), label: t("profile"), icon: "??" },
-    { href: "__logout__", label: t("logout"), icon: "??" },
+    { href: withLocale("/patient/results"), label: t("results"), icon: "📄" },
+    { href: withLocale("/patient/chat"), label: t("chat"), icon: "💬" },
+    { href: withLocale("/patient/profile"), label: t("profile"), icon: "👤" },
+    { href: "__logout__", label: t("logout"), icon: "🚪" },
   ];
   return (
     <>
-      {/* ???? ????? ???? ??? ??????? ??????? */}
+      {/* شريط جانبي دائم على الشاشات الكبيرة */}
       <aside className="sticky top-4 hidden w-72 shrink-0 card-glass rounded-xl border border-(--ui-border) p-4 shadow-sm lg:block">
         <div className="mb-6 flex items-center justify-center">
           <span className="text-2xl font-bold brand-gradient-text tracking-wide whitespace-nowrap">
@@ -70,7 +70,7 @@ export default function PatientSidebar({ open = true, onClose }) {
         </nav>
       </aside>
 
-      {/* ???? ????? ?? Overlay ??? ??????? ??????? */}
+      {/* شريط جانبي كـ Overlay على الشاشات الصغيرة */}
       {open && (
         <div
           className="fixed inset-0 z-40 bg-(--color-neutral)/40 lg:hidden"

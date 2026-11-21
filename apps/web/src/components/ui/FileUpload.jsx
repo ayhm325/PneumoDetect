@@ -5,7 +5,7 @@ export default function FileUpload({
   onUpload,
   accept = "*",
   multiple = false,
-  label = "??? ???",
+  label = "رفع ملف",
   className = "",
   style,
   children,

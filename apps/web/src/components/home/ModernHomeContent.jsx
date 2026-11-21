@@ -42,10 +42,10 @@ export default function ModernHomeContent() {
 
   const extraItems = useMemo(
     () => [
-      { icon: "??", title: features("extra1.title"), desc: features("extra1.desc") },
-      { icon: "?", title: features("extra2.title"), desc: features("extra2.desc") },
-      { icon: "??", title: features("extra3.title"), desc: features("extra3.desc") },
-      { icon: "??", title: features("extra4.title"), desc: features("extra4.desc") },
+      { icon: "🔒", title: features("extra1.title"), desc: features("extra1.desc") },
+      { icon: "⚡", title: features("extra2.title"), desc: features("extra2.desc") },
+      { icon: "📊", title: features("extra3.title"), desc: features("extra3.desc") },
+      { icon: "🌐", title: features("extra4.title"), desc: features("extra4.desc") },
     ],
     [features],
   );
@@ -245,7 +245,7 @@ export default function ModernHomeContent() {
 
               <div className="flex items-center justify-between">
                 <Button variant="secondary" fullWidth={false} size="sm" className="px-4" onClick={prevTestimonial}>
-                  ?
+                  ←
                 </Button>
                 <div className="flex items-center gap-2">
                   {testimonialItems.map((_, idx) => (
@@ -259,7 +259,7 @@ export default function ModernHomeContent() {
                   ))}
                 </div>
                 <Button variant="secondary" fullWidth={false} size="sm" className="px-4" onClick={nextTestimonial}>
-                  ?
+                  →
                 </Button>
               </div>
             </>

@@ -10,7 +10,7 @@ export default function ShellLayout({
   rtl = false,
   overlaySidebar = false,
   overlayDefaultOpen = true,
-  overlayWidthRem = 16, // ??? ??????? 16rem
+  overlayWidthRem = 16, // عرض افتراضي 16rem
 }) {
   const [overlayOpen, setOverlayOpen] = useState(overlayDefaultOpen);
   const ui = useTranslations("ui");
@@ -31,7 +31,7 @@ export default function ShellLayout({
           <div className="space-y-4 relative">
             {overlaySidebar && Sidebar ? (
               <>
-                {/* ?? ??/????? */}
+                {/* زر طي/إظهار */}
                 <button
                   type="button"
                   onClick={() => setOverlayOpen((v) => !v)}
@@ -39,14 +39,14 @@ export default function ShellLayout({
                 >
                   {overlayOpen ? ui("sidebar.hide") : ui("sidebar.show")}
                 </button>
-                {/* ????? ????? ????? ??????? */}
+                {/* خلفية قابلة للنقر للإغلاق */}
                 {overlayOpen && (
                   <div
                     className="hidden lg:block fixed inset-0 z-30 bg-(--ui-foreground)/10"
                     onClick={() => setOverlayOpen(false)}
                   />
                 )}
-                {/* ?????? ??????? ?? Overlay */}
+                {/* الشريط الجانبي كـ Overlay */}
                 <div
                   className="hidden lg:block fixed right-0 top-0 z-40 h-screen"
                   style={{

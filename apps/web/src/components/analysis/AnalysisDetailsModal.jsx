@@ -14,7 +14,7 @@ export default function AnalysisDetailsModal({ record, onClose, saved = false, s
         <div className="flex items-start justify-between gap-4 mb-4">
           <h2 className="text-lg font-semibold">{t('analysisDetails.title')}</h2>
           <button onClick={onClose} aria-label={t('analysisDetails.closeDetails')} className="text-gray-600 hover:text-gray-800 tooltip">
-            ?
+            ✕
             <span className="tooltip-text">{t('analysisDetails.close')}</span>
           </button>
         </div>

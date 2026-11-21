@@ -38,7 +38,7 @@ export default function RecentChatsClient() {
           >
             <FaComments className="text-(--ui-muted-foreground)" />
             <span className="font-bold">{chat.doctor}</span>
-            <span className="mx-2 text-(--ui-muted-foreground)">?</span>
+            <span className="mx-2 text-(--ui-muted-foreground)">→</span>
             <span className="font-bold">{chat.patient}</span>
             <span className="ml-2 text-xs text-(--ui-muted-foreground)">
               {chat.lastMsg}

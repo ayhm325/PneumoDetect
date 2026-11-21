@@ -1,5 +1,5 @@
 export default function ResultPanel() {
-  // ?????? ????? ?????
+  // بيانات نتيجة وهمية
   const result = {
     diagnosis: "Pneumonia",
     confidence: "92%",

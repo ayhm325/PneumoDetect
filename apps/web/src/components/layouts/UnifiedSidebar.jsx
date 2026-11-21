@@ -77,13 +77,13 @@ export default function UnifiedSidebar({ items = [], onLogout, onClose }) {
           >
             <div className="mb-3 flex items-center justify-between">
               <div className="text-base font-semibold text-(--ui-foreground)">
-                ???????
+                القائمة
               </div>
               <button
                 onClick={onClose}
                 className="rounded-md bg-(--ui-surface-2) px-3 py-1.5 text-sm text-(--ui-foreground) hover:bg-(--ui-surface) border border-(--ui-border)"
               >
-                ?????
+                إغلاق
               </button>
             </div>
             <nav className="space-y-1">

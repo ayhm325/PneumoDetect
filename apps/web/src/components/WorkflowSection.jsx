@@ -1,39 +1,39 @@
-"use client"; // ???? ?? Next.js Client Component (??? ?????? ??? ??????? ???? ???????)
-import Image from "@/lib/compat/Image"; // ??????? ???? ????? ?????? ?? Next.js ?????? ??????
-import { useMemo } from "react"; // hook ???? ????? ???????? ???? ????? ?????? ??? ??? ???? ??????????
-import { useTranslations } from "@/lib/compat/intl"; // hook ???? ??????? i18n
+"use client"; // مخصص لـ Next.js Client Component (يتم تشغيله على المتصفح وليس السيرفر)
+import Image from "@/lib/compat/Image"; // استيراد مكون الصور المدمج في Next.js لتحسين الأداء
+import { useMemo } from "react"; // hook لحفظ القيم المحسوبة وعدم إعادة حسابها إلا عند تغير الاعتمادات
+import { useTranslations } from "@/lib/compat/intl"; // hook لدعم الترجمة i18n
 
 export default function WorkflowSection() {
-  const t = useTranslations("workflowsection"); // ?????? ??? ??????? ?????? ???? workflow section
-  const workflowCopy = t.raw("content.workflow"); // ??????? ????? ??????? (title, subtitle, steps, CTA)
+  const t = useTranslations("workflowsection"); // الحصول على الترجمة الخاصة بالـ workflow section
+  const workflowCopy = t.raw("content.workflow"); // استرجاع محتوى الخطوات (title, subtitle, steps, CTA)
 
-  // ????? ?????? ???????? ???????? (flowParticles) ??????? ???????
+  // توليد بيانات الجسيمات المتحركة (flowParticles) لمؤثرات الخلفية
   const flowParticles = useMemo(() => {
     const colors = [
-      "var(--color-bright-500)", // ???? ??????
-      "var(--color-primary-500)", // ???? ???
-      "var(--color-dark-500)", // ???? ???
+      "var(--color-bright-500)", // أصفر تحذيري
+      "var(--color-primary-500)", // أخضر طبي
+      "var(--color-dark-500)", // أحمر خطر
     ];
 
-    // ????? 18 ?????? ?????? ?????? ?????? ??????
+    // توليد 18 جسيمًا بمواقع وألوان وأزمنة مختلفة
     return Array.from({ length: 18 }, (_, i) => ({
       id: i,
-      left: (i * 8.3 + 5) % 100, // ???? ???? ????? %
-      top: (i * 11 + 7) % 100,   // ???? ????? ????? %
-      color: colors[i % 3],      // ?????? ??? ????????
-      duration: 8 + (i % 4) * 1.2, // ??? ??????
-      delay: (i % 5) * 0.4,        // ????? ???????
+      left: (i * 8.3 + 5) % 100, // موقع أفقي كنسبة %
+      top: (i * 11 + 7) % 100,   // موقع عمودي كنسبة %
+      color: colors[i % 3],      // اختيار لون بالتناوب
+      duration: 8 + (i % 4) * 1.2, // مدة الحركة
+      delay: (i % 5) * 0.4,        // تأخير البداية
     }));
   }, []);
 
   return (
     <section className="relative w-full py-20 sm:py-24 bg-linear-to-tr from-(--color-dark-50) via-(--color-background) to-(--color-bright-10) text-(--ui-foreground) overflow-hidden">
-      {/* ??????? ???????? ??????? */}
+      {/* الخلفية المتحركة بالكامل */}
       <div className="absolute inset-0 pointer-events-none select-none overflow-hidden">
-        {/* ???? ??????? ?????????? (Circuit Lines) */}
+        {/* خطوط الدوائر الكهربائية (Circuit Lines) */}
         <svg className="absolute inset-0 w-full h-full opacity-20" xmlns="http://www.w3.org/2000/svg">
           <defs>
-            {/* ????? Gradient ??????? ???????? ?????? */}
+            {/* تعريف Gradient للألوان المتدرجة للخطوط */}
             <linearGradient id="circuitGrad" x1="0%" y1="0%" x2="100%" y2="10%">
               <stop offset="0%" style={{ stopColor: "var(--color-bright-500)", stopOpacity: 0.8 }} />
               <stop offset="50%" style={{ stopColor: "var(--color-primary-500)", stopOpacity: 0.6 }} />
@@ -41,7 +41,7 @@ export default function WorkflowSection() {
             </linearGradient>
           </defs>
 
-          {/* ???? ????? */}
+          {/* خطوط أفقية */}
           <g stroke="url(#circuitGrad)" strokeWidth="2" fill="none">
             <line x1="0" y1="20%" x2="100%" y2="20%" opacity="0.6">
               <animate attributeName="stroke-dasharray" values="0,1000;1000,0" dur="20s" repeatCount="indefinite" />
@@ -57,7 +57,7 @@ export default function WorkflowSection() {
             </line>
           </g>
 
-          {/* ???? ????? */}
+          {/* خطوط رأسية */}
           <g stroke="url(#circuitGrad)" strokeWidth="2" fill="none">
             <line x1="20%" y1="0" x2="20%" y2="100%" opacity="0.5">
               <animate attributeName="stroke-dasharray" values="1000,0;0,1000" dur="18s" repeatCount="indefinite" />
@@ -70,9 +70,9 @@ export default function WorkflowSection() {
             </line>
           </g>
 
-          {/* ??? ??????? (Nodes) */}
+          {/* عقد الدائرة (Nodes) */}
           <g fill="url(#circuitGrad)">
-            {/* ?? circle ???? ???? ????? ????? */}
+            {/* كل circle يمثل نقطة مضيئة تتحرك */}
             <circle cx="20%" cy="20%" r="4" opacity="0.7">
               <animate attributeName="r" values="4;8;4" dur="3s" repeatCount="indefinite" />
               <animate attributeName="opacity" values="0.7;1;0.7" dur="3s" repeatCount="indefinite" />
@@ -96,7 +96,7 @@ export default function WorkflowSection() {
           </g>
         </svg>
 
-        {/* ?????? ???????? ???????? (Flowing Data Particles) */}
+        {/* جسيمات البيانات المتدفقة (Flowing Data Particles) */}
         <div className="absolute inset-0">
           {flowParticles.map((p) => (
             <div
@@ -115,9 +115,9 @@ export default function WorkflowSection() {
           ))}
         </div>
 
-        {/* ??????? ????? ?????? */}
+        {/* تأثيرات خلفية إضافية */}
 
-        {/* ????? radial-gradient: ????? ?? ????? ?? ????? ?????? */}
+        {/* خلفية radial-gradient: تخفيف أو إخفاء في الوضع الليلي */}
         <div
           className="absolute inset-0 opacity-10 dark:opacity-0 transition-opacity duration-500"
           style={{
@@ -138,7 +138,7 @@ export default function WorkflowSection() {
           style={{ animationDuration: "10s", animationDelay: "2s" }}
         />
 
-        {/* ?? ????? ?????? */}
+        {/* خط المسح الضوئي */}
         <div className="absolute inset-0 overflow-hidden">
           <div
             className="absolute w-full h-1 bg-linear-to-r from-transparent via-(--color-bright-500) to-transparent opacity-50"
@@ -151,9 +151,9 @@ export default function WorkflowSection() {
         </div>
       </div>
 
-      {/* ????? ????? ??????? */}
+      {/* محتوى القسم الرئيسي */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        {/* ????? ????? */}
+        {/* عنوان القسم */}
         <div className="text-center mb-16 animate-fadeIn">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-black mb-8">
             <span className="brand-gradient-text">{workflowCopy.title}</span>
@@ -163,7 +163,7 @@ export default function WorkflowSection() {
           </p>
         </div>
 
-        {/* ????? ??? ????? */}
+        {/* خطوات سير العمل */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12 relative">
           {(workflowCopy.steps || []).map((step, i) => (
             <div
@@ -171,7 +171,7 @@ export default function WorkflowSection() {
               className="relative animate-fadeIn"
               style={{ animationDelay: `${i * 0.15}s` }}
             >
-              {/* ?? ????? ??? ???????? ??? ????? ??? ?????? */}
+              {/* خط الربط بين البطاقات على أجهزة سطح المكتب */}
               {i < 2 && (
                 <div className="hidden md:block absolute top-1/2 left-full w-12 lg:w-20 h-0.5 -translate-y-1/2 z-0">
                   <div className="w-full h-full bg-linear-to-r from-(--color-bright-500) to-(--color-dark-500) opacity-30" />
@@ -179,19 +179,19 @@ export default function WorkflowSection() {
                 </div>
               )}
 
-              {/* ????? ?? ???? */}
+              {/* بطاقة كل خطوة */}
               <div className="group relative h-full">
-                {/* ????? ???? ??? hover */}
+                {/* تأثير توهج عند hover */}
                 <div className="absolute -inset-1 bg-linear-to-r from-(--color-bright-500) to-(--color-dark-500) rounded-3xl opacity-0 group-hover:opacity-30 blur-2xl transition-opacity duration-500" />
 
-                {/* ????? ??????? */}
+                {/* محتوى البطاقة */}
                 <div className="relative h-full p-8 card-glass rounded-3xl border-2 border-(--ui-border) shadow-lg hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-300">
-                  {/* ??? ?????? */}
+                  {/* رقم الخطوة */}
                   <div className="absolute -top-4 -right-4 w-12 h-12 bg-linear-to-br from-(--color-bright-500) to-(--color-dark-500) rounded-full flex items-center justify-center text-white font-black text-xl shadow-lg">
                     {i + 1}
                   </div>
 
-                  {/* ?????? ?????? */}
+                  {/* أيقونة الخطوة */}
                   <div className="relative mb-6 inline-flex">
                     <div className="absolute inset-0 bg-linear-to-br from-(--color-bright-500) to-(--color-dark-500) rounded-2xl blur-xl opacity-30 group-hover:opacity-50 transition-opacity animate-pulse" />
                     <div className="relative w-20 h-20 flex items-center justify-center bg-(--ui-surface-2) border border-(--ui-border) rounded-2xl shadow-xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
@@ -199,13 +199,13 @@ export default function WorkflowSection() {
                     </div>
                   </div>
 
-                  {/* ????? ?????? */}
+                  {/* عنوان الخطوة */}
                   <h3 className="text-xl sm:text-2xl font-bold mb-3 text-(--ui-foreground)">{step.title}</h3>
 
-                  {/* ??? ?????? */}
+                  {/* وصف الخطوة */}
                   <p className="text-(--ui-muted-foreground) text-base leading-relaxed">{step.desc}</p>
 
-                  {/* ??? ?????? ??????? ???????? */}
+                  {/* سهم توضيحي للهواتف المحمولة */}
                   {i < 2 && (
                     <div className="md:hidden absolute bottom-4 left-1/2 -translate-x-1/2 -mb-8 text-(--ui-info) animate-bounce">
                       <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -219,10 +219,10 @@ export default function WorkflowSection() {
           ))}
         </div>
 
-        {/* ???? ?????? ????? CTA */}
+        {/* دعوة لاتخاذ إجراء CTA */}
         <div className="mt-16 text-center animate-fadeIn" style={{ animationDelay: "0.6s" }}>
           <div className="inline-flex items-center gap-4 p-6 card-glass rounded-2xl border border-(--ui-border) shadow-lg">
-            <div className="text-4xl animate-bounce">?</div>
+            <div className="text-4xl animate-bounce">⚡</div>
             <div className="text-right">
               <div className="text-lg font-bold text-(--ui-foreground)">{workflowCopy.ctaTitle}</div>
               <div className="text-sm text-(--ui-muted-foreground)">{workflowCopy.ctaSubtitle}</div>

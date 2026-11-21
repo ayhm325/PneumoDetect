@@ -1,7 +1,1 @@
-"use client";
-
-import { LoginFormFeature } from "../../src/features/auth/components/LoginForm";
-
-export default function LoginForm() {
-  return <LoginFormFeature />;
-}
+export { LoginPage as default } from "@/features/auth/LoginPage";

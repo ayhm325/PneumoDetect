@@ -10,7 +10,7 @@ export default function ChatList({ chats, onSelect }) {
           <span className="font-bold text-(--ui-foreground)">
             {chat.doctor}
           </span>
-          <span className="mx-2 text-(--ui-muted-foreground)">?</span>
+          <span className="mx-2 text-(--ui-muted-foreground)">→</span>
           <span className="font-bold text-(--ui-foreground)">
             {chat.patient}
           </span>

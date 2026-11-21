@@ -3,7 +3,7 @@
 import { usePathname, useRouter } from "@/lib/compat/navigation";
 import { useState } from "react";
 import { useTheme } from "@/lib/compat/theme";
-import { useLocaleContext } from "../../hooks/useLocaleContext";
+import { useLocaleContext } from "@/contexts/LocaleContext";
 import { useLocale, useTranslations } from "@/lib/compat/intl";
 
 export default function AdminSidebar({ collapsed, setCollapsed }) {
@@ -51,38 +51,38 @@ export default function AdminSidebar({ collapsed, setCollapsed }) {
     {
       href: `${basePrefix}/admin/dashboard`,
       label: t("nav.dashboard"),
-      icon: "??",
+      icon: "📊",
     },
     {
       href: `${basePrefix}/admin/users`,
       label: t("nav.users"),
-      icon: "??",
+      icon: "👥",
     },
     {
       href: `${basePrefix}/admin/patients`,
       label: t("nav.patients"),
-      icon: "????????",
+      icon: "🧑‍🤝‍🧑",
     },
     {
       href: `${basePrefix}/admin/doctors`,
       label: t("nav.doctors"),
-      icon: "?????",
+      icon: "🧑‍⚕️",
     },
     {
       href: `${basePrefix}/admin/doctor-change-requests-page`,
       label: t("nav.doctorChangeRequests"),
-      icon: "??",
+      icon: "📝",
     },
 
     {
       href: `${basePrefix}/admin/settings`,
       label: t("nav.settings"),
-      icon: "??",
+      icon: "⚙️",
     },
     {
       href: "__logout__",
       label: t("nav.logout"),
-      icon: "??",
+      icon: "🚪",
     },
   ];
   return (
@@ -96,7 +96,7 @@ export default function AdminSidebar({ collapsed, setCollapsed }) {
               <div className="absolute inset-0 brand-gradient rounded-full blur opacity-40" />
               <div className="relative flex items-center justify-center w-10 h-10 brand-gradient rounded-full shadow-(--shadow-soft)">
                 <span className="text-xl" aria-label={ui("aria.lungIcon")}>
-                  ??
+                  🫁
                 </span>
               </div>
             </div>
@@ -110,7 +110,7 @@ export default function AdminSidebar({ collapsed, setCollapsed }) {
           className="p-2 hover:bg-(--ui-muted) rounded-lg transition-colors text-(--ui-muted-2) hover:text-foreground"
           title={collapsed ? t("ui.collapseOpen") : t("ui.collapseClose")}
         >
-          {collapsed ? "?" : "?"}
+          {collapsed ? "←" : "→"}
         </button>
       </div>
       <nav className="flex-1 overflow-y-auto py-4 px-3">
@@ -153,7 +153,7 @@ export default function AdminSidebar({ collapsed, setCollapsed }) {
               </a>
             );
           })}
-          {/* ?? ????? ????? ?????? */}
+          {/* زر تبديل الوضع الليلي */}
           <button
             onClick={() => setTheme(isDark ? "light" : "dark")}
             className={`flex items-center gap-3 px-3 py-2 rounded-lg text-(--ui-muted-2) hover:text-foreground hover:bg-(--ui-muted) transition-all w-full ${collapsed ? "justify-center" : ""}`}
@@ -161,20 +161,20 @@ export default function AdminSidebar({ collapsed, setCollapsed }) {
               collapsed ? (isDark ? t("ui.themeLight") : t("ui.themeDark")) : ""
             }
           >
-            <span className="text-lg shrink-0">{isDark ? "??" : "??"}</span>
+            <span className="text-lg shrink-0">{isDark ? "☀️" : "🌙"}</span>
             {!collapsed && (
               <span className="text-sm font-medium">
                 {isDark ? t("ui.themeLight") : t("ui.themeDark")}
               </span>
             )}
           </button>
-          {/* ?? ????? ????? */}
+          {/* زر تبديل اللغة */}
           <button
             onClick={toggleLocale}
             className={`flex items-center gap-3 px-3 py-2 rounded-lg text-(--ui-muted-2) hover:text-foreground hover:bg-(--ui-muted) transition-all w-full ${collapsed ? "justify-center" : ""}`}
             title={collapsed ? t("ui.localeSwitchLabel") : ""}
           >
-            <span className="text-lg shrink-0">??</span>
+            <span className="text-lg shrink-0">🌐</span>
             {!collapsed && (
               <span className="text-sm font-medium">
                 {t("ui.localeSwitchLabel")}

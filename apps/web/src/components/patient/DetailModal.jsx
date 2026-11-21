@@ -17,7 +17,7 @@ export default function DetailModal({ open, title, children, onClose }) {
             onClick={onClose}
             className="rounded-md border border-(--ui-border) bg-(--ui-surface-2) px-3 py-1.5 text-sm text-(--ui-foreground) hover:bg-(--ui-surface-2)/70"
           >
-            ?????
+            إغلاق
           </button>
         </header>
         <div className="p-4 text-sm text-(--ui-foreground)">{children}</div>

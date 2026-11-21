@@ -22,13 +22,13 @@ export default function RadiologyImageViewer({ images = [], report }) {
     <section className="card-glass rounded-xl border border-(--ui-border) shadow-sm">
       <header className="flex items-center justify-between border-b border-(--ui-border) p-4">
         <h2 className="text-lg font-semibold text-(--ui-foreground)">
-          ???? ??? ??????
+          عارض صور الأشعة
         </h2>
       </header>
       <div className="p-4">
         <div className="flex flex-wrap items-center gap-3 mb-4">
           <label className="text-sm text-(--ui-muted-foreground)">
-            ?????/?????
+            تكبير/تصغير
           </label>
           <input
             type="range"
@@ -39,7 +39,7 @@ export default function RadiologyImageViewer({ images = [], report }) {
             onChange={(e) => setZoom(parseFloat(e.target.value))}
           />
           <label className="text-sm text-(--ui-muted-foreground)">
-            ???????
+            الإضاءة
           </label>
           <input
             type="range"
@@ -84,12 +84,12 @@ export default function RadiologyImageViewer({ images = [], report }) {
             </div>
           ) : (
             <div className="flex h-full w-full items-center justify-center text-(--ui-muted-foreground)">
-              ?? ???? ???
+              لا توجد صور
             </div>
           )}
         </div>
 
-        {/* ??????/??????? ????? */}
+        {/* سلايدر/مصغّرات للصور */}
         <div className="mt-3 flex gap-2 overflow-x-auto">
           {images.map((src, i) => (
             <button
@@ -108,11 +108,11 @@ export default function RadiologyImageViewer({ images = [], report }) {
           ))}
         </div>
 
-        {/* ????? ?????? */}
+        {/* تقرير الطبيب */}
         {report && (
           <div className="mt-4 rounded-md border border-(--ui-border) bg-(--ui-surface) p-3 text-sm text-(--ui-foreground)">
             <div className="mb-1 text-(--ui-muted-foreground)">
-              ????? ??????
+              تقرير الطبيب
             </div>
             <div>{report}</div>
           </div>

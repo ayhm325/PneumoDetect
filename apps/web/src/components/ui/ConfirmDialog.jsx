@@ -14,9 +14,9 @@ export default function ConfirmDialog({
   ...props
 }) {
   const t = useTranslations("ui");
-  const msg = message || t("confirmDialog.defaultMessage", { default: "?? ??? ????? ?? ?????????" });
-  const confirmText = confirmLabel || t("confirmDialog.confirm", { default: "?????" });
-  const cancelText = cancelLabel || t("confirmDialog.cancel", { default: "?????" });
+  const msg = message || t("confirmDialog.defaultMessage", { default: "هل أنت متأكد من المتابعة؟" });
+  const confirmText = confirmLabel || t("confirmDialog.confirm", { default: "تأكيد" });
+  const cancelText = cancelLabel || t("confirmDialog.cancel", { default: "إلغاء" });
 
   const variantClass = {
     danger: "bg-(--ui-danger) text-(--ui-danger-foreground) border-(--ui-danger-border)",

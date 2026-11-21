@@ -61,25 +61,25 @@ function PatientFormModal() {
     {
       title: t("dashboard.quickActions.bookAppointment"),
       desc: t("dashboard.quickActions.desc.bookAppointment"),
-      icon: "??",
+      icon: "📅",
       action: () => router.push(`${basePrefix}/patient/appointments`),
     },
     {
       title: t("dashboard.quickActions.uploadXray"),
       desc: t("dashboard.quickActions.desc.uploadXray"),
-      icon: "??",
+      icon: "🩻",
       action: () => router.push(`${basePrefix}/patient/analysis`),
     },
     {
       title: t("dashboard.quickActions.viewReports"),
       desc: t("dashboard.quickActions.desc.viewReports"),
-      icon: "??",
+      icon: "📋",
       action: () => router.push(`${basePrefix}/patient/results`),
     },
     {
       title: t("dashboard.quickActions.chatDoctor"),
       desc: t("dashboard.quickActions.desc.chatDoctor"),
-      icon: "??",
+      icon: "💬",
       action: () => router.push(`${basePrefix}/patient/chat`),
     },
   ];
@@ -97,7 +97,7 @@ function PatientFormModal() {
         {/* Header */}
         <div className="flex justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold">{t("dashboard.welcome")} ??</h1>
+            <h1 className="text-3xl font-bold">{t("dashboard.welcome")} 👋</h1>
             <p className="text-(--ui-muted-foreground) mt-2">{todayDate}</p>
           </div>
 
@@ -137,7 +137,7 @@ function PatientFormModal() {
         <h2 className="text-2xl font-bold mb-4">
           {t("dashboard.quickActions.title")}
         </h2>
-        {/* ????? ????? ???? ??? quickActions ??? ??? ??? ????? */}
+        {/* يمكنك إضافة باقي كود quickActions هنا إذا كان مطلوب */}
       </div>
     </>
   );

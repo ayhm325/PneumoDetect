@@ -66,7 +66,7 @@ export default function SettingsPageContent() {
           open={showConfirm}
           message={t("demo.confirmSensitiveActionMessage")}
           onConfirm={() => {
-            setShowConfirm(false); /* ????? ??????? */
+            setShowConfirm(false); /* تنفيذ الإجراء */
           }}
           onCancel={() => setShowConfirm(false)}
         />

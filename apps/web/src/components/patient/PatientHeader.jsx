@@ -16,13 +16,13 @@ export default function PatientHeader({
   return (
     <header className="card-glass flex items-center justify-between rounded-xl border border-(--ui-border) p-4 shadow-sm">
       <div className="flex items-center gap-3">
-        {/* ?? ?????? ???? ??? ??????? ??????? */}
+        {/* زر همبرغر يظهر على الشاشات الصغيرة */}
         <button
           aria-label={ui("aria.openMenu")}
           onClick={onToggleSidebar}
           className="inline-flex items-center justify-center rounded-md border border-(--ui-border) bg-(--ui-surface) px-3 py-2 text-(--ui-foreground) hover:bg-(--ui-surface-2)/60 lg:hidden"
         >
-          ?
+          ☰
         </button>
         <div className="relative h-10 w-10 overflow-hidden rounded-full border border-(--ui-border) bg-(--ui-surface-2)">
           {avatarUrl ? (
@@ -35,7 +35,7 @@ export default function PatientHeader({
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center text-(--ui-muted-foreground)">
-              ??
+              👤
             </div>
           )}
         </div>

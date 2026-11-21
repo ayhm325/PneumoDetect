@@ -3,7 +3,7 @@ import { useState } from "react";
 import { FaEnvelope, FaShield, FaHouse } from "react-icons/fa6";
 import Link from "@/lib/compat/Link";
 import { useLocale, useTranslations } from "@/lib/compat/intl";
-import { useLocaleContext } from "../hooks/useLocaleContext";
+import { useLocaleContext } from "@/contexts/LocaleContext";
 import {
   glassContainer,
   iconBubble,
@@ -53,7 +53,7 @@ export default function ForgotPasswordForm() {
 
       setError(
         locale === "ar"
-          ? "???? ??????? ???? ?????? ??? ?????? ?????????? ??? ????? ??????. ???? ?????? ????? ??????."
+          ? "خدمة استعادة كلمة المرور عبر البريد الإلكتروني غير مفعلة حالياً. يرجى مراجعة إدارة النظام."
           : "Automated password recovery via email is currently not configured. Please contact system administration."
       );
       setLoading(false);
@@ -111,7 +111,7 @@ export default function ForgotPasswordForm() {
             <div
               className={`ui-future-chip p-3 flex items-start gap-3 mt-2 ${authText} border border-[var(--ui-success-border)] rounded-xl bg-[var(--ui-success-bg)]`}
             >
-              <span className="text-xl">?</span>
+              <span className="text-xl">✅</span>
               <div>
                 <p className="font-semibold">{t("successMessage")}</p>
                 <button
@@ -158,7 +158,7 @@ export default function ForgotPasswordForm() {
                   className={`ui-future-chip p-3 flex items-center gap-3 mt-4 ${authText} border border-[var(--ui-danger-border)] rounded-xl bg-[var(--ui-danger-bg)]`}
                   role="alert"
                 >
-                  <span className="text-xl">??</span>
+                  <span className="text-xl">⚠️</span>
                   <span className="font-medium">{error}</span>
                 </div>
               )}

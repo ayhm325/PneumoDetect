@@ -11,7 +11,7 @@ export default class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    // ???? ????? ????? ???
+    // يمكن تسجيل الخطأ هنا
   }
 
   render() {

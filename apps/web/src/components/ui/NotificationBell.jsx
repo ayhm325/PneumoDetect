@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { FaBell, FaTimes } from "react-icons/fa";
 import { useTranslations, useLocale } from "@/lib/compat/intl";
-import { deserializeLocalizedMessage } from "../../../lib/notifications";
+import { deserializeLocalizedMessage } from "@/lib/notifications";
 
 const NotificationBell = ({
   notifications = [],

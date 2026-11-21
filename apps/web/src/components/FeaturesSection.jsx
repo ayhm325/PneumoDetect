@@ -28,10 +28,10 @@ export default function FeaturesSection() {
       },
     ],
     extras: [
-      { icon: "??", title: t("extra1.title"), desc: t("extra1.desc") },
-      { icon: "?", title: t("extra2.title"), desc: t("extra2.desc") },
-      { icon: "??", title: t("extra3.title"), desc: t("extra3.desc") },
-      { icon: "??", title: t("extra4.title"), desc: t("extra4.desc") },
+      { icon: "🔒", title: t("extra1.title"), desc: t("extra1.desc") },
+      { icon: "⚡", title: t("extra2.title"), desc: t("extra2.desc") },
+      { icon: "📊", title: t("extra3.title"), desc: t("extra3.desc") },
+      { icon: "🌐", title: t("extra4.title"), desc: t("extra4.desc") },
     ],
   };
   const particles = useMemo(() => {

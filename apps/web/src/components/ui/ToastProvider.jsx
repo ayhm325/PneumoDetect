@@ -16,12 +16,12 @@ const ToastContext = createContext(null);
 export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([]);
 
-  // ????? Toast
+  // إزالة Toast
   const removeToast = useCallback((id) => {
     setToasts((prev) => prev.filter((toast) => toast.id !== id));
   }, []);
 
-  // ????? Toast
+  // إضافة Toast
   const addToast = useCallback(
     (message, type = "info", duration = 3000) => {
       const id = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
@@ -36,7 +36,7 @@ export function ToastProvider({ children }) {
     [removeToast],
   );
 
-  // ???????? ???????
+  // اختصارات للأنواع
   const showSuccess = useCallback(
     (msg, duration) => addToast(msg, "success", duration),
     [addToast],
@@ -69,7 +69,7 @@ export function useToast() {
 }
 
 // ----------------------------------------
-// ToastContainer: ????? ??? ????? ?????? ???
+// ToastContainer: يُعرض بعد تحميل العميل فقط
 export function ToastContainer({ toasts, removeToast }) {
   const [mounted, setMounted] = useState(false);
   const locale = useLocale();

@@ -51,7 +51,7 @@ export default function FixedSidebar({ items = [], userRole = "patient" }) {
             className="p-2 hover:bg-(--ui-surface-2) rounded-lg transition-colors text-(--ui-muted-foreground) hover:text-(--ui-foreground)"
             title={collapsed ? ui("sidebar.expand") : ui("sidebar.collapse")}
           >
-            {collapsed ? "?" : "?"}
+            {collapsed ? "→" : "←"}
           </button>
         </div>
 

@@ -1,7 +1,7 @@
 "use client";
 import { useTranslations, useLocale } from "@/lib/compat/intl";
-import aboutEn from "../../locales/en/about.json";
-import aboutAr from "../../locales/ar/about.json";
+import aboutEn from "@/i18n/locales/en/about.json";
+import aboutAr from "@/i18n/locales/ar/about.json";
 import Link from "@/lib/compat/Link";
 import { usePathname, useRouter } from "@/lib/compat/navigation";
 

@@ -1,7 +1,7 @@
 "use client";
 import { useEffect } from "react";
 
-// ??????? ?????? ?? ??? ??? layout.js
+// استيراد الدوال من نفس ملف layout.js
 function applyThemeFromStorage() {
   try {
     const theme = ["light", "dark"].includes(localStorage.getItem("app-theme"))

@@ -79,7 +79,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
 
-  /* ????? ????? ?? ?????? ??? ??? ?????? */
+  /* تبديل اللغة مع الحفاظ على نفس الصفحة */
   function handleSwitchLocale() {
     const nextLocale = locale === "ar" ? "en" : "ar";
     i18n.changeLanguage(nextLocale);
@@ -98,12 +98,12 @@ export default function Navbar() {
   return (
     <nav className="relative z-50 overflow-hidden px-4 py-3 text-(--ui-foreground) lg:px-8">
       <Card size="sm" className="relative flex items-center justify-between gap-3 py-2">
-        {/* ????? ?????? ???????? ??????? (Mesh Gradient) */}
+        {/* خلفية التدرج المتحركة الجديدة (Mesh Gradient) */}
         <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none opacity-60">
-          {/* ??????? ???????? */}
+          {/* الخلفية الأساسية */}
           <div className="absolute inset-0 bg-(--ui-surface)" />
 
-          {/* ?????? ??????? ???????? (Orbs) */}
+          {/* الكرات اللونية المتحركة (Orbs) */}
           {/* Orb 1: Primary Color */}
           <div className="hidden sm:block absolute top-[-10%] left-[-10%] w-125 h-125 bg-(--color-primary-500) rounded-full mix-blend-multiply filter blur-[100px] animate-float opacity-30" />
 
@@ -114,7 +114,7 @@ export default function Navbar() {
           <div className="hidden sm:block absolute top-[20%] right-[20%] w-75 h-75 bg-(--color-accent-500) rounded-full mix-blend-screen filter blur-[80px] animate-float opacity-20 animation-delay-2000" />
         </div>
 
-        {/* ???? ?????? */}
+        {/* شعار الموقع */}
         <a
           href={homeHref}
           className="flex items-center gap-2 shrink-0"
@@ -145,7 +145,7 @@ export default function Navbar() {
           <div className="flex flex-col min-w-0">
             <div className="flex items-center gap-1">
               <span className="text-xl" aria-label={t("logoIconAria")}>
-                ??
+                🫁
               </span>
               <span className="font-black text-2xl brand-gradient-text truncate hidden sm:inline">
                 {t("brand")}
@@ -160,7 +160,7 @@ export default function Navbar() {
           </div>
         </a>
 
-        {/* ????? ?????? (????? ?????? ?????? ?????) */}
+        {/* عناصر التحكم (الوضع الليلي وتبديل اللغة) */}
         <div className="flex items-center gap-2">
           <ThemeToggleButton />
           <Button

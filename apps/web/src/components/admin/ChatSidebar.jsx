@@ -16,7 +16,7 @@ export default function ChatSidebar({ chats, onSelect }) {
             onClick={() => onSelect(chat)}
           >
             <span className="font-semibold text-foreground">{chat.doctor}</span>
-            <span className="mx-2 text-(--ui-muted-2)">?</span>
+            <span className="mx-2 text-(--ui-muted-2)">→</span>
             <span className="font-semibold text-foreground">
               {chat.patient}
             </span>

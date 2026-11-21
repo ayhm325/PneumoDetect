@@ -2,7 +2,7 @@
 
 import { FaUserMd, FaUserEdit, FaUserTimes, FaUserPlus } from "react-icons/fa";
 import { useEffect, useState } from "react";
-import useLocale from "../../../hooks/useLocale";
+import useLocale from "@/lib/compat/intl";
 import { useTranslations } from "@/lib/compat/intl";
 
 export default function DoctorsTable() {

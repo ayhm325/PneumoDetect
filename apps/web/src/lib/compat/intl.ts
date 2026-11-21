@@ -19,3 +19,5 @@ export function useTranslations(namespace?: string) {
 
   return fn;
 }
+
+export default useLocale;

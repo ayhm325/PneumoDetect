@@ -37,7 +37,7 @@ export default function PatientProfileCard({
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center text-(--ui-muted-foreground)">
-              ??
+              👤
             </div>
           )}
         </div>

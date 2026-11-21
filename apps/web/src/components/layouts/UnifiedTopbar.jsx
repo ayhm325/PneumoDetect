@@ -22,7 +22,7 @@ export default function UnifiedTopbar({
           onClick={onToggleSidebar}
           className="inline-flex items-center justify-center rounded-md border border-(--ui-border) bg-(--ui-surface) px-3 py-2 text-(--ui-foreground) hover:bg-(--ui-surface-2) lg:hidden"
         >
-          ?
+          ☰
         </button>
 
         {/* Avatar */}
@@ -37,7 +37,7 @@ export default function UnifiedTopbar({
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center text-(--ui-muted-foreground)">
-              ??
+              👤
             </div>
           )}
         </div>

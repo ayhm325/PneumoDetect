@@ -12,7 +12,7 @@ import {
   Skeleton,
   Toast,
 } from "@/components/ui";
-import { ContentPageLayout } from "../../../../src/components/layouts";
+import { ContentPageLayout } from "@/components/layouts";
 
 export default function UploadXRayPageContent() {
   const t = useTranslations("uploadXray");
@@ -43,7 +43,7 @@ export default function UploadXRayPageContent() {
   const [toast, setToast] = useState({ open: false, message: "", variant: "info" });
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-  // ??? ??????? ??? FileUpload ??????
+  // رفع الملفات عبر FileUpload الموحد
   const handleFileUpload = (selectedFiles) => {
     setFiles(Array.isArray(selectedFiles) ? [...files, ...selectedFiles] : [...files, selectedFiles]);
   };
@@ -138,7 +138,7 @@ export default function UploadXRayPageContent() {
               className="ui-future-panel rounded-2xl border border-dashed border-[var(--ui-border-strong)] p-8 text-center"
             >
               <div className="space-y-2">
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full ui-future-chip">??</div>
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full ui-future-chip">📁</div>
                 <p className="text-sm font-medium text-[var(--ui-foreground)]">
                   {t("dragDrop")} {t("orText")} {t("selectFiles")}
                 </p>
@@ -183,7 +183,7 @@ export default function UploadXRayPageContent() {
                       onClick={() => removeFile(index)}
                       className="rounded-lg px-2 py-1 text-xs font-semibold text-[var(--ui-danger)] hover:bg-[var(--ui-danger-bg)]"
                     >
-                      ?
+                      ✕
                     </button>
                   </div>
                 ))}

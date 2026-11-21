@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import styles from "./UnifiedChatInput.module.css";
 
-export default function UnifiedChatInput({ onSend, placeholder = "???? ?????...", buttonLabel = "?????", disabled = false }) {
+export default function UnifiedChatInput({ onSend, placeholder = "اكتب رسالة...", buttonLabel = "إرسال", disabled = false }) {
   const [msg, setMsg] = useState("");
 
   const handleSend = (e) => {
