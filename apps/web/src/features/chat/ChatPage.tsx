@@ -44,20 +44,17 @@ export function ChatPage() {
     enabled: Boolean(user),
   });
 
-  const chats: ChatSummary[] = Array.isArray(chatsData)
-    ? chatsData
-    : chatsData?.chats || [];
+  const chats = React.useMemo<ChatSummary[]>(
+    () => (Array.isArray(chatsData) ? chatsData : chatsData?.chats || []),
+    [chatsData],
+  );
+
+  const resolvedChatId = activeChatId || chats[0]?.id || null;
 
   useEffect(() => {
-    if (!activeChatId && chats.length > 0) {
-      setActiveChatId(chats[0].id);
-    }
-  }, [chats, activeChatId]);
-
-  useEffect(() => {
-    if (!activeChatId) return;
+    if (!resolvedChatId) return;
     let mounted = true;
-    apiRequest<{ messages?: ChatMsg[] } | ChatMsg[]>(`/api/chat/${activeChatId}/messages`)
+    apiRequest<{ messages?: ChatMsg[] } | ChatMsg[]>(`/api/chat/${resolvedChatId}/messages`)
       .then((res) => {
         if (!mounted) return;
         const list = Array.isArray(res) ? res : res?.messages || [];
@@ -66,7 +63,7 @@ export function ChatPage() {
       .catch(() => {});
 
     const socket = getSocket();
-    socket.emit("join", activeChatId);
+    socket.emit("join", resolvedChatId);
 
     const onMessage = (msg: ChatMsg) => {
       setMessages((prev) => (prev.some((m) => m.id === msg.id) ? prev : [...prev, msg]));
@@ -80,18 +77,18 @@ export function ChatPage() {
 
     return () => {
       mounted = false;
-      socket.emit("leave", activeChatId);
+      socket.emit("leave", resolvedChatId);
       socket.off("message", onMessage);
       socket.off("typing", onTyping);
     };
-  }, [activeChatId, user?.id]);
+  }, [resolvedChatId, user?.id]);
 
   const sendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!activeChatId || !text.trim()) return;
+    if (!resolvedChatId || !text.trim()) return;
     const socket = getSocket();
     socket.emit("message", {
-      chatId: activeChatId,
+      chatId: resolvedChatId,
       text: text.trim(),
       clientKey: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     });
@@ -119,7 +116,7 @@ export function ChatPage() {
               type="button"
               onClick={() => setActiveChatId(c.id)}
               className={`w-full rounded-xl px-3 py-2 text-start text-sm font-medium ${
-                activeChatId === c.id
+                resolvedChatId === c.id
                   ? "bg-sky-600 text-white"
                   : "hover:bg-slate-100 dark:hover:bg-slate-800"
               }`}
@@ -156,7 +153,7 @@ export function ChatPage() {
             value={text}
             onChange={(e) => {
               setText(e.target.value);
-              if (activeChatId) getSocket().emit("typing", { chatId: activeChatId, typing: Boolean(e.target.value) });
+              if (resolvedChatId) getSocket().emit("typing", { chatId: resolvedChatId, typing: Boolean(e.target.value) });
             }}
             placeholder={isAr ? "اكتب رسالتك..." : "Type a message..."}
             className="flex-1 rounded-xl border border-slate-300 px-3.5 py-2 text-sm outline-none focus:border-sky-500 dark:border-slate-700 dark:bg-slate-800"
