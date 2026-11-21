@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import "./tokens.css";
+@import "./animations.css";
 
 @theme {
   --font-sans: "Cairo", "Inter", system-ui, -apple-system, sans-serif;
@@ -12,9 +14,6 @@
   --radius-card: 1rem;
   --radius-control: 0.75rem;
 }
-
-@import "./tokens.css";
-@import "./animations.css";
 /* Blue Glassmorphism Utility */
 .glass-blue-glassmorph {
   background: linear-gradient(
