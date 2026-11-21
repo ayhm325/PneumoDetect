@@ -2,11 +2,31 @@ import { Router } from "express";
 import { requireAuth, requireRole, type AuthenticatedRequest } from "../middleware/auth.js";
 import { withRateLimit } from "../middleware/rateLimit.js";
 import { doctorPortalService } from "../services/doctor/index.js";
-import { passwordService } from "../services/auth/index.js";
+import { authService, passwordService } from "../services/auth/index.js";
 import { logAudit } from "../legacy-lib/security/auditLogger.js";
 import { toServiceRequest } from "../lib/http/expressAdapter.js";
 
 export const doctorRouter = Router();
+
+// Public doctor registration
+doctorRouter.post(
+  "/doctor",
+  withRateLimit("POST /api/doctor"),
+  async (req, res, next) => {
+    try {
+      const result = await authService.registerDoctor({
+        email: req.body?.email,
+        password: req.body?.password,
+        fullName: req.body?.fullName,
+        licenseNumber: req.body?.licenseNumber,
+        phone: req.body?.phone,
+      });
+      return res.status(201).json(result);
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 doctorRouter.get(
   "/doctor/me",
@@ -31,12 +51,13 @@ doctorRouter.get(
 
 doctorRouter.get(
   "/doctor/list",
-  requireAuth,
   withRateLimit("GET /api/doctor/list"),
-  async (req: AuthenticatedRequest, res, next) => {
+  async (req, res, next) => {
     try {
+      const includePendingRequested = req.query.includePending === "true";
+      const allowPending = process.env.NODE_ENV !== "production" || process.env.DEBUG_INCLUDE_PENDING === "true";
       const result = await doctorPortalService.listDoctors({
-        includePending: req.auth?.user?.role === "admin",
+        includePending: includePendingRequested && allowPending,
       });
       return res.status(200).json(result);
     } catch (error) {

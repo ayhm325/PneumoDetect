@@ -2,11 +2,31 @@ import { Router } from "express";
 import { requireAuth, requireRole, type AuthenticatedRequest } from "../middleware/auth.js";
 import { withRateLimit } from "../middleware/rateLimit.js";
 import { patientPortalService, patientDoctorChangeRequestService } from "../services/patient/index.js";
-import { passwordService } from "../services/auth/index.js";
+import { authService, passwordService } from "../services/auth/index.js";
 import { logAudit } from "../legacy-lib/security/auditLogger.js";
 import { toServiceRequest } from "../lib/http/expressAdapter.js";
 
 export const patientRouter = Router();
+
+// Public patient registration
+patientRouter.post(
+  "/patient",
+  withRateLimit("POST /api/patient"),
+  async (req, res, next) => {
+    try {
+      const result = await authService.registerPatient({
+        email: req.body?.email,
+        password: req.body?.password,
+        fullName: req.body?.fullName,
+        phone: req.body?.phone,
+        doctorId: req.body?.doctorId,
+      });
+      return res.status(201).json(result);
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 patientRouter.get(
   "/patient",
