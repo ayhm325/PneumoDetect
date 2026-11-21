@@ -44,7 +44,21 @@ function DoctorsPage() {
       });
       if (res.ok) {
         const data = await res.json();
-        setDoctors([data.doctor, ...doctors]);
+        const createdDoctor = data?.doctor || data;
+        if (createdDoctor && (createdDoctor.id || createdDoctor.userId)) {
+          const normalized = createdDoctor.user
+            ? createdDoctor
+            : {
+                ...createdDoctor,
+                id: createdDoctor.userId || createdDoctor.id,
+                user: {
+                  id: createdDoctor.userId || createdDoctor.id,
+                  fullName: formData.name.trim(),
+                  email: formData.email.trim(),
+                },
+              };
+          setDoctors((prev) => [normalized, ...prev]);
+        }
         showSuccess(tDoctors("toast.doctorAdded"));
         setShowAddModal(false);
         setShowPassword(false);
@@ -111,9 +125,11 @@ function DoctorsPage() {
 
         if (!mounted) return;
 
-        const allDoctors = Array.isArray(doctorsData?.doctors)
-          ? doctorsData.doctors
-          : [];
+        const allDoctors = Array.isArray(doctorsData)
+          ? doctorsData
+          : Array.isArray(doctorsData?.doctors)
+            ? doctorsData.doctors
+            : [];
         setDoctors(allDoctors);
         setPendingDoctors(
           allDoctors.filter((d) => getDoctorStatus(d) === "pending"),
@@ -217,6 +233,8 @@ function DoctorsPage() {
       setPendingDoctors(
         updatedDoctors.filter((d) => getDoctorStatus(d) === "pending"),
       );
+      setShowDetailsModal(false);
+      setSelectedDoctor(null);
       showSuccess(tDoctors("toast.doctorVerified"));
     } else {
       showError(tDoctors("toast.activationFailed"));
@@ -237,6 +255,8 @@ function DoctorsPage() {
       setPendingDoctors(
         updatedDoctors.filter((d) => getDoctorStatus(d) === "pending"),
       );
+      setShowDetailsModal(false);
+      setSelectedDoctor(null);
       showInfo(tDoctors("toast.doctorRejected"));
     } else {
       showError(tDoctors("toast.rejectFailed"));

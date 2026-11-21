@@ -3,7 +3,7 @@ import Button from "../ui/Button";
 import { Table, THead, TRow, TH, TD } from "../ui/Table";
 import Pagination from "../ui/Pagination";
 
-import { useTranslations } from "@/lib/compat/intl";
+import { useLocale, useTranslations } from "@/lib/compat/intl";
 
 export default function DoctorsTable({
   doctors,
@@ -12,12 +12,16 @@ export default function DoctorsTable({
   onDetails,
   onAdd,
   onToggle,
+  onApprove,
+  onReject,
   page = 1,
   pageCount = 1,
   onPageChange,
 }) {
   const t = useTranslations("doctorsTable");
   const ui = useTranslations("ui");
+  const locale = useLocale();
+  const isAr = locale === "ar";
   return (
     <div className="mt-8">
       <Table>
@@ -28,6 +32,7 @@ export default function DoctorsTable({
             <TH className="py-3 px-4 text-center">{t("license")}</TH>
             <TH className="py-3 px-4 text-center">{t("phone")}</TH>
             <TH className="py-3 px-4 text-center">{t("email")}</TH>
+            <TH className="py-3 px-4 text-center">{isAr ? "الحالة" : "Status"}</TH>
             <TH className="py-3 px-4 text-center">{t("actions")}</TH>
           </TRow>
         </THead>
@@ -58,9 +63,51 @@ export default function DoctorsTable({
                 <TD className="py-2 px-4 text-center">{licenseNumber}</TD>
                 <TD className="py-2 px-4 text-center">{phone}</TD>
                 <TD className="py-2 px-4 text-center">{email}</TD>
+                <TD className="py-2 px-4 text-center">
+                  <span
+                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                      doctor.status === "active"
+                        ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                        : doctor.status === "pending"
+                          ? "bg-amber-500/15 text-amber-600 dark:text-amber-400"
+                          : "bg-red-500/15 text-red-600 dark:text-red-400"
+                    }`}
+                  >
+                    {doctor.status === "active"
+                      ? isAr
+                        ? "نشط"
+                        : "Active"
+                      : doctor.status === "pending"
+                        ? isAr
+                          ? "معلق"
+                          : "Pending"
+                        : isAr
+                          ? "محظور"
+                          : "Banned"}
+                  </span>
+                </TD>
                 <TD className="py-2 px-4">
                   <div className="flex items-center justify-center gap-2 flex-wrap">
-                    {typeof onToggle === "function" ? (
+                    {doctor.status === "pending" &&
+                    typeof onApprove === "function" &&
+                    typeof onReject === "function" ? (
+                      <>
+                        <Button
+                          variant="ghost"
+                          className="px-3 py-2 text-emerald-600 font-bold"
+                          onClick={() => onApprove(doctor)}
+                        >
+                          {isAr ? "موافقة" : "Approve"}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          className="px-3 py-2 text-(--ui-danger) font-bold"
+                          onClick={() => onReject(doctor)}
+                        >
+                          {isAr ? "رفض" : "Reject"}
+                        </Button>
+                      </>
+                    ) : typeof onToggle === "function" ? (
                       // Show a single toggle button for enable/disable
                       <Button
                         variant="ghost"

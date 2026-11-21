@@ -4,9 +4,7 @@ import type { AuthUser } from "@pneumodetect/contracts";
 import { apiRequest } from "@/lib/apiClient";
 import { disconnectSocket } from "@/lib/socket";
 
-interface WhoAmIResponse {
-  user?: AuthUser | null;
-}
+type WhoAmIResponse = { user?: AuthUser | null } | AuthUser | null;
 
 interface AuthContextValue {
   user: AuthUser | null;
@@ -29,7 +27,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     queryFn: async () => {
       try {
         const res = await apiRequest<WhoAmIResponse>("/api/auth/whoami");
-        return res?.user ?? null;
+        if (!res) return null;
+        if ("user" in res) return res.user ?? null;
+        if ("id" in res && "role" in res) return res as AuthUser;
+        return null;
       } catch {
         return null;
       }
