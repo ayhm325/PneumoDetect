@@ -1,6 +1,6 @@
 import React from "react";
-import LoginForm from "@/components/LoginForm";
+import { AuthSplitCard } from "@/features/auth/AuthSplitCard";
 
 export default function LoginPage() {
-  return <LoginForm />;
+  return <AuthSplitCard initialMode="login" />;
 }

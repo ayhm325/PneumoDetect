@@ -1,6 +1,6 @@
 import React from "react";
-import SignUpForm from "@/components/SignUpForm";
+import { AuthSplitCard } from "@/features/auth/AuthSplitCard";
 
 export default function SignUpPage() {
-  return <SignUpForm />;
+  return <AuthSplitCard initialMode="register" />;
 }
