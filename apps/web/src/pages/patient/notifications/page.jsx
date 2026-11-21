@@ -115,7 +115,7 @@ export default function PatientNotificationsPage() {
 
   const handleMarkAsRead = async (id) => {
     const res = await fetch(`/api/patient/notifications?id=${id}`, {
-      method: "PUT",
+      method: "PATCH",
       body: JSON.stringify({ isRead: true }),
       headers: { "Content-Type": "application/json" },
     });
@@ -135,7 +135,7 @@ export default function PatientNotificationsPage() {
   };
 
   const handleMarkAllAsRead = async () => {
-    const res = await fetch("/api/patient/notifications", { method: "PUT" });
+    const res = await fetch("/api/patient/notifications", { method: "PATCH" });
     if (!res.ok) {
       showError(labels.toast.errorUpdate);
       return;
@@ -151,7 +151,7 @@ export default function PatientNotificationsPage() {
 
   const handleMarkAsUnread = async (id) => {
     const res = await fetch(`/api/patient/notifications?id=${id}`, {
-      method: "PUT",
+      method: "PATCH",
       body: JSON.stringify({ isRead: false }),
       headers: { "Content-Type": "application/json" },
     });

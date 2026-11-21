@@ -281,7 +281,7 @@ export default function PatientsPage() {
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        showToast(err?.error || tPatients("toast.patientAdded"), "error");
+        showToast(err?.message || err?.error || tPatients("toast.patientAdded"), "error");
         return;
       }
       await mutate();
@@ -339,7 +339,7 @@ export default function PatientsPage() {
       });
       if (!res.ok) {
         const errObj = await res.json().catch(() => ({}));
-        showToast(errObj?.error || tPatients("toast.patientUpdated"), "error");
+        showToast(errObj?.message || errObj?.error || tPatients("toast.patientUpdated"), "error");
         return;
       }
       await mutate();
@@ -384,7 +384,7 @@ export default function PatientsPage() {
         });
         if (!res.ok) {
           const errObj = await res.json().catch(() => ({}));
-          const message = errObj?.error || tPatients("toast.patientDeleted");
+          const message = errObj?.message || errObj?.error || tPatients("toast.patientDeleted");
           setDeleteError(message);
           setDeleting(false);
           return;

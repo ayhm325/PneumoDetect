@@ -1,5 +1,5 @@
 "use client";
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import FileUpload from "../../ui/FileUpload";
 import { useLocale, useTranslations } from "@/lib/compat/intl";
 import {
@@ -21,18 +21,35 @@ export default function UploadXRayPageContent() {
 
   const placeholder = ui("placeholder");
 
-  const recentUploads = useMemo(() => {
-    const items = t.raw("demoRecentUploads");
-    if (!Array.isArray(items)) return [];
-    return items.map((item, index) => ({
-      id: item?.id ?? index + 1,
-      patientName: item?.patientName || placeholder,
-      type: item?.type || "xray",
-      date: item?.date || placeholder,
-      status: item?.status || "reviewing",
-      notes: item?.notes || placeholder,
-    }));
-  }, [t, placeholder]);
+  const [recentUploads, setRecentUploads] = useState([]);
+  const [lastResult, setLastResult] = useState(null);
+
+  const loadRecentUploads = useCallback(async () => {
+    try {
+      const res = await fetch("/api/analysis/history", { credentials: "include" });
+      if (!res.ok) return;
+      const json = await res.json();
+      const rows = Array.isArray(json?.data) ? json.data : [];
+      setRecentUploads(
+        rows.slice(0, 10).map((item) => ({
+          id: item.id,
+          patientName: item.patientName || item.prediction || placeholder,
+          type: "xray",
+          date: item.createdAt ? new Date(item.createdAt).toLocaleString(locale === "ar" ? "ar-EG" : "en-US") : placeholder,
+          status: "completed",
+          notes: item.prediction
+            ? `${item.prediction} (${Math.round(Number(item.confidence || 0) * 100)}%)`
+            : placeholder,
+        })),
+      );
+    } catch {
+      // Keep existing list on network error
+    }
+  }, [locale, placeholder]);
+
+  useEffect(() => {
+    loadRecentUploads();
+  }, [loadRecentUploads]);
 
   const [files, setFiles] = useState([]);
   const [patientName, setPatientName] = useState("");
@@ -52,7 +69,42 @@ export default function UploadXRayPageContent() {
     setFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleUpload = () => {
+  const uploadSingleFile = (file) =>
+    new Promise((resolve, reject) => {
+      const formData = new FormData();
+      formData.append("image", file);
+      formData.append("with_heatmap", "true");
+      if (patientName) formData.append("patientName", patientName);
+      if (notes) formData.append("notes", notes);
+
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", "/api/analysis/analyze");
+      xhr.withCredentials = true;
+
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          setProgress(Math.round((event.loaded / event.total) * 100));
+        }
+      };
+
+      xhr.onload = () => {
+        try {
+          const data = JSON.parse(xhr.responseText || "{}");
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve(data);
+          } else {
+            reject(new Error(data?.message || data?.error || `HTTP ${xhr.status}`));
+          }
+        } catch {
+          reject(new Error(`HTTP ${xhr.status}`));
+        }
+      };
+
+      xhr.onerror = () => reject(new Error("Network error"));
+      xhr.send(formData);
+    });
+
+  const handleUpload = async () => {
     if (!patientName || files.length === 0) {
       setToast({
         open: true,
@@ -63,28 +115,30 @@ export default function UploadXRayPageContent() {
     }
     setUploading(true);
     setProgress(0);
-    let currentProgress = 0;
-    const interval = setInterval(() => {
-      currentProgress += Math.random() * 30;
-      if (currentProgress >= 100) {
-        currentProgress = 100;
-        clearInterval(interval);
-        setProgress(100);
-        setTimeout(() => {
-          setUploading(false);
-          setShowSuccessModal(true);
-          setToast({
-            open: true,
-            message: t("upload"),
-            variant: "success",
-          });
-          setFiles([]);
-          setProgress(0);
-        }, 800);
-      } else {
-        setProgress(currentProgress);
+    try {
+      let latest = null;
+      for (const file of files) {
+        latest = await uploadSingleFile(file);
       }
-    }, 400);
+      setLastResult(latest);
+      setShowSuccessModal(true);
+      setToast({
+        open: true,
+        message: t("upload"),
+        variant: "success",
+      });
+      setFiles([]);
+      setProgress(0);
+      await loadRecentUploads();
+    } catch (err) {
+      setToast({
+        open: true,
+        message: err?.message || "Upload failed",
+        variant: "error",
+      });
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
@@ -239,7 +293,10 @@ export default function UploadXRayPageContent() {
 
       <Modal isOpen={showSuccessModal} onClose={() => setShowSuccessModal(false)} title={t("uploading")}>
         <div className="space-y-4">
-          <Alert variant="success">{t("upload")}</Alert>
+          <Alert variant="success">
+            {t("upload")}
+            {lastResult?.prediction ? ` — ${lastResult.prediction} (${Math.round(Number(lastResult.confidence || 0) * 100)}%)` : ""}
+          </Alert>
           <div className="flex justify-end">
             <Button variant="secondary" className="w-auto px-6" onClick={() => setShowSuccessModal(false)}>
               OK

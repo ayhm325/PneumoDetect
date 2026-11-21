@@ -143,7 +143,7 @@ export default function NotificationsPage() {
 
   const handleMarkAsRead = async (id) => {
     const res = await fetch(`/api/doctor/notifications?id=${id}`, {
-      method: "PUT",
+      method: "PATCH",
       body: JSON.stringify({ isRead: true }),
       headers: { "Content-Type": "application/json" },
     });
@@ -164,7 +164,7 @@ export default function NotificationsPage() {
 
   const handleMarkAsUnread = async (id) => {
     const res = await fetch(`/api/doctor/notifications?id=${id}`, {
-      method: "PUT",
+      method: "PATCH",
       body: JSON.stringify({ isRead: false }),
       headers: { "Content-Type": "application/json" },
     });
@@ -184,7 +184,7 @@ export default function NotificationsPage() {
   };
 
   const handleMarkAllAsRead = async () => {
-    const res = await fetch("/api/doctor/notifications", { method: "PUT" });
+    const res = await fetch("/api/doctor/notifications", { method: "PATCH" });
     if (!res.ok) {
       showInfo(t("errorUpdate"));
       return;

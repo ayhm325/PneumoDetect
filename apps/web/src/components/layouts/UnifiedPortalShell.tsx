@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useLayoutEffect, useRef, useState } from "react";
+import React, { createContext, useContext, useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
@@ -48,17 +48,6 @@ function SidebarNavItem({
   onNavigate?: () => void;
 }) {
   const { pathname } = useLocation();
-  const contentRef = useRef<HTMLUListElement | null>(null);
-  const [height, setHeight] = useState(0);
-
-  useLayoutEffect(() => {
-    if (!contentRef.current) return;
-    setHeight(
-      isOpen && !isCollapsed
-        ? contentRef.current.getBoundingClientRect().height
-        : 0,
-    );
-  }, [isOpen, isCollapsed]);
 
   const isSubActive = Boolean(item.submenu?.some((s) => pathname === s.to));
   const isActive = pathname === item.to || isSubActive;
@@ -119,10 +108,11 @@ function SidebarNavItem({
       </button>
 
       <div
-        className="relative overflow-hidden transition-[height] duration-300 ease-in-out"
-        style={{ height }}
+        className={`grid transition-[grid-template-rows] duration-300 ease-in-out ${
+          isOpen && !isCollapsed ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+        }`}
       >
-        <ul ref={contentRef} className="grid gap-0.5 py-1">
+        <ul className="grid gap-0.5 overflow-hidden py-1">
           {item.submenu.map((sub) => (
             <li key={sub.to}>
               <NavLink

@@ -13,6 +13,9 @@ export function useTranslations(namespace?: string) {
     () =>
       Object.assign(
         (key: string, values?: Record<string, unknown>) => {
+          if (values && values.returnObjects) {
+            return t(key, values as Record<string, string>);
+          }
           const res = t(key, values as Record<string, string>);
           return typeof res === "string" ? res : String(res ?? key);
         },

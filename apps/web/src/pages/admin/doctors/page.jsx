@@ -1,12 +1,12 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useTranslations } from "@/lib/compat/intl";
+import { useLocale, useTranslations } from "@/lib/compat/intl";
 import { useSearchParams } from "@/lib/compat/navigation";
 // Page is rendered inside the route-level AdminLayout; avoid double-wrapping
 import DoctorDetailsCard from "@/components/admin/DoctorDetailsCard";
 import DoctorsTable from "@/components/admin/DoctorsTable";
 import { useToast } from "@/components/ui/ToastProvider";
-import { FaMagnifyingGlass, FaPlus, FaX, FaFloppyDisk } from "react-icons/fa6";
+import { FaMagnifyingGlass, FaPlus, FaX, FaFloppyDisk, FaEye, FaEyeSlash } from "react-icons/fa6";
 
 function DoctorsPage() {
   // توحيد منطق الحالة للطبيب بناءً على الحقل الرسمي فقط
@@ -23,6 +23,7 @@ function DoctorsPage() {
       !formData.email?.trim() ||
       !formData.phone?.trim() ||
       !formData.licenseNumber?.trim() ||
+      !formData.password?.trim() ||
       !formData.status?.trim()
     ) {
       showError(tDoctors("toast.fillFields"));
@@ -37,6 +38,7 @@ function DoctorsPage() {
           email: formData.email.trim(),
           phone: formData.phone.trim(),
           licenseNumber: formData.licenseNumber.trim(),
+          password: formData.password.trim(),
           status: formData.status.trim(),
         }),
       });
@@ -45,18 +47,20 @@ function DoctorsPage() {
         setDoctors([data.doctor, ...doctors]);
         showSuccess(tDoctors("toast.doctorAdded"));
         setShowAddModal(false);
+        setShowPassword(false);
         setFormData({
           name: "",
           email: "",
           phone: "",
           licenseNumber: "",
+          password: "",
           status: "active",
           specialty: "general",
           experience: "",
         });
       } else {
         const errorData = await res.json();
-        showError(errorData?.error || tDoctors("toast.addFailed"));
+        showError(errorData?.message || errorData?.error || tDoctors("toast.addFailed"));
       }
     } catch (e) {
       showError(e?.message || tDoctors("toast.addFailed"));
@@ -65,6 +69,8 @@ function DoctorsPage() {
   const searchParams = useSearchParams();
   const { showSuccess, showError, showInfo } = useToast();
   const tDoctors = useTranslations("DoctorsManagement");
+  const locale = useLocale();
+  const [showPassword, setShowPassword] = useState(false);
 
   // State
   const [search, setSearch] = useState("");
@@ -78,6 +84,8 @@ function DoctorsPage() {
     name: "",
     email: "",
     phone: "",
+    licenseNumber: "",
+    password: "",
     specialty: "general",
     experience: "",
     status: "active",
@@ -446,6 +454,30 @@ function DoctorsPage() {
                     }
                     className="w-full px-4 py-3 border border-(--ui-border) rounded-lg bg-(--ui-surface-2) text-foreground"
                   />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-(--ui-muted-2) mb-2">
+                    {locale === "ar" ? "كلمة المرور" : "Password"}
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      value={formData.password || ""}
+                      onChange={(e) =>
+                        setFormData({ ...formData, password: e.target.value })
+                      }
+                      autoComplete="new-password"
+                      className="w-full px-4 py-3 border border-(--ui-border) rounded-lg bg-(--ui-surface-2) text-foreground pe-11"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      aria-label={showPassword ? (locale === "ar" ? "إخفاء كلمة المرور" : "Hide password") : (locale === "ar" ? "إظهار كلمة المرور" : "Show password")}
+                      className="absolute inset-y-0 end-3 flex items-center text-(--ui-muted-2) hover:text-foreground"
+                    >
+                      {showPassword ? <FaEyeSlash /> : <FaEye />}
+                    </button>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-(--ui-muted-2) mb-2">

@@ -223,7 +223,7 @@ export default function UsersPage() {
 
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));
-          showToast(err.error || t("errors.createAdminFailed"), "error");
+          showToast(err.message || err.error || t("errors.createAdminFailed"), "error");
           return;
         }
 
@@ -279,7 +279,7 @@ export default function UsersPage() {
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        showToast(err.error || t("errors.loadFailed"), "error");
+        showToast(err.message || err.error || t("errors.loadFailed"), "error");
         return;
       }
       // Update UI

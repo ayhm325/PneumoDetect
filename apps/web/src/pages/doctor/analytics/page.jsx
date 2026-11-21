@@ -2,7 +2,7 @@
 
 import DoctorLayout from "../DoctorLayout";
 import { useToast } from "@/components/ui/ToastProvider";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   FaUserInjured,
   FaXRay,
@@ -25,55 +25,119 @@ export default function Page() {
   const [timeRange, setTimeRange] = useState("week");
   const [selectedMetric, setSelectedMetric] = useState("patients");
 
-  // Statistics Data
-  const stats = {
-    week: {
-      patients: { current: 45, previous: 38, percentage: 18.4 },
-      scans: { current: 62, previous: 55, percentage: 12.7 },
-      completed: { current: 58, previous: 48, percentage: 20.8 },
-      pending: { current: 4, previous: 7, percentage: -42.9 },
-    },
-    month: {
-      patients: { current: 180, previous: 165, percentage: 9.1 },
-      scans: { current: 245, previous: 220, percentage: 11.4 },
-      completed: { current: 238, previous: 210, percentage: 13.3 },
-      pending: { current: 7, previous: 10, percentage: -30.0 },
-    },
-    year: {
-      patients: { current: 2160, previous: 1980, percentage: 9.1 },
-      scans: { current: 2940, previous: 2640, percentage: 11.4 },
-      completed: { current: 2856, previous: 2520, percentage: 13.3 },
-      pending: { current: 84, previous: 120, percentage: -30.0 },
-    },
-  };
+  const [patientsData, setPatientsData] = useState([]);
+  const [resultsData, setResultsData] = useState([]);
+  const [appointmentsData, setAppointmentsData] = useState([]);
+  const [referenceNow] = useState(() => Date.now());
 
-  const currentStats = stats[timeRange];
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const [pRes, rRes, aRes] = await Promise.all([
+          fetch("/api/doctor/patients", { credentials: "include" }),
+          fetch("/api/doctor/results", { credentials: "include" }),
+          fetch("/api/doctor/appointments", { credentials: "include" }),
+        ]);
+        const [pJson, rJson, aJson] = await Promise.all([
+          pRes.ok ? pRes.json().catch(() => ({})) : {},
+          rRes.ok ? rRes.json().catch(() => ({})) : {},
+          aRes.ok ? aRes.json().catch(() => ({})) : {},
+        ]);
+        if (!mounted) return;
+        setPatientsData(Array.isArray(pJson?.patients) ? pJson.patients : []);
+        setResultsData(Array.isArray(rJson?.results) ? rJson.results : Array.isArray(rJson?.data) ? rJson.data : []);
+        setAppointmentsData(Array.isArray(aJson?.appointments) ? aJson.appointments : []);
+      } catch {
+        // Keep empty arrays on error
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const currentStats = useMemo(() => {
+    const now = referenceNow;
+    const rangeDays = timeRange === "week" ? 7 : timeRange === "month" ? 30 : 365;
+    const rangeMs = rangeDays * 24 * 60 * 60 * 1000;
+    const inCurrent = (dt) => {
+      const ts = dt ? new Date(dt).getTime() : 0;
+      return ts >= now - rangeMs;
+    };
+    const inPrev = (dt) => {
+      const ts = dt ? new Date(dt).getTime() : 0;
+      return ts >= now - 2 * rangeMs && ts < now - rangeMs;
+    };
+    const pct = (curr, prev) => (prev === 0 ? (curr > 0 ? 100 : 0) : Number((((curr - prev) / prev) * 100).toFixed(1)));
+
+    const currPatients = patientsData.filter((p) => inCurrent(p.createdAt)).length || patientsData.length;
+    const prevPatients = patientsData.filter((p) => inPrev(p.createdAt)).length;
+
+    const currScans = resultsData.filter((r) => inCurrent(r.createdAt)).length;
+    const prevScans = resultsData.filter((r) => inPrev(r.createdAt)).length;
+
+    const isDone = (r) => r.reviewedByDoctor || r.status === "completed" || r.status === "reviewed";
+    const currCompleted = resultsData.filter((r) => inCurrent(r.createdAt) && isDone(r)).length;
+    const prevCompleted = resultsData.filter((r) => inPrev(r.createdAt) && isDone(r)).length;
+
+    const currPending = resultsData.filter((r) => inCurrent(r.createdAt) && !isDone(r)).length;
+    const prevPending = resultsData.filter((r) => inPrev(r.createdAt) && !isDone(r)).length;
+
+    return {
+      patients: { current: currPatients, previous: prevPatients, percentage: pct(currPatients, prevPatients) },
+      scans: { current: currScans, previous: prevScans, percentage: pct(currScans, prevScans) },
+      completed: { current: currCompleted, previous: prevCompleted, percentage: pct(currCompleted, prevCompleted) },
+      pending: { current: currPending, previous: prevPending, percentage: pct(currPending, prevPending) },
+    };
+  }, [patientsData, resultsData, timeRange, referenceNow]);
 
   // Chart Data - Patient Distribution by Day
-  const patientChartDataTemplate = useMemo(
-    () => t("patientChartData", { returnObjects: true }),
-    [t],
-  );
+  const patientChartDataTemplate = useMemo(() => {
+    const raw = t("patientChartData", { returnObjects: true });
+    return Array.isArray(raw) ? raw : [];
+  }, [t]);
 
-  const patientChartData = patientChartDataTemplate;
+  const patientChartData = useMemo(() => {
+    if (patientChartDataTemplate.length === 0) return [];
+    const counts = new Array(patientChartDataTemplate.length).fill(0);
+    for (const r of resultsData) {
+      if (!r.createdAt) continue;
+      const dayIdx = new Date(r.createdAt).getDay() % patientChartDataTemplate.length;
+      counts[dayIdx] += 1;
+    }
+    return patientChartDataTemplate.map((item, idx) => ({
+      ...item,
+      value: counts[idx],
+    }));
+  }, [patientChartDataTemplate, resultsData]);
 
-  const maxValue = Math.max(...patientChartData.map((d) => d.value));
+  const maxValue = Math.max(1, ...patientChartData.map((d) => d.value || 0));
 
   // Scan Types Distribution
-  const scanTypesTemplate = useMemo(
-    () => t("scanTypes", { returnObjects: true }),
-    [t],
-  );
+  const scanTypesTemplate = useMemo(() => {
+    const raw = t("scanTypes", { returnObjects: true });
+    return Array.isArray(raw) ? raw : [];
+  }, [t]);
 
   const scanTypes = scanTypesTemplate;
 
   // Recent Activity
-  const recentActivityTemplate = useMemo(
-    () => t("recentActivity", { returnObjects: true }),
-    [t],
-  );
-
-  const recentActivity = recentActivityTemplate;
+  const recentActivity = useMemo(() => {
+    const fromResults = resultsData.slice(0, 5).map((r, idx) => ({
+      id: r.id || idx,
+      patient: r.patientName || r.patient?.fullName || r.prediction || "—",
+      action: r.prediction ? `${r.prediction} (${Math.round(Number(r.confidence || 0) * 100)}%)` : "X-Ray Analysis",
+      time: r.createdAt ? new Date(r.createdAt).toLocaleDateString(locale === "ar" ? "ar-EG" : "en-US") : "—",
+    }));
+    if (fromResults.length > 0) return fromResults;
+    return appointmentsData.slice(0, 5).map((a, idx) => ({
+      id: a.id || idx,
+      patient: a.patientName || a.patient?.fullName || "—",
+      action: a.status || "Appointment",
+      time: a.scheduledAt ? new Date(a.scheduledAt).toLocaleDateString(locale === "ar" ? "ar-EG" : "en-US") : "—",
+    }));
+  }, [resultsData, appointmentsData, locale]);
 
   // Export removed: UI export button hidden per request.
 
