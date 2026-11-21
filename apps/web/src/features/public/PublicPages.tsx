@@ -1,9 +1,11 @@
 import React, { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Alert, Button, Card } from "@/components/ui";
+import { FaArrowLeft, FaArrowRight, FaCheckCircle, FaChevronDown, FaShieldAlt, FaStethoscope } from "react-icons/fa";
 
 export function HomePage() {
+  const { i18n } = useTranslation();
+  const isAr = i18n.language === "ar";
   const { t: hero } = useTranslation("hero");
   const { t: features } = useTranslation("features");
   const { t: workflow } = useTranslation("workflowsection");
@@ -72,360 +74,454 @@ export function HomePage() {
   const testimonialBadges = Array.isArray(testimonialData.badges) ? testimonialData.badges : [];
   const currentTestimonial = testimonialItems[activeTestimonial] || null;
 
-  function nextTestimonial() {
-    if (!testimonialItems.length) return;
-    setActiveTestimonial((prev) => (prev + 1) % testimonialItems.length);
-  }
-
-  function prevTestimonial() {
-    if (!testimonialItems.length) return;
-    setActiveTestimonial((prev) => (prev - 1 + testimonialItems.length) % testimonialItems.length);
-  }
-
   return (
-    <div className="relative space-y-6 bg-[var(--ui-surface)] px-4 pb-8 pt-6 sm:space-y-8 sm:px-6 lg:px-10">
-      <section className="ui-future-panel overflow-hidden rounded-3xl border p-6 sm:p-8 lg:p-10">
-        <div className="grid items-center gap-8 lg:grid-cols-2">
-          <div className="space-y-6">
-            <Alert variant="info" className="inline-flex w-auto">
-              {hero("futuristic.actions.analyzeXray")}
-            </Alert>
+    <div className="bg-[var(--ui-surface-2)] text-[var(--ui-foreground)]">
+      {/* Hero Section */}
+      <section className="relative overflow-hidden border-b border-[var(--ui-border)] bg-[var(--ui-surface)]">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(79,70,229,0.12),transparent_55%),radial-gradient(ellipse_at_bottom_left,_rgba(8,145,178,0.10),transparent_55%)]"
+        />
+        <div className="relative mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-20">
+          <div className="grid items-center gap-12 lg:grid-cols-12">
+            <div className="space-y-7 lg:col-span-6">
+              <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-primary-500)]/25 bg-[var(--color-primary-100)]/60 px-3.5 py-1.5 text-xs font-bold text-[var(--color-primary-900)] dark:bg-[var(--color-primary-900)]/30 dark:text-[var(--color-primary-100)]">
+                <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
+                <span>{hero("futuristic.actions.analyzeXray")}</span>
+              </div>
 
-            <div className="space-y-4">
-              <h1 className="brand-gradient-text text-3xl font-black leading-tight sm:text-4xl lg:text-5xl">
-                {hero("content.hero.title")}
-              </h1>
-              <p className="text-base text-[var(--ui-muted)] sm:text-lg">
-                {hero("content.hero.subtitle")}
-              </p>
-              <p className="max-w-2xl text-sm leading-7 text-[var(--ui-muted)] sm:text-base">
-                {hero("content.hero.desc")}
-              </p>
-            </div>
+              <div className="space-y-4">
+                <h1 className="text-3xl font-black leading-[1.2] tracking-tight text-[var(--ui-foreground)] sm:text-4xl lg:text-5xl">
+                  {hero("content.hero.title")}
+                </h1>
+                <p className="text-base font-medium text-[var(--color-primary-500)] sm:text-lg">
+                  {hero("content.hero.subtitle")}
+                </p>
+                <p className="max-w-xl text-sm leading-7 text-[var(--ui-muted)] sm:text-base">
+                  {hero("content.hero.desc")}
+                </p>
+              </div>
 
-            <div className="flex flex-wrap items-center gap-3">
-              <Link to="/signup">
-                <Button fullWidth={false} size="lg" className="px-6">
-                  {hero("content.hero.primaryCta")}
-                </Button>
-              </Link>
-              <Link to="/login">
-                <Button variant="secondary" fullWidth={false} size="lg" className="px-6">
+              <div className="flex flex-wrap items-center gap-3.5">
+                <Link
+                  to="/signup"
+                  className="inline-flex items-center gap-2 rounded-xl bg-[var(--color-primary-500)] px-6 py-3.5 text-sm font-bold text-white shadow-md shadow-indigo-500/20 transition hover:bg-[var(--color-primary-900)]"
+                >
+                  <span>{hero("content.hero.primaryCta")}</span>
+                  {isAr ? <FaArrowLeft className="text-xs" /> : <FaArrowRight className="text-xs" />}
+                </Link>
+                <Link
+                  to="/login"
+                  className="inline-flex items-center gap-2 rounded-xl border border-[var(--ui-border-strong)] bg-[var(--ui-surface)] px-6 py-3.5 text-sm font-bold text-[var(--ui-foreground)] transition hover:bg-[var(--ui-surface-2)]"
+                >
                   {hero("content.hero.secondaryCta")}
-                </Button>
-              </Link>
+                </Link>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3 pt-2">
+                {heroStats.map((item, index) => (
+                  <div
+                    key={`hero-stat-${index}`}
+                    className="rounded-2xl border border-[var(--ui-border)] bg-[var(--ui-surface-2)]/70 p-3.5"
+                  >
+                    <p className="text-xl font-black tabular-nums text-[var(--color-primary-500)] sm:text-2xl">
+                      {item.value}
+                    </p>
+                    <p className="mt-0.5 text-xs font-medium text-[var(--ui-muted)]">{item.label}</p>
+                  </div>
+                ))}
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              {heroStats.map((item, index) => (
-                <Card key={`hero-stat-${index}`} size="sm" className="space-y-1">
-                  <p className="text-xl font-black text-[var(--color-primary-500)]">{item.value}</p>
-                  <p className="text-sm text-[var(--ui-muted)]">{item.label}</p>
-                </Card>
-              ))}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <Card className="col-span-2 overflow-hidden p-0">
-              <div className="relative h-52 w-full sm:h-64">
+            {/* Bento Medical Visual Grid */}
+            <div className="grid grid-cols-2 gap-4 lg:col-span-6">
+              <div className="group relative col-span-2 overflow-hidden rounded-3xl border border-[var(--ui-border)] bg-slate-900 shadow-lg">
                 <img
                   src="/icons/hero1.jpeg"
-                  alt="Hero preview 1"
-                  className="h-full w-full object-cover"
+                  alt="AI Chest X-Ray Screening"
+                  className="h-60 w-full object-cover opacity-90 transition duration-500 group-hover:scale-105 sm:h-72"
                 />
+                <div className="absolute inset-x-4 bottom-4 flex items-center justify-between rounded-2xl border border-white/15 bg-slate-950/75 px-4 py-3 text-white backdrop-blur-md">
+                  <div className="flex items-center gap-2.5">
+                    <FaStethoscope className="text-cyan-400" />
+                    <div>
+                      <p className="text-xs font-bold">DenseNet121 + Grad-CAM</p>
+                      <p className="text-[11px] text-slate-300">
+                        {isAr ? "تحليل فوري وخريطة حرارية" : "Instant Screening & Heatmap"}
+                      </p>
+                    </div>
+                  </div>
+                  <span className="rounded-full bg-emerald-500/20 px-2.5 py-1 text-[11px] font-bold text-emerald-300">
+                    Active
+                  </span>
+                </div>
               </div>
-            </Card>
-            <Card className="overflow-hidden p-0">
-              <div className="relative h-32 w-full sm:h-40">
+
+              <div className="group overflow-hidden rounded-2xl border border-[var(--ui-border)] bg-[var(--ui-surface)] shadow-sm">
                 <img
                   src="/icons/hero2.jpeg"
-                  alt="Hero preview 2"
-                  className="h-full w-full object-cover"
+                  alt="Radiology Review"
+                  className="h-36 w-full object-cover transition duration-500 group-hover:scale-105 sm:h-44"
                 />
               </div>
-            </Card>
-            <Card className="overflow-hidden p-0">
-              <div className="relative h-32 w-full sm:h-40">
+              <div className="group overflow-hidden rounded-2xl border border-[var(--ui-border)] bg-[var(--ui-surface)] shadow-sm">
                 <img
                   src="/icons/hero3.jpeg"
-                  alt="Hero preview 3"
-                  className="h-full w-full object-cover"
+                  alt="Doctor Consultation"
+                  className="h-36 w-full object-cover transition duration-500 group-hover:scale-105 sm:h-44"
                 />
               </div>
-            </Card>
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="space-y-5">
-        <div className="space-y-2 text-center">
-          <h2 className="text-2xl font-bold text-[var(--ui-foreground)] sm:text-3xl">
+      {/* Core Features */}
+      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-2xl text-center">
+          <h2 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
             {features("title")}
           </h2>
-          <p className="text-sm text-[var(--ui-muted)] sm:text-base">{features("subtitle")}</p>
+          <p className="mt-2.5 text-sm text-[var(--ui-muted)] sm:text-base">
+            {features("subtitle")}
+          </p>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="mt-10 grid gap-5 md:grid-cols-3">
           {featureItems.map((item, index) => (
-            <Card key={`feature-${index}`} variant="interactive" size="sm" className="space-y-4">
-              <div className="ui-future-chip inline-flex h-12 w-12 items-center justify-center rounded-xl">
+            <div
+              key={`feature-${index}`}
+              className="rounded-2xl border border-[var(--ui-border)] bg-[var(--ui-surface)] p-6 shadow-xs transition hover:-translate-y-0.5 hover:border-[var(--color-primary-500)]/40 hover:shadow-md"
+            >
+              <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--color-primary-100)] dark:bg-[var(--color-primary-900)]/40">
                 <img src={item.icon} alt={item.title} width={26} height={26} />
               </div>
-              <h3 className="text-lg font-semibold text-[var(--ui-foreground)]">{item.title}</h3>
-              <p className="text-sm text-[var(--ui-muted)]">{item.desc}</p>
-            </Card>
+              <h3 className="mt-4 text-lg font-bold">{item.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-[var(--ui-muted)]">{item.desc}</p>
+            </div>
           ))}
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="mt-5 grid gap-4 sm:grid-cols-2">
           {extraItems.map((item, index) => (
-            <Card key={`extra-${index}`} variant="interactive" size="sm" className="flex items-start gap-3">
-              <span className="text-2xl" aria-hidden>
+            <div
+              key={`extra-${index}`}
+              className="flex items-start gap-4 rounded-2xl border border-[var(--ui-border)] bg-[var(--ui-surface)] p-5"
+            >
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[var(--ui-surface-2)] text-xl">
                 {item.icon}
               </span>
               <div>
-                <p className="font-semibold text-[var(--ui-foreground)]">{item.title}</p>
-                <p className="text-sm text-[var(--ui-muted)]">{item.desc}</p>
+                <h4 className="font-bold">{item.title}</h4>
+                <p className="mt-1 text-sm text-[var(--ui-muted)]">{item.desc}</p>
               </div>
-            </Card>
+            </div>
           ))}
         </div>
       </section>
 
-      <section className="space-y-5">
-        <div className="space-y-2 text-center">
-          <h2 className="text-2xl font-bold text-[var(--ui-foreground)] sm:text-3xl">
-            {workflowData.title}
-          </h2>
-          <p className="text-sm text-[var(--ui-muted)] sm:text-base">{workflowData.subtitle}</p>
-        </div>
-
-        <div className="grid gap-4 md:grid-cols-3">
-          {workflowSteps.map((step, index) => (
-            <Card key={`step-${index}`} variant="interactive" size="sm" className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="ui-future-chip inline-flex h-12 w-12 items-center justify-center rounded-xl">
-                  <img src={step.icon} alt={step.title} width={26} height={26} />
-                </div>
-                <span className="rounded-full bg-[var(--ui-surface-2)] px-2 py-1 text-xs font-semibold text-[var(--ui-muted)]">
-                  0{index + 1}
-                </span>
-              </div>
-              <h3 className="text-lg font-semibold text-[var(--ui-foreground)]">{step.title}</h3>
-              <p className="text-sm text-[var(--ui-muted)]">{step.desc}</p>
-            </Card>
-          ))}
-        </div>
-
-        <Card className="flex flex-col items-center justify-between gap-4 p-5 text-center sm:flex-row sm:text-start">
-          <div>
-            <h3 className="text-lg font-semibold text-[var(--ui-foreground)]">
-              {workflowData.ctaTitle}
-            </h3>
-            <p className="text-sm text-[var(--ui-muted)]">{workflowData.ctaSubtitle}</p>
+      {/* Clinical Workflow */}
+      <section className="border-y border-[var(--ui-border)] bg-[var(--ui-surface)] py-16">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-2xl text-center">
+            <h2 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
+              {workflowData.title}
+            </h2>
+            <p className="mt-2.5 text-sm text-[var(--ui-muted)] sm:text-base">
+              {workflowData.subtitle}
+            </p>
           </div>
-          <Link to="/signup">
-            <Button fullWidth={false} className="px-6">
+
+          <div className="mt-10 grid gap-5 md:grid-cols-3">
+            {workflowSteps.map((step, index) => (
+              <div
+                key={`step-${index}`}
+                className="relative rounded-2xl border border-[var(--ui-border)] bg-[var(--ui-surface-2)]/60 p-6"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--ui-surface)] shadow-xs">
+                    <img src={step.icon} alt={step.title} width={26} height={26} />
+                  </div>
+                  <span className="rounded-full bg-[var(--color-primary-500)]/10 px-3 py-1 text-xs font-extrabold text-[var(--color-primary-500)]">
+                    0{index + 1}
+                  </span>
+                </div>
+                <h3 className="mt-4 text-lg font-bold">{step.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-[var(--ui-muted)]">{step.desc}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* CTA Banner */}
+          <div className="mt-10 flex flex-col items-center justify-between gap-6 rounded-3xl bg-gradient-to-r from-[var(--color-primary-500)] via-indigo-600 to-[var(--color-secondary-500)] p-8 text-white shadow-xl sm:flex-row">
+            <div>
+              <h3 className="text-xl font-extrabold">{workflowData.ctaTitle}</h3>
+              <p className="mt-1 text-sm text-indigo-100">{workflowData.ctaSubtitle}</p>
+            </div>
+            <Link
+              to="/signup"
+              className="shrink-0 rounded-xl bg-white px-6 py-3 text-sm font-bold text-[var(--color-primary-900)] shadow-sm transition hover:bg-indigo-50"
+            >
               {hero("content.hero.primaryCta")}
-            </Button>
-          </Link>
-        </Card>
+            </Link>
+          </div>
+        </div>
       </section>
 
-      <section className="space-y-5">
-        <div className="space-y-2 text-center">
-          <h2 className="text-2xl font-bold text-[var(--ui-foreground)] sm:text-3xl">
+      {/* Impact Stats */}
+      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-2xl text-center">
+          <h2 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
             {statsData.title}
           </h2>
-          <p className="text-sm text-[var(--ui-muted)] sm:text-base">{statsData.subtitle}</p>
+          <p className="mt-2 text-sm text-[var(--ui-muted)] sm:text-base">{statsData.subtitle}</p>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {statsCards.map((stat, index) => (
-            <Card key={`stat-${index}`} className="space-y-2 p-5">
-              <p className="text-3xl" aria-hidden>
+            <div
+              key={`stat-${index}`}
+              className="rounded-2xl border border-[var(--ui-border)] bg-[var(--ui-surface)] p-6 shadow-xs"
+            >
+              <span className="text-2xl" aria-hidden="true">
                 {stat.icon}
-              </p>
-              <p className="text-2xl font-black text-[var(--color-primary-500)]">
+              </span>
+              <p className="mt-3 text-3xl font-black tabular-nums text-[var(--color-primary-500)]">
                 {stat.number}
                 {stat.suffix}
               </p>
-              <p className="font-semibold text-[var(--ui-foreground)]">{stat.label}</p>
-              <p className="text-sm text-[var(--ui-muted)]">{stat.description}</p>
-            </Card>
+              <p className="mt-1 font-bold">{stat.label}</p>
+              <p className="mt-1 text-xs leading-relaxed text-[var(--ui-muted)]">
+                {stat.description}
+              </p>
+            </div>
           ))}
         </div>
       </section>
 
-      <section className="space-y-5 pb-2">
-        <div className="space-y-2 text-center">
-          <h2 className="text-2xl font-bold text-[var(--ui-foreground)] sm:text-3xl">
+      {/* Testimonials */}
+      <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-2xl text-center">
+          <h2 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
             {testimonialData.title}
           </h2>
-          <p className="text-sm text-[var(--ui-muted)] sm:text-base">
+          <p className="mt-2 text-sm text-[var(--ui-muted)] sm:text-base">
             {testimonialData.subtitle}
           </p>
         </div>
 
-        <Card className="space-y-5 p-5 sm:p-7">
-          {currentTestimonial ? (
-            <>
-              <div className="flex items-center gap-4">
-                <div className="ui-future-chip flex h-14 w-14 items-center justify-center rounded-full">
-                  <img
-                    src={currentTestimonial.image || "/icons/ai.svg"}
-                    alt={currentTestimonial.name || "Testimonial"}
-                    width={34}
-                    height={34}
+        {currentTestimonial && (
+          <div className="mx-auto mt-8 max-w-3xl rounded-3xl border border-[var(--ui-border)] bg-[var(--ui-surface)] p-6 shadow-sm sm:p-8">
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--color-primary-100)] dark:bg-[var(--color-primary-900)]/40">
+                <img
+                  src={currentTestimonial.image || "/icons/ai.svg"}
+                  alt={currentTestimonial.name}
+                  width={28}
+                  height={28}
+                />
+              </div>
+              <div>
+                <p className="font-bold">{currentTestimonial.name}</p>
+                <p className="text-xs text-[var(--ui-muted)]">{currentTestimonial.role}</p>
+              </div>
+            </div>
+
+            <p className="mt-5 text-sm leading-7 text-[var(--ui-foreground)] sm:text-base">
+              “{currentTestimonial.text}”
+            </p>
+
+            <div className="mt-6 flex items-center justify-between">
+              <button
+                type="button"
+                onClick={() =>
+                  setActiveTestimonial(
+                    (prev) => (prev - 1 + testimonialItems.length) % testimonialItems.length,
+                  )
+                }
+                className="rounded-xl border border-[var(--ui-border)] px-4 py-1.5 text-sm font-bold hover:bg-[var(--ui-surface-2)]"
+              >
+                {isAr ? "→" : "←"}
+              </button>
+              <div className="flex items-center gap-2">
+                {testimonialItems.map((_, idx) => (
+                  <button
+                    key={`dot-${idx}`}
+                    type="button"
+                    onClick={() => setActiveTestimonial(idx)}
+                    aria-label={`testimonial-${idx + 1}`}
+                    className={`h-2 rounded-full transition-all ${
+                      idx === activeTestimonial
+                        ? "w-8 bg-[var(--color-primary-500)]"
+                        : "w-2 bg-[var(--ui-border-strong)]"
+                    }`}
                   />
-                </div>
-                <div>
-                  <p className="font-semibold text-[var(--ui-foreground)]">
-                    {currentTestimonial.name}
-                  </p>
-                  <p className="text-sm text-[var(--ui-muted)]">{currentTestimonial.role}</p>
-                </div>
+                ))}
               </div>
+              <button
+                type="button"
+                onClick={() =>
+                  setActiveTestimonial((prev) => (prev + 1) % testimonialItems.length)
+                }
+                className="rounded-xl border border-[var(--ui-border)] px-4 py-1.5 text-sm font-bold hover:bg-[var(--ui-surface-2)]"
+              >
+                {isAr ? "←" : "→"}
+              </button>
+            </div>
+          </div>
+        )}
 
-              <p className="text-sm leading-7 text-[var(--ui-foreground)] sm:text-base">
-                {currentTestimonial.text}
-              </p>
-
-              <div className="flex items-center justify-between">
-                <Button
-                  variant="secondary"
-                  fullWidth={false}
-                  size="sm"
-                  className="px-4"
-                  onClick={prevTestimonial}
-                >
-                  ←
-                </Button>
-                <div className="flex items-center gap-2">
-                  {testimonialItems.map((_, idx) => (
-                    <button
-                      key={`dot-${idx}`}
-                      type="button"
-                      onClick={() => setActiveTestimonial(idx)}
-                      className={`h-2.5 rounded-full transition-all ${
-                        idx === activeTestimonial
-                          ? "w-8 bg-[var(--color-primary-500)]"
-                          : "w-2.5 bg-[var(--ui-border)]"
-                      }`}
-                      aria-label={`testimonial-${idx + 1}`}
-                    />
-                  ))}
-                </div>
-                <Button
-                  variant="secondary"
-                  fullWidth={false}
-                  size="sm"
-                  className="px-4"
-                  onClick={nextTestimonial}
-                >
-                  →
-                </Button>
-              </div>
-            </>
-          ) : (
-            <Alert variant="info">No testimonials available</Alert>
-          )}
-        </Card>
-
-        {testimonialBadges.length > 0 ? (
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {testimonialBadges.length > 0 && (
+          <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {testimonialBadges.map((badge, index) => (
-              <Card key={`badge-${index}`} className="flex items-center gap-2 p-3">
-                <span className="text-lg">{badge.icon}</span>
-                <span className="text-sm font-medium text-[var(--ui-foreground)]">
-                  {badge.text}
-                </span>
-              </Card>
+              <div
+                key={`badge-${index}`}
+                className="flex items-center gap-2.5 rounded-2xl border border-[var(--ui-border)] bg-[var(--ui-surface)] px-4 py-3 text-sm font-semibold"
+              >
+                <span>{badge.icon}</span>
+                <span>{badge.text}</span>
+              </div>
             ))}
           </div>
-        ) : null}
+        )}
       </section>
     </div>
   );
 }
 
-function SimpleContentPage({
-  ns,
-  fallbackTitle,
-  fallbackBody,
-}: {
-  ns: string;
-  fallbackTitle: string;
-  fallbackBody: string;
-}) {
-  const { t } = useTranslation(ns);
+export function FaqPage() {
+  const { i18n } = useTranslation();
+  const isAr = i18n.language === "ar";
+  const [openIdx, setOpenIdx] = useState<number | null>(0);
+
+  const items = isAr
+    ? [
+        {
+          q: "كيف يعمل تحليل الأشعة بالذكاء الاصطناعي؟",
+          a: "يتم رفع صورة الأشعة السينية للصدر، ويقوم نموذج DenseNet121 بتحليلها خلال ثوانٍ وإنتاج خريطة حرارية (Grad-CAM) توضح المناطق المشتبه بها.",
+        },
+        {
+          q: "هل تغني النتيجة عن استشارة الطبيب؟",
+          a: "لا، النظام أداة مساعدة لاتخاذ القرار السريري ويجب دائماً مراجعة النتيجة مع طبيب مختص عبر المنصة.",
+        },
+        {
+          q: "هل بياناتي وصوري الطبية آمنة؟",
+          a: "نعم، جميع الجلسات محمية بملفات تعريف HttpOnly مع صلاحيات وصول صارمة حسب الدور الطبي.",
+        },
+      ]
+    : [
+        {
+          q: "How does AI X-ray analysis work?",
+          a: "Upload a chest X-ray image and our DenseNet121 model returns a screening prediction with a Grad-CAM heatmap in seconds.",
+        },
+        {
+          q: "Does this replace a physician diagnosis?",
+          a: "No. PneumoDetect is a clinical decision-support aid; all results should be reviewed with a qualified doctor on the portal.",
+        },
+        {
+          q: "Is my medical data protected?",
+          a: "Yes. Sessions use HttpOnly cookies with token revocation and strict role-based access control.",
+        },
+      ];
+
   return (
-    <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
-      <Card className="p-8">
-        <h1 className="brand-gradient-text text-2xl font-extrabold">
-          {t("title", fallbackTitle)}
-        </h1>
-        <p className="mt-4 leading-relaxed text-[var(--ui-muted)]">
-          {t("description", fallbackBody)}
+    <div className="mx-auto max-w-3xl px-4 py-14 sm:px-6">
+      <div className="text-center">
+        <h1 className="text-3xl font-extrabold">{isAr ? "الأسئلة الشائعة" : "Frequently Asked Questions"}</h1>
+        <p className="mt-2 text-sm text-[var(--ui-muted)]">
+          {isAr ? "إجابات واضحة حول التشخيص الذكي وخصوصية البيانات" : "Clear answers about AI screening and data privacy"}
         </p>
-      </Card>
+      </div>
+
+      <div className="mt-8 space-y-3">
+        {items.map((item, idx) => {
+          const open = openIdx === idx;
+          return (
+            <div
+              key={item.q}
+              className="overflow-hidden rounded-2xl border border-[var(--ui-border)] bg-[var(--ui-surface)]"
+            >
+              <button
+                type="button"
+                onClick={() => setOpenIdx(open ? null : idx)}
+                className="flex w-full items-center justify-between px-5 py-4 text-start text-sm font-bold"
+              >
+                <span>{item.q}</span>
+                <FaChevronDown className={`transition-transform ${open ? "rotate-180" : ""}`} />
+              </button>
+              {open && (
+                <div className="border-t border-[var(--ui-border)] px-5 py-4 text-sm leading-relaxed text-[var(--ui-muted)]">
+                  {item.a}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
 
-export const AboutPage = () => (
-  <SimpleContentPage
-    ns="about"
-    fallbackTitle="About PneumoDetect"
-    fallbackBody="PneumoDetect assists clinicians and patients with AI-assisted chest X-ray screening and integrated follow-up care."
-  />
-);
+export function ContactPage() {
+  const { i18n } = useTranslation();
+  const isAr = i18n.language === "ar";
+  const [sent, setSent] = useState(false);
 
-export const ServicesPage = () => (
-  <SimpleContentPage
-    ns="services"
-    fallbackTitle="Medical & AI Services"
-    fallbackBody="Automated chest X-ray pneumonia screening, Grad-CAM visual heatmaps, appointment scheduling, and doctor-patient chat."
-  />
-);
+  return (
+    <div className="mx-auto max-w-3xl px-4 py-14 sm:px-6">
+      <div className="rounded-3xl border border-[var(--ui-border)] bg-[var(--ui-surface)] p-8 shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--color-primary-100)] text-[var(--color-primary-500)]">
+            <FaShieldAlt />
+          </div>
+          <div>
+            <h1 className="text-2xl font-extrabold">{isAr ? "تواصل معنا" : "Contact Us"}</h1>
+            <p className="text-xs text-[var(--ui-muted)]">
+              {isAr ? "فريق الدعم الفني والطبي جاهز لمساعدتك" : "Technical and clinical onboarding support"}
+            </p>
+          </div>
+        </div>
 
-export const BlogPage = () => (
-  <SimpleContentPage
-    ns="blog"
-    fallbackTitle="Medical Insights & Updates"
-    fallbackBody="Research notes and clinical updates on AI-assisted radiology and respiratory care."
-  />
-);
-
-export const FaqPage = () => (
-  <SimpleContentPage
-    ns="faq"
-    fallbackTitle="Frequently Asked Questions"
-    fallbackBody="Learn how X-ray uploads, AI predictions, and doctor consultations work on PneumoDetect."
-  />
-);
-
-export const ContactPage = () => (
-  <SimpleContentPage
-    ns="contact"
-    fallbackTitle="Contact Us"
-    fallbackBody="Reach out to the PneumoDetect support team for technical or clinical onboarding assistance."
-  />
-);
-
-export const PrivacyPage = () => (
-  <SimpleContentPage
-    ns="privacyPage"
-    fallbackTitle="Privacy Policy"
-    fallbackBody="Patient medical records, X-ray scans, and communications are protected with strict role-based access control."
-  />
-);
-
-export const TermsPage = () => (
-  <SimpleContentPage
-    ns="termsPage"
-    fallbackTitle="Terms of Service"
-    fallbackBody="AI predictions are clinical decision-support aids and should always be reviewed by a qualified physician."
-  />
-);
+        {sent ? (
+          <div className="mt-6 flex items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-800">
+            <FaCheckCircle />
+            <span>{isAr ? "تم استلام رسالتك بنجاح!" : "Your message has been received!"}</span>
+          </div>
+        ) : (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              setSent(true);
+            }}
+            className="mt-6 space-y-4"
+          >
+            <input
+              type="text"
+              required
+              placeholder={isAr ? "الاسم الكامل" : "Full name"}
+              className="w-full rounded-xl border border-[var(--ui-border)] bg-[var(--ui-surface-2)] px-4 py-2.5 text-sm outline-none focus:border-[var(--color-primary-500)]"
+            />
+            <input
+              type="email"
+              required
+              placeholder={isAr ? "البريد الإلكتروني" : "Email address"}
+              className="w-full rounded-xl border border-[var(--ui-border)] bg-[var(--ui-surface-2)] px-4 py-2.5 text-sm outline-none focus:border-[var(--color-primary-500)]"
+            />
+            <textarea
+              rows={4}
+              required
+              placeholder={isAr ? "اكتب رسالتك..." : "Write your message..."}
+              className="w-full rounded-xl border border-[var(--ui-border)] bg-[var(--ui-surface-2)] px-4 py-2.5 text-sm outline-none focus:border-[var(--color-primary-500)]"
+            />
+            <button
+              type="submit"
+              className="rounded-xl bg-[var(--color-primary-500)] px-6 py-2.5 text-sm font-bold text-white hover:bg-[var(--color-primary-900)]"
+            >
+              {isAr ? "إرسال الرسالة" : "Send Message"}
+            </button>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+}
