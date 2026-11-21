@@ -4,16 +4,16 @@ import {
   isTokenRevoked,
   addRevokedToken,
 } from "../lib/auth/revocation.server.js";
-import { GET as whoamiGET } from "../app/api/auth/whoami/route.js";
+import { sessionService } from "../src/services/auth";
 
 const SECRET = process.env.JWT_SECRET || "your-secret-key";
 
-describe("revocation helper and whoami route", () => {
+describe("revocation helper and whoami session service", () => {
   beforeEach(async () => {
     await clearRevokedForTest();
   });
 
-  test("non-revoked token is accepted by whoami", async () => {
+  test("non-revoked token is accepted by whoAmI", async () => {
     const token = jwt.sign(
       { id: "user-1", role: "patient", email: "a@b.com" },
       SECRET,
@@ -31,14 +31,11 @@ describe("revocation helper and whoami route", () => {
       cookies: { get: () => undefined },
     };
 
-    const res = await whoamiGET(req);
-    // NextResponse exposes status and json() promise
-    expect(res.status).toBe(200);
-    const body = await res.json();
+    const body = await sessionService.whoAmI(req);
     expect(body.id).toBe("user-1");
   });
 
-  test("revoked token is rejected (401) by whoami", async () => {
+  test("revoked token is rejected (401) by whoAmI", async () => {
     const token = jwt.sign(
       { id: "user-2", role: "admin", email: "x@y.com" },
       SECRET,
@@ -58,9 +55,9 @@ describe("revocation helper and whoami route", () => {
       cookies: { get: () => undefined },
     };
 
-    const res = await whoamiGET(req);
-    expect(res.status).toBe(401);
-    const body = await res.json();
-    expect(body.error).toBe("token_revoked");
+    await expect(sessionService.whoAmI(req)).rejects.toMatchObject({
+      statusCode: 401,
+      code: "token_revoked",
+    });
   });
 });

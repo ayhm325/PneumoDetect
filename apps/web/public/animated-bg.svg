@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 400" width="1440" height="400">
+  <defs>
+    <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#e0f2fe"/>
+      <stop offset="1" stop-color="#f1f5f9"/>
+    </linearGradient>
+  </defs>
+  <rect width="1440" height="400" fill="url(#g)"/>
+  <g fill="#cbd5e1" opacity="0.6">
+    <circle cx="200" cy="80" r="6"/>
+    <circle cx="420" cy="160" r="5"/>
+    <circle cx="780" cy="120" r="4"/>
+    <circle cx="1100" cy="60" r="6"/>
+    <circle cx="1260" cy="220" r="5"/>
+  </g>
+</svg><svg width="100%" height="100%" viewBox="0 0 1440 900" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+  <defs>
+    <linearGradient id="holo-bg" x1="0" y1="0" x2="1440" y2="900" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#00fff7"/>
+      <stop offset="0.5" stop-color="#7f00ff"/>
+      <stop offset="1" stop-color="#91EAE4"/>
+    </linearGradient>
+    <radialGradient id="holo-glow" cx="50%" cy="50%" r="80%" fx="50%" fy="50%">
+      <stop offset="0%" stop-color="#fff" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#91EAE4" stop-opacity="0.05"/>
+    </radialGradient>
+    <filter id="blur" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="60" />
+    </filter>
+  </defs>
+  <rect width="1440" height="900" fill="url(#holo-bg)"/>
+  <ellipse cx="1100" cy="300" rx="400" ry="180" fill="url(#holo-glow)" filter="url(#blur)"/>
+  <ellipse cx="400" cy="700" rx="300" ry="120" fill="url(#holo-glow)" filter="url(#blur)"/>
+  <g>
+    <animateTransform attributeName="transform" type="translate" from="0 0" to="40 20" dur="8s" repeatCount="indefinite"/>
+    <ellipse cx="900" cy="600" rx="200" ry="80" fill="#fff" fill-opacity="0.08" filter="url(#blur)"/>
+  </g>
+  <g>
+    <animateTransform attributeName="transform" type="translate" from="0 0" to="-30 -10" dur="12s" repeatCount="indefinite"/>
+    <ellipse cx="600" cy="200" rx="120" ry="60" fill="#fff" fill-opacity="0.10" filter="url(#blur)"/>
+  </g>
+</svg>

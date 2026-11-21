@@ -1,0 +1,333 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+//////////////////////
+// المستخدم الأساسي //
+//////////////////////
+model User {
+  id       String @id @default(uuid())
+  email    String @unique
+  password String
+  fullName String
+  role     Role
+
+  // هذا الحقل هو المصدر الوحيد للتحكم بتسجيل الدخول
+  // إذا كان false ➜ لا يمكن للمستخدم الدخول مهما كانت حالته
+  isActive Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  doctor  Doctor?
+  patient Patient?
+
+  notifications    Notification[]
+  activities       Activity[]
+  changeRequests   ChangeRequest[]
+  reviewedRequests ChangeRequest[]  @relation("ReviewedBy")
+  analysisResults  AnalysisResult[]
+}
+
+enum Role {
+  admin
+  doctor
+  patient
+}
+
+//////////////////////
+// الطبيب (Doctor) //
+//////////////////////
+model Doctor {
+  // نفس معرف المستخدم (1-1)
+  userId String @id
+  user   User   @relation(fields: [userId], references: [id])
+
+  phone         String  @unique
+  licenseNumber String  @unique
+  clinic        String?
+
+  // مصدر الحقيقة الوحيد لحالة الطبيب
+  status DoctorStatus @default(pending)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  appointments   Appointment[]
+  medicalRecords MedicalRecord[]
+  patients       Patient[]
+  chats          Chat[]
+}
+
+////////////////////////////
+// حالات الطبيب الرسمية //
+////////////////////////////
+enum DoctorStatus {
+  // الحالة الافتراضية عند التسجيل
+  // لا يمكن الدخول ولا العمل
+  pending
+
+  // بعد موافقة الأدمن
+  // يمكن العمل وتسجيل الدخول
+  active
+
+  // حظر الطبيب (دائم أو مؤقت حسب النظام)
+  // لا يمكنه الدخول أو العمل
+  banned
+}
+
+//////////////////////
+// الحالة السريرية للمريض (ClinicalStatus) //
+//////////////////////
+enum ClinicalStatus {
+  stable
+  critical
+  recovering
+}
+
+//////////////////////
+// المريض (Patient) //
+//////////////////////
+model Patient {
+  id     String  @id @default(uuid())
+  userId String? @unique
+  user   User?   @relation(fields: [userId], references: [id])
+
+  fullName String
+  email    String  @unique
+  doctorId String?
+  doctor   Doctor? @relation(fields: [doctorId], references: [userId])
+
+  phone     String?
+  gender    Gender?
+  birthDate DateTime?
+  bloodType String?
+  joinDate  DateTime  @default(now())
+  lastVisit DateTime?
+
+  status PatientStatus @default(active)
+  notes  String?
+
+  // Doctor-set clinical status shown on doctor dashboard/patients list
+  clinicalStatus ClinicalStatus @default(stable)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  appointments   Appointment[]
+  medicalRecords MedicalRecord[]
+  chats          Chat[]
+}
+
+//////////////////////
+// المواعيد //
+//////////////////////
+model Appointment {
+  id            String            @id @default(uuid())
+  doctorId      String
+  patientId     String
+  scheduledAt   DateTime
+  status        AppointmentStatus
+  location      String?
+  type          String? // clinic or online
+  reason        String?
+  patientReason String?
+
+  createdAt DateTime @default(now())
+  isDeleted Boolean  @default(false)
+
+  doctor  Doctor  @relation(fields: [doctorId], references: [userId])
+  patient Patient @relation(fields: [patientId], references: [id])
+
+  medicalRecord MedicalRecord?
+
+  @@unique([doctorId, scheduledAt])
+  @@unique([patientId, scheduledAt])
+  @@index([doctorId, status])
+  @@index([patientId, status])
+}
+
+enum AppointmentStatus {
+  scheduled
+  completed
+  cancelled
+  no_show
+}
+
+//////////////////////
+// السجل الطبي //
+//////////////////////
+enum AiResult {
+  POSITIVE
+  NEGATIVE
+}
+
+model MedicalRecord {
+  id            String  @id @default(uuid())
+  patientId     String
+  doctorId      String?
+  appointmentId String? @unique
+
+  aiResult        AiResult
+  confidenceScore Float
+
+  reviewedByDoctor Boolean @default(false)
+  doctorNotes      String?
+
+  imageUrl  String
+  createdAt DateTime @default(now())
+
+  patient     Patient      @relation(fields: [patientId], references: [id])
+  doctor      Doctor?      @relation(fields: [doctorId], references: [userId])
+  appointment Appointment? @relation(fields: [appointmentId], references: [id])
+}
+
+//////////////////////
+// الإشعارات //
+//////////////////////
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  message   String
+  type      NotificationType
+  isRead    Boolean          @default(false)
+  isDeleted Boolean          @default(false)
+
+  createdAt DateTime @default(now())
+  readAt    DateTime?
+  archivedAt DateTime?
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+enum NotificationType {
+  info
+  warning
+  alert
+  success
+}
+
+//////////////////////
+// طلبات التغيير //
+//////////////////////
+model ChangeRequest {
+  id      String              @id @default(uuid())
+  userId  String
+  type    String
+  status  ChangeRequestStatus
+  details Json?
+
+  reviewedById String?
+  reviewedAt   DateTime?
+
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user       User  @relation(fields: [userId], references: [id])
+  reviewedBy User? @relation("ReviewedBy", fields: [reviewedById], references: [id])
+}
+
+enum ChangeRequestStatus {
+  pending
+  approved
+  rejected
+}
+
+//////////////////////
+// الأنشطة //
+//////////////////////
+model Activity {
+  id          String  @id @default(uuid())
+  type        String
+  description String
+  userId      String?
+  meta        Json?
+
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+}
+
+enum Gender {
+  male
+  female
+  other
+}
+
+enum PatientStatus {
+  active
+  suspended
+}
+
+//////////////////////
+// الشات والمراسلات //
+//////////////////////
+model Chat {
+  id        String @id @default(uuid())
+  doctorId  String
+  patientId String
+
+  doctor  Doctor  @relation(fields: [doctorId], references: [userId])
+  patient Patient @relation(fields: [patientId], references: [id])
+
+  messages Message[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([doctorId])
+  @@index([patientId])
+}
+
+model Message {
+  id        String        @id @default(uuid())
+  chatId    String
+  sender    Sender
+  text      String?
+  fileUrl   String?
+  mimeType  String?
+  fileName  String?
+  status    MessageStatus @default(sent)
+  createdAt DateTime      @default(now())
+  clientKey String?
+
+  chat Chat @relation(fields: [chatId], references: [id])
+
+  @@index([chatId])
+}
+
+//////////////////////
+// Analysis results //
+//////////////////////
+model AnalysisResult {
+  id              String   @id @default(uuid())
+  userId          String
+  imageUrl        String
+  prediction      String
+  confidence      Float
+  explanation     String
+  heatmapUrl      String?
+  modelVersion    String
+  inferenceTimeMs Int
+  createdAt       DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId, createdAt])
+}
+
+enum Sender {
+  doctor
+  patient
+}
+
+enum MessageStatus {
+  sent
+  delivered
+  read
+}

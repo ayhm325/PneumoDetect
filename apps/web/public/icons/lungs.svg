@@ -1,0 +1,16 @@
+<svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="18" cy="18" r="16" fill="url(#lungGradient)"/>
+  <defs>
+    <linearGradient id="lungGradient" x1="0" y1="0" x2="36" y2="36" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#fbbf24"/>
+      <stop offset="1" stop-color="#ef4444"/>
+    </linearGradient>
+  </defs>
+  <g stroke="#fff" stroke-width="2" stroke-linecap="round" fill="none">
+    <path d="M18 28V18"/>
+    <path d="M18 18C18 12 10 12 10 18C10 24 18 28 18 28"/>
+    <path d="M18 18C18 12 26 12 26 18C26 24 18 28 18 28"/>
+    <path d="M14 18C14 15 18 15 18 18"/>
+    <path d="M22 18C22 15 18 15 18 18"/>
+  </g>
+</svg>

@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 600" width="1440" height="600">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#f8fafc"/>
+    </linearGradient>
+  </defs>
+  <rect width="1440" height="600" fill="url(#bg)"/>
+  <path d="M0 500 C 240 420 480 580 720 500 C 960 420 1200 580 1440 500 L 1440 600 L 0 600 Z" fill="#e2e8f0" opacity="0.6"/>
+</svg><svg width="100%" height="100%" viewBox="0 0 1440 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="holo1" x1="0" y1="0" x2="1440" y2="600" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7F7FD5"/>
+      <stop offset="0.5" stop-color="#86A8E7"/>
+      <stop offset="1" stop-color="#91EAE4"/>
+    </linearGradient>
+    <radialGradient id="holo2" cx="50%" cy="50%" r="80%" fx="50%" fy="50%">
+      <stop offset="0%" stop-color="#fff" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#91EAE4" stop-opacity="0.1"/>
+    </radialGradient>
+  </defs>
+  <rect width="1440" height="600" fill="url(#holo1)"/>
+  <ellipse cx="900" cy="200" rx="400" ry="180" fill="url(#holo2)"/>
+  <ellipse cx="400" cy="400" rx="300" ry="120" fill="url(#holo2)"/>
+</svg>

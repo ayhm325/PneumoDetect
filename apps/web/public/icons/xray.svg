@@ -1,0 +1,14 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect x="4" y="4" width="24" height="24" rx="6" fill="url(#holo2)"/>
+  <defs>
+    <linearGradient id="holo2" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#86A8E7"/>
+      <stop offset="1" stop-color="#91EAE4"/>
+    </linearGradient>
+  </defs>
+  <g stroke="#fff" stroke-width="2">
+    <rect x="10" y="10" width="12" height="12" rx="2" fill="none"/>
+    <line x1="16" y1="12" x2="16" y2="20"/>
+    <line x1="12" y1="16" x2="20" y2="16"/>
+  </g>
+</svg>
