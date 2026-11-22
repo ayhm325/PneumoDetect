@@ -1,18 +1,12 @@
+import { ArrowLeftIcon, ArrowRightIcon, MenuIcon, MoonIcon, StethoscopeIcon, SunIcon, XIcon } from "lucide-react";
 import React, { useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import {
-  FaArrowLeft,
-  FaArrowRight,
-  FaBars,
-  FaMoon,
-  FaStethoscope,
-  FaSun,
-  FaTimes,
-} from "react-icons/fa";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import i18n, { applyDocumentDirection } from "@/i18n/config";
 import { useTheme } from "@/lib/compat/theme";
 import { useAuth } from "@/stores/authStore";
+import { pdMotion } from "@/lib/motion";
 
 export default function Navbar() {
   const { t } = useTranslation("navbar");
@@ -22,6 +16,7 @@ export default function Navbar() {
   const { user } = useAuth();
   const { pathname } = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const reduceMotion = useReducedMotion();
 
   const isAuthRoute =
     pathname === "/login" || pathname === "/signup" || pathname === "/forgot-password";
@@ -48,36 +43,36 @@ export default function Navbar() {
     { to: "/contact", label: t("contact", isAr ? "تواصل معنا" : "Contact") },
   ];
 
-  const BackIcon = isAr ? FaArrowRight : FaArrowLeft;
+  const BackIcon = isAr ? ArrowRightIcon : ArrowLeftIcon;
 
   return (
     <div className="sticky top-3 z-40 mx-auto w-full max-w-7xl px-3 sm:px-6 lg:px-8">
-      <header className="rounded-2xl border border-white/15 bg-[var(--ui-topbar-bg)]/95 text-white shadow-lg backdrop-blur-md">
-        <div className="flex h-[66px] items-center justify-between gap-3 px-4 sm:px-6">
+      <header className="shape-leaf border border-[var(--pd-line)] bg-[var(--pd-surface)]/92 text-[var(--pd-text-primary)] shadow-[var(--pd-shadow-depth)] backdrop-blur-md">
+        <div className="flex h-[68px] items-center justify-between gap-3 px-4 sm:px-6">
           {/* Brand */}
           <Link
             to="/"
-            className="flex shrink-0 items-center gap-2.5 text-lg font-extrabold tracking-wide text-white"
+            className="flex shrink-0 items-center gap-2.5 text-lg font-semibold tracking-[var(--tracking-heading)] text-[var(--pd-text-primary)]"
           >
-            <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/15 bg-white/10 text-sky-300 shadow-xs">
-              <FaStethoscope className="h-4 w-4" />
+            <span className="pd-orb pd-orb--sm pd-orb--acid">
+              <StethoscopeIcon size={17} strokeWidth={1.7} />
             </span>
             <span>PneumoDetect</span>
           </Link>
 
-          {/* Primary Nav (hidden on auth screens to keep login/signup focused) */}
+          {/* Primary Nav */}
           {!isAuthRoute && (
-            <nav className="hidden items-center gap-1 md:flex" aria-label="Primary navigation">
+            <nav className="hidden min-w-0 items-center gap-0.5 md:flex lg:gap-1" aria-label="Primary navigation">
               {links.map((item) => (
                 <NavLink
                   key={item.to}
                   to={item.to}
                   end={item.to === "/"}
                   className={({ isActive }) =>
-                    `rounded-xl px-3 py-2 text-sm font-semibold transition ${
+                    `relative whitespace-nowrap rounded-full px-2.5 py-1.5 text-sm font-medium transition-colors lg:px-3.5 lg:py-2 ${
                       isActive
-                        ? "bg-white/15 text-white shadow-2xs"
-                        : "text-white/80 hover:bg-white/10 hover:text-white"
+                        ? "bg-[var(--pd-acid-soft)] text-[var(--pd-acid)]"
+                        : "text-[var(--pd-text-secondary)] hover:bg-[var(--pd-surface-raised)] hover:text-[var(--pd-text-primary)]"
                     }`
                   }
                 >
@@ -87,14 +82,11 @@ export default function Navbar() {
             </nav>
           )}
 
-          {/* Actions (unified with PortalTopbar) */}
+          {/* Actions */}
           <div className="flex shrink-0 items-center gap-2">
             {isAuthRoute && (
-              <Link
-                to="/"
-                className="inline-flex h-10 items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-3.5 text-sm font-semibold text-white transition hover:bg-white/20"
-              >
-                <BackIcon className="h-3.5 w-3.5" />
+              <Link to="/" className="pd-btn pd-btn--secondary pd-btn--sm">
+                <BackIcon size={15} strokeWidth={1.7} />
                 <span>{t("home", isAr ? "الرئيسية" : "Home")}</span>
               </Link>
             )}
@@ -102,17 +94,21 @@ export default function Navbar() {
             <button
               type="button"
               onClick={toggleTheme}
-              aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-white/10 text-white transition hover:bg-white/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300"
+              aria-label={isDark ? "Switch to warm clay theme" : "Switch to night fig theme"}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[var(--pd-line)] bg-[var(--pd-canvas-raised)] text-[var(--pd-text-secondary)] transition-colors hover:border-[var(--pd-line-strong)] hover:text-[var(--pd-text-primary)]"
             >
-              {isDark ? <FaSun className="h-4 w-4 text-amber-300" /> : <FaMoon className="h-4 w-4" />}
+              {isDark ? (
+                <SunIcon size={17} strokeWidth={1.7} className="text-[var(--pd-marigold)]" />
+              ) : (
+                <MoonIcon size={17} strokeWidth={1.7} className="text-[var(--pd-orchid)]" />
+              )}
             </button>
 
             <button
               type="button"
               onClick={handleToggleLocale}
               aria-label={isAr ? "Switch to English" : "التبديل إلى العربية"}
-              className="inline-flex h-10 items-center justify-center rounded-xl border border-white/15 bg-white/10 px-3 text-sm font-bold tracking-wide text-white transition hover:bg-white/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300"
+              className="inline-flex h-10 items-center justify-center rounded-full border border-[var(--pd-line)] bg-[var(--pd-canvas-raised)] px-3.5 text-xs font-medium tracking-wider text-[var(--pd-text-secondary)] transition-colors hover:border-[var(--pd-line-strong)] hover:text-[var(--pd-text-primary)]"
             >
               {isAr ? "EN" : "AR"}
             </button>
@@ -122,25 +118,19 @@ export default function Navbar() {
                 {user ? (
                   <Link
                     to={portalPath}
-                    className="hidden h-10 items-center gap-2 rounded-xl bg-sky-500 px-3.5 text-sm font-semibold text-white shadow-xs transition hover:bg-sky-400 sm:inline-flex"
+                    className="pd-btn pd-btn--primary pd-btn--sm hidden sm:inline-flex"
                   >
-                    <span className="inline-flex h-6 w-6 items-center justify-center rounded-lg bg-white/20 text-xs font-bold">
+                    <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-[var(--pd-on-accent)]/15 text-[11px] font-semibold">
                       {(user.fullName || user.email || "U").slice(0, 2).toUpperCase()}
                     </span>
                     <span>{t("dashboard", isAr ? "لوحة التحكم" : "Dashboard")}</span>
                   </Link>
                 ) : (
                   <div className="hidden items-center gap-2 sm:flex">
-                    <Link
-                      to="/login"
-                      className="inline-flex h-10 items-center rounded-xl border border-white/15 bg-white/10 px-4 text-sm font-semibold text-white transition hover:bg-white/20"
-                    >
+                    <Link to="/login" className="pd-btn pd-btn--ghost pd-btn--sm">
                       {t("login", isAr ? "تسجيل الدخول" : "Login")}
                     </Link>
-                    <Link
-                      to="/signup"
-                      className="inline-flex h-10 items-center rounded-xl bg-sky-500 px-4 text-sm font-semibold text-white shadow-xs transition hover:bg-sky-400"
-                    >
+                    <Link to="/signup" className="pd-btn pd-btn--primary pd-btn--sm">
                       {t("signup", isAr ? "إنشاء حساب" : "Sign Up")}
                     </Link>
                   </div>
@@ -150,9 +140,10 @@ export default function Navbar() {
                   type="button"
                   onClick={() => setMobileOpen((o) => !o)}
                   aria-label="Toggle menu"
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-white/10 text-white transition hover:bg-white/20 md:hidden"
+                  aria-expanded={mobileOpen}
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[var(--pd-line)] bg-[var(--pd-canvas-raised)] text-[var(--pd-text-primary)] transition-colors hover:bg-[var(--pd-surface-raised)] md:hidden"
                 >
-                  {mobileOpen ? <FaTimes className="h-4 w-4" /> : <FaBars className="h-4 w-4" />}
+                  {mobileOpen ? <XIcon size={18} strokeWidth={1.7} /> : <MenuIcon size={18} strokeWidth={1.7} />}
                 </button>
               </>
             )}
@@ -160,55 +151,63 @@ export default function Navbar() {
         </div>
 
         {/* Mobile Drawer */}
-        {!isAuthRoute && mobileOpen && (
-          <div className="border-t border-white/10 px-4 py-3 md:hidden">
-            <nav className="flex flex-col gap-1">
-              {links.map((item) => (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  end={item.to === "/"}
-                  onClick={() => setMobileOpen(false)}
-                  className={({ isActive }) =>
-                    `rounded-xl px-3 py-2 text-sm font-semibold transition ${
-                      isActive
-                        ? "bg-white/15 text-white"
-                        : "text-white/80 hover:bg-white/10 hover:text-white"
-                    }`
-                  }
-                >
-                  {item.label}
-                </NavLink>
-              ))}
-              {user ? (
-                <Link
-                  to={portalPath}
-                  onClick={() => setMobileOpen(false)}
-                  className="mt-2 rounded-xl bg-sky-500 px-4 py-2.5 text-center text-sm font-bold text-white"
-                >
-                  {t("dashboard", isAr ? "لوحة التحكم" : "Dashboard")}
-                </Link>
-              ) : (
-                <div className="mt-2 grid grid-cols-2 gap-2">
-                  <Link
-                    to="/login"
+        <AnimatePresence>
+          {!isAuthRoute && mobileOpen && (
+            <motion.div
+              initial={reduceMotion ? { opacity: 0 } : { opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={reduceMotion ? { opacity: 0 } : { opacity: 0, height: 0 }}
+              transition={pdMotion.fast}
+              className="overflow-hidden border-t border-[var(--pd-line)] md:hidden"
+            >
+              <nav className="flex flex-col gap-1 px-4 py-3">
+                {links.map((item) => (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    end={item.to === "/"}
                     onClick={() => setMobileOpen(false)}
-                    className="rounded-xl border border-white/15 bg-white/10 px-4 py-2.5 text-center text-sm font-bold text-white"
+                    className={({ isActive }) =>
+                      `rounded-[var(--shape-control)] px-3.5 py-2.5 text-sm font-medium transition-colors ${
+                        isActive
+                          ? "bg-[var(--pd-acid-soft)] text-[var(--pd-acid)]"
+                          : "text-[var(--pd-text-secondary)] hover:bg-[var(--pd-surface-raised)] hover:text-[var(--pd-text-primary)]"
+                      }`
+                    }
                   >
-                    {t("login", isAr ? "تسجيل الدخول" : "Login")}
-                  </Link>
+                    {item.label}
+                  </NavLink>
+                ))}
+                {user ? (
                   <Link
-                    to="/signup"
+                    to={portalPath}
                     onClick={() => setMobileOpen(false)}
-                    className="rounded-xl bg-sky-500 px-4 py-2.5 text-center text-sm font-bold text-white"
+                    className="pd-btn pd-btn--primary mt-2 w-full"
                   >
-                    {t("signup", isAr ? "إنشاء حساب" : "Sign Up")}
+                    {t("dashboard", isAr ? "لوحة التحكم" : "Dashboard")}
                   </Link>
-                </div>
-              )}
-            </nav>
-          </div>
-        )}
+                ) : (
+                  <div className="mt-2 grid grid-cols-2 gap-2">
+                    <Link
+                      to="/login"
+                      onClick={() => setMobileOpen(false)}
+                      className="pd-btn pd-btn--secondary w-full"
+                    >
+                      {t("login", isAr ? "تسجيل الدخول" : "Login")}
+                    </Link>
+                    <Link
+                      to="/signup"
+                      onClick={() => setMobileOpen(false)}
+                      className="pd-btn pd-btn--primary w-full"
+                    >
+                      {t("signup", isAr ? "إنشاء حساب" : "Sign Up")}
+                    </Link>
+                  </div>
+                )}
+              </nav>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </header>
     </div>
   );

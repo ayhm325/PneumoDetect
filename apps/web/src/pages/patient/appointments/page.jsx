@@ -1,18 +1,8 @@
 "use client";
 
+import { BriefcaseMedicalIcon, CalendarDaysIcon, CircleCheckIcon, CircleXIcon, ClockIcon, MapPinIcon, PhoneIcon, PlusIcon, Trash2Icon } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/components/ui/ToastProvider";
-import {
-  FaCalendarAlt,
-  FaMapMarkerAlt,
-  FaClock,
-  FaUserMd,
-  FaPhone,
-  FaCheckCircle,
-  FaTimesCircle,
-  FaPlus,
-  FaTrash,
-} from "react-icons/fa";
 import { useTranslations, useLocale } from "@/lib/compat/intl";
 import toLatin from "./toLatin";
 import { formatArabicDate } from "@/lib/arabicMonths";
@@ -197,12 +187,12 @@ export default function PatientAppointmentsPage() {
     switch (status) {
       case "confirmed":
       case "completed":
-        return "bg-(--ui-success) text-white font-extrabold shadow ring-2 ring-(--ui-success)/60";
+        return "bg-(--ui-success) text-[var(--pd-on-accent)] font-extrabold shadow ring-2 ring-(--ui-success)/60";
       case "scheduled":
       case "pending":
-        return "bg-(--ui-warning) text-white font-extrabold shadow ring-2 ring-(--ui-warning)/60";
+        return "bg-(--ui-warning) text-[var(--pd-on-accent)] font-extrabold shadow ring-2 ring-(--ui-warning)/60";
       case "cancelled":
-        return "bg-(--ui-danger) text-white font-extrabold shadow ring-2 ring-(--ui-danger)/60";
+        return "bg-(--ui-danger) text-[var(--pd-on-accent)] font-extrabold shadow ring-2 ring-(--ui-danger)/60";
       default:
         return "bg-(--ui-surface-2) text-(--ui-foreground) font-bold ring-2 ring-(--ui-border)";
     }
@@ -299,12 +289,12 @@ export default function PatientAppointmentsPage() {
             size="sm"
             className="flex items-center gap-2 px-4"
           >
-            <FaPlus /> {t("appointments.new")}
+            <PlusIcon /> {t("appointments.new")}
           </Button>
         </div>
 
         {error && (
-          <Card className="mb-6 border-(--ui-danger-border) bg-(--ui-danger-bg) p-4 text-(--ui-danger)">
+          <Card variant="feature" className="mb-6 border-(--ui-danger-border) bg-(--ui-danger-bg) p-4 text-(--ui-danger)">
             <div className="flex items-center justify-between gap-4">
               <span>{error}</span>
               <Button size="sm" variant="secondary" onClick={loadAppointments}>
@@ -315,7 +305,7 @@ export default function PatientAppointmentsPage() {
         )}
 
         {loading ? (
-          <Card className="p-8 text-center text-(--ui-muted-foreground)">
+          <Card variant="clinical" className="p-8 text-center text-(--ui-muted-foreground)">
             {locale === "ar" ? "جاري تحميل المواعيد..." : "Loading appointments..."}
           </Card>
         ) : (
@@ -334,7 +324,7 @@ export default function PatientAppointmentsPage() {
                   <ProfileMediaCard
                     key={a.id}
                     isAvatar
-                    mediaNode={<FaUserMd className="text-xl" />}
+                    mediaNode={<BriefcaseMedicalIcon className="text-xl" />}
                     title={a.doctorName}
                     subtitle={a.specialty}
                     badge={
@@ -347,11 +337,11 @@ export default function PatientAppointmentsPage() {
                     actions={
                       a.status === "confirmed" || a.status === "completed" ? (
                         <span className="bg-(--ui-success-bg) text-(--ui-success) border border-(--ui-success-border) font-bold px-3.5 py-1.5 rounded-full flex items-center gap-1.5 text-xs">
-                          <FaCheckCircle /> {t("appointments.status.confirmed")}
+                          <CircleCheckIcon /> {t("appointments.status.confirmed")}
                         </span>
                       ) : a.status === "cancelled" ? (
                         <span className="bg-(--ui-danger-bg) text-(--ui-danger) border border-(--ui-danger-border) px-3.5 py-1.5 rounded-full flex items-center gap-1.5 text-xs font-bold">
-                          <FaTimesCircle /> {t("appointments.status.cancelled")}{" "}
+                          <CircleXIcon /> {t("appointments.status.cancelled")}{" "}
                           {(a.patientReason || a.raw?.patientReason) && (
                             <span className="ms-1 font-normal">
                               - {a.patientReason || a.raw.patientReason}
@@ -368,7 +358,7 @@ export default function PatientAppointmentsPage() {
                             size="sm"
                             className="px-5"
                           >
-                            <FaCheckCircle /> {t("appointments.actions.confirm")}
+                            <CircleCheckIcon /> {t("appointments.actions.confirm")}
                           </Button>
                           <Button
                             onClick={() => openCancelModal(a.id)}
@@ -378,7 +368,7 @@ export default function PatientAppointmentsPage() {
                             size="sm"
                             className="px-5"
                           >
-                            <FaTimesCircle /> {t("appointments.actions.cancel")}
+                            <CircleXIcon /> {t("appointments.actions.cancel")}
                           </Button>
                         </>
                       )
@@ -386,15 +376,15 @@ export default function PatientAppointmentsPage() {
                   >
                     <div className="flex flex-wrap gap-4 text-xs text-(--ui-foreground) items-center mb-2">
                       <div className="flex items-center gap-1.5">
-                        <FaCalendarAlt className="text-(--ui-info)" />
+                        <CalendarDaysIcon className="text-(--ui-info)" />
                         <span className="font-semibold">{toLatin(a.date)}</span>
                       </div>
                       <div className="flex items-center gap-1.5">
-                        <FaClock className="text-(--ui-warning)" />
+                        <ClockIcon className="text-(--ui-warning)" />
                         <span className="font-semibold">{toLatin(a.time)}</span>
                       </div>
                       <div className="flex items-center gap-1.5">
-                        <FaMapMarkerAlt className="text-(--ui-danger)" />
+                        <MapPinIcon className="text-(--ui-danger)" />
                         <span className="font-medium">
                           {a.type === "online"
                             ? t("appointments.type.online")
@@ -405,7 +395,7 @@ export default function PatientAppointmentsPage() {
                       </div>
                       {a.phone && (
                         <div className="flex items-center gap-1.5">
-                          <FaPhone className="text-(--ui-info)" />
+                          <PhoneIcon className="text-(--ui-info)" />
                           <span className="font-mono">{toLatin(a.phone)}</span>
                         </div>
                       )}
@@ -437,7 +427,7 @@ export default function PatientAppointmentsPage() {
                   <ProfileMediaCard
                     key={a.id}
                     isAvatar
-                    mediaNode={<FaUserMd className="text-xl" />}
+                    mediaNode={<BriefcaseMedicalIcon className="text-xl" />}
                     title={a.doctorName}
                     subtitle={a.specialty}
                     className="opacity-85"
@@ -456,21 +446,21 @@ export default function PatientAppointmentsPage() {
                         size="sm"
                         className="text-(--ui-danger)"
                       >
-                        <FaTrash />
+                        <Trash2Icon />
                       </Button>
                     }
                   >
                     <div className="flex flex-wrap gap-4 text-xs text-(--ui-foreground) items-center mb-2">
                       <div className="flex items-center gap-1.5">
-                        <FaCalendarAlt className="text-(--ui-info)" />
+                        <CalendarDaysIcon className="text-(--ui-info)" />
                         <span className="font-semibold">{toLatin(a.date)}</span>
                       </div>
                       <div className="flex items-center gap-1.5">
-                        <FaClock className="text-(--ui-warning)" />
+                        <ClockIcon className="text-(--ui-warning)" />
                         <span className="font-semibold">{toLatin(a.time)}</span>
                       </div>
                       <div className="flex items-center gap-1.5">
-                        <FaMapMarkerAlt className="text-(--ui-danger)" />
+                        <MapPinIcon className="text-(--ui-danger)" />
                         <span className="font-medium">
                           {a.type === "online"
                             ? t("appointments.type.online")
@@ -481,7 +471,7 @@ export default function PatientAppointmentsPage() {
                       </div>
                       {a.phone && (
                         <div className="flex items-center gap-1.5">
-                          <FaPhone className="text-(--ui-info)" />
+                          <PhoneIcon className="text-(--ui-info)" />
                           <span className="font-mono">{toLatin(a.phone)}</span>
                         </div>
                       )}
@@ -514,7 +504,7 @@ export default function PatientAppointmentsPage() {
       {/* نافذة سبب الإلغاء */}
       {showCancelModal && (
         <div className="fixed inset-0 bg-(--color-neutral)/50 flex items-center justify-center z-50 p-4">
-          <Card className="w-full max-w-md text-(--ui-foreground)">
+          <Card variant="utility" className="w-full max-w-md text-(--ui-foreground)">
             <form onSubmit={handleCancelSubmit}>
               <h3 className="text-lg font-bold mb-4">
                 {t("appointments.form.cancelReasonTitle")}
@@ -560,7 +550,7 @@ export default function PatientAppointmentsPage() {
 
       {showBookModal && (
         <div className="fixed inset-0 bg-(--color-neutral)/50 flex items-center justify-center z-50 p-4">
-          <Card className="w-full max-w-md text-(--ui-foreground)">
+          <Card variant="editorial" className="w-full max-w-md text-(--ui-foreground)">
             <form onSubmit={createAppointment}>
               <h3 className="text-lg font-bold mb-4">{t("appointments.new")}</h3>
 

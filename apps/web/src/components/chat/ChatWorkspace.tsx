@@ -1,5 +1,5 @@
+import { MessagesSquareIcon } from "lucide-react";
 import React, { useState } from "react";
-import { FaComments } from "react-icons/fa";
 import { useChatWorkspace } from "@/features/chat/useChatWorkspace";
 import { ChatHeader } from "./ChatHeader";
 import { ConversationList } from "./ConversationList";
@@ -62,7 +62,7 @@ export function ChatWorkspace({ role, isAr }: ChatWorkspaceProps) {
   const isPeerOnline = peerUserId ? Boolean(presenceByUserId[peerUserId]) : false;
 
   return (
-    <div className="flex h-[calc(100vh-11.5rem)] min-h-[520px] overflow-hidden rounded-2xl border border-[var(--ui-border)] bg-[var(--ui-surface)] shadow-sm">
+    <div className="pd-panel pd-panel--feature flex h-[calc(100vh-11.5rem)] min-h-[520px] overflow-hidden shadow-[var(--pd-shadow-depth)]">
       {isDoctor && (
         <div
           className={`w-full shrink-0 md:block md:w-80 lg:w-96 ${
@@ -85,7 +85,7 @@ export function ChatWorkspace({ role, isAr }: ChatWorkspaceProps) {
       )}
 
       <section
-        className={`flex min-w-0 flex-1 flex-col ${
+        className={`flex min-w-0 flex-1 flex-col bg-[var(--pd-canvas)] ${
           isDoctor && !activeChatId ? "hidden md:flex" : "flex"
         }`}
       >
@@ -123,9 +123,9 @@ export function ChatWorkspace({ role, isAr }: ChatWorkspaceProps) {
             />
           </>
         ) : (
-          <div className="flex flex-1 flex-col items-center justify-center p-8 text-center text-[var(--ui-muted)]">
-            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--ui-surface-2)]">
-              <FaComments className="h-7 w-7 opacity-60" />
+          <div className="flex flex-1 flex-col items-center justify-center p-8 text-center text-[var(--pd-text-muted)]">
+            <div className="pd-orb pd-orb--lg pd-orb--orchid mb-4">
+              <MessagesSquareIcon size={24} strokeWidth={1.7} />
             </div>
             {loadingConversations ? (
               <p className="text-sm font-medium">
@@ -133,20 +133,18 @@ export function ChatWorkspace({ role, isAr }: ChatWorkspaceProps) {
               </p>
             ) : conversationsError ? (
               <div className="space-y-3">
-                <p className="text-sm font-medium text-[var(--ui-danger)]">
-                  {conversationsError}
-                </p>
+                <p className="text-sm font-medium text-[var(--pd-coral)]">{conversationsError}</p>
                 <button
                   type="button"
                   onClick={() => void reloadConversations()}
-                  className="rounded-xl bg-[var(--color-primary-500)] px-4 py-2 text-xs font-semibold text-white"
+                  className="pd-btn pd-btn--primary pd-btn--sm"
                 >
                   {isAr ? "إعادة المحاولة" : "Retry"}
                 </button>
               </div>
             ) : (
               <>
-                <h3 className="text-base font-bold text-[var(--ui-foreground)]">
+                <h3 className="text-base font-semibold text-[var(--pd-text-primary)]">
                   {isDoctor
                     ? isAr
                       ? "اختر محادثة للبدء"
@@ -155,7 +153,7 @@ export function ChatWorkspace({ role, isAr }: ChatWorkspaceProps) {
                       ? "لا توجد محادثة متاحة"
                       : "No conversation available"}
                 </h3>
-                <p className="mt-1 max-w-sm text-xs">
+                <p className="mt-1.5 max-w-sm text-xs leading-relaxed">
                   {isDoctor
                     ? isAr
                       ? "اختر أحد المرضى من القائمة لعرض الرسائل والتواصل الفوري."

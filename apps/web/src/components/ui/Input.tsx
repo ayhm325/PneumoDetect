@@ -1,6 +1,6 @@
+import { CircleXIcon, EyeIcon, EyeOffIcon } from "lucide-react";
 import React, { useState } from "react";
 import clsx from "clsx";
-import { FaEye, FaEyeSlash, FaTimesCircle } from "react-icons/fa";
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -12,6 +12,15 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
   onClear?: () => void;
   wrapperClassName?: string;
 }
+
+const fieldShellClass = (error?: string, disabled?: boolean) =>
+  clsx(
+    "group relative flex items-center rounded-[var(--shape-control)] border bg-[var(--pd-canvas-raised)] shadow-[inset_0_1px_2px_rgba(0,0,0,0.18)] transition-all duration-200",
+    error
+      ? "border-[color-mix(in_srgb,var(--pd-coral)_65%,transparent)] ring-3 ring-[var(--pd-coral-soft)]"
+      : "border-[var(--pd-line)] hover:border-[var(--pd-line-strong)] focus-within:border-[color-mix(in_srgb,var(--pd-acid)_65%,transparent)] focus-within:bg-[var(--pd-surface-deep)] focus-within:ring-3 focus-within:ring-[var(--pd-acid-soft)]",
+    disabled && "cursor-not-allowed opacity-55",
+  );
 
 export function Input({
   label,
@@ -34,25 +43,14 @@ export function Input({
   return (
     <div className={clsx("space-y-1.5", wrapperClassName)}>
       {label && (
-        <label
-          htmlFor={inputId}
-          className="flex items-center gap-1 text-[13px] font-semibold text-[var(--ui-foreground)]"
-        >
+        <label htmlFor={inputId} className="pd-label !mb-0 flex items-center gap-1">
           <span>{label}</span>
-          {required && <span className="text-[var(--ui-danger)]">*</span>}
+          {required && <span className="text-[var(--pd-coral)]">*</span>}
         </label>
       )}
-      <div
-        className={clsx(
-          "relative flex items-center rounded-xl border bg-[var(--ui-surface-elevated)] transition-all duration-200",
-          error
-            ? "border-[var(--ui-danger)] ring-2 ring-[var(--ui-danger-bg)]"
-            : "border-[var(--ui-border)] hover:border-[var(--ui-border-strong)] focus-within:border-[var(--ui-ring)] focus-within:ring-3 focus-within:ring-[var(--ui-accent-glow)]",
-          disabled && "opacity-60 cursor-not-allowed bg-[var(--ui-surface-2)]",
-        )}
-      >
+      <div className={fieldShellClass(error, disabled)}>
         {startIcon && (
-          <span className="pointer-events-none absolute start-3.5 text-[var(--ui-muted)] shrink-0">
+          <span className="pointer-events-none absolute start-3.5 shrink-0 text-[var(--pd-text-muted)] transition-colors group-focus-within:text-[var(--pd-acid)]">
             {startIcon}
           </span>
         )}
@@ -61,7 +59,7 @@ export function Input({
           disabled={disabled}
           value={value}
           className={clsx(
-            "h-11 w-full rounded-xl bg-transparent text-sm text-[var(--ui-foreground)] outline-none placeholder:text-[var(--ui-muted-2)] disabled:cursor-not-allowed",
+            "h-11 w-full rounded-[var(--shape-control)] bg-transparent text-[length:var(--text-md)] text-[var(--pd-text-primary)] outline-none placeholder:text-[var(--pd-text-muted)] disabled:cursor-not-allowed",
             startIcon ? "ps-10" : "ps-3.5",
             endIcon || clearable ? "pe-10" : "pe-3.5",
             className,
@@ -77,22 +75,22 @@ export function Input({
             onClick={onClear}
             tabIndex={-1}
             aria-label="Clear input"
-            className="absolute end-3 text-[var(--ui-muted)] hover:text-[var(--ui-foreground)] transition"
+            className="absolute end-3 text-[var(--pd-text-muted)] transition-colors hover:text-[var(--pd-text-primary)]"
           >
-            <FaTimesCircle className="h-4 w-4" />
+            <CircleXIcon className="h-4 w-4" />
           </button>
         ) : endIcon ? (
-          <span className="absolute end-3.5 text-[var(--ui-muted)] shrink-0">
+          <span className="absolute end-3.5 shrink-0 text-[var(--pd-text-muted)]">
             {endIcon}
           </span>
         ) : null}
       </div>
       {error ? (
-        <p id={`${inputId}-error`} role="alert" className="text-xs font-medium text-[var(--ui-danger)]">
+        <p id={`${inputId}-error`} role="alert" className="text-xs font-medium text-[var(--pd-coral)]">
           {error}
         </p>
       ) : helperText ? (
-        <p id={`${inputId}-help`} className="text-xs text-[var(--ui-muted-foreground)]">
+        <p id={`${inputId}-help`} className="text-xs text-[var(--pd-text-muted)]">
           {helperText}
         </p>
       ) : null}
@@ -119,29 +117,18 @@ export function PasswordInput({
   return (
     <div className={clsx("space-y-1.5", wrapperClassName)}>
       {label && (
-        <label
-          htmlFor={inputId}
-          className="flex items-center gap-1 text-[13px] font-semibold text-[var(--ui-foreground)]"
-        >
+        <label htmlFor={inputId} className="pd-label !mb-0 flex items-center gap-1">
           <span>{label}</span>
-          {required && <span className="text-[var(--ui-danger)]">*</span>}
+          {required && <span className="text-[var(--pd-coral)]">*</span>}
         </label>
       )}
-      <div
-        className={clsx(
-          "relative flex items-center rounded-xl border bg-[var(--ui-surface-elevated)] transition-all duration-200",
-          error
-            ? "border-[var(--ui-danger)] ring-2 ring-[var(--ui-danger-bg)]"
-            : "border-[var(--ui-border)] hover:border-[var(--ui-border-strong)] focus-within:border-[var(--ui-ring)] focus-within:ring-3 focus-within:ring-[var(--ui-accent-glow)]",
-          disabled && "opacity-60 cursor-not-allowed bg-[var(--ui-surface-2)]",
-        )}
-      >
+      <div className={fieldShellClass(error, disabled)}>
         <input
           id={inputId}
           type={showPassword ? "text" : "password"}
           disabled={disabled}
           className={clsx(
-            "h-11 w-full rounded-xl bg-transparent ps-3.5 pe-10 text-sm text-[var(--ui-foreground)] outline-none placeholder:text-[var(--ui-muted-2)] disabled:cursor-not-allowed",
+            "h-11 w-full rounded-[var(--shape-control)] bg-transparent ps-3.5 pe-10 text-[length:var(--text-md)] text-[var(--pd-text-primary)] outline-none placeholder:text-[var(--pd-text-muted)] disabled:cursor-not-allowed",
             className,
           )}
           aria-invalid={Boolean(error)}
@@ -154,17 +141,17 @@ export function PasswordInput({
           onClick={() => setShowPassword((prev) => !prev)}
           disabled={disabled}
           aria-label={showPassword ? "Hide password" : "Show password"}
-          className="absolute end-3.5 text-[var(--ui-muted)] hover:text-[var(--ui-foreground)] transition focus-visible:outline-2 focus-visible:outline-sky-400 rounded-sm"
+          className="absolute end-3.5 rounded-full p-1 text-[var(--pd-text-muted)] transition-colors hover:text-[var(--pd-acid)]"
         >
-          {showPassword ? <FaEyeSlash className="h-4 w-4" /> : <FaEye className="h-4 w-4" />}
+          {showPassword ? <EyeOffIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
         </button>
       </div>
       {error ? (
-        <p id={`${inputId}-error`} role="alert" className="text-xs font-medium text-[var(--ui-danger)]">
+        <p id={`${inputId}-error`} role="alert" className="text-xs font-medium text-[var(--pd-coral)]">
           {error}
         </p>
       ) : helperText ? (
-        <p id={`${inputId}-help`} className="text-xs text-[var(--ui-muted-foreground)]">
+        <p id={`${inputId}-help`} className="text-xs text-[var(--pd-text-muted)]">
           {helperText}
         </p>
       ) : null}
@@ -196,12 +183,9 @@ export function Textarea({
   return (
     <div className={clsx("space-y-1.5", wrapperClassName)}>
       {label && (
-        <label
-          htmlFor={inputId}
-          className="flex items-center gap-1 text-[13px] font-semibold text-[var(--ui-foreground)]"
-        >
+        <label htmlFor={inputId} className="pd-label !mb-0 flex items-center gap-1">
           <span>{label}</span>
-          {required && <span className="text-[var(--ui-danger)]">*</span>}
+          {required && <span className="text-[var(--pd-coral)]">*</span>}
         </label>
       )}
       <textarea
@@ -209,11 +193,8 @@ export function Textarea({
         rows={rows}
         disabled={disabled}
         className={clsx(
-          "w-full rounded-xl border bg-[var(--ui-surface-elevated)] p-3 text-sm text-[var(--ui-foreground)] outline-none placeholder:text-[var(--ui-muted-2)] transition-all duration-200 disabled:cursor-not-allowed",
-          error
-            ? "border-[var(--ui-danger)] ring-2 ring-[var(--ui-danger-bg)]"
-            : "border-[var(--ui-border)] hover:border-[var(--ui-border-strong)] focus:border-[var(--ui-ring)] focus:ring-3 focus:ring-[var(--ui-accent-glow)]",
-          disabled && "opacity-60 bg-[var(--ui-surface-2)]",
+          "pd-field p-3 text-[length:var(--text-md)]",
+          error && "!border-[color-mix(in_srgb,var(--pd-coral)_65%,transparent)]",
           className,
         )}
         aria-invalid={Boolean(error)}
@@ -222,11 +203,11 @@ export function Textarea({
         {...props}
       />
       {error ? (
-        <p id={`${inputId}-error`} role="alert" className="text-xs font-medium text-[var(--ui-danger)]">
+        <p id={`${inputId}-error`} role="alert" className="text-xs font-medium text-[var(--pd-coral)]">
           {error}
         </p>
       ) : helperText ? (
-        <p id={`${inputId}-help`} className="text-xs text-[var(--ui-muted-foreground)]">
+        <p id={`${inputId}-help`} className="text-xs text-[var(--pd-text-muted)]">
           {helperText}
         </p>
       ) : null}

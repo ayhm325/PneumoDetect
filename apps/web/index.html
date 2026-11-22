@@ -1,19 +1,26 @@
 <!doctype html>
-<html lang="ar" dir="rtl" class="light">
+<html lang="ar" dir="rtl" class="dark" data-theme="forest">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#111713" />
     <meta
       name="description"
-      content="PneumoDetect — AI-powered chest X-ray pneumonia detection, medical records, and doctor-patient portal."
+      content="PneumoDetect — AI-assisted chest X-ray analysis, medical records, and a doctor–patient portal."
     />
-    <title>PneumoDetect — AI Chest X-Ray Diagnosis</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&family=Readex+Pro:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
+    <title>PneumoDetect — AI-assisted chest X-ray analysis</title>
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem("pd-theme");
+          var clay = t === "clay" || t === "light";
+          var r = document.documentElement;
+          r.classList.remove("light", "dark");
+          r.classList.add(clay ? "light" : "dark");
+          r.setAttribute("data-theme", clay ? "clay" : "forest");
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

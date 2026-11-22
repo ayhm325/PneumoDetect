@@ -1,5 +1,5 @@
+import { CheckCheckIcon, CheckIcon, CircleAlertIcon, ClockIcon } from "lucide-react";
 import React from "react";
-import { FaCheck, FaCheckDouble, FaClock, FaExclamationCircle } from "react-icons/fa";
 import type { MessageDeliveryStatus } from "./chatUtils";
 
 export interface MessageStatusIconProps {
@@ -9,27 +9,31 @@ export interface MessageStatusIconProps {
 
 export function MessageStatusIcon({ status = "sent", className = "" }: MessageStatusIconProps) {
   if (status === "sending") {
-    return <FaClock className={`h-3 w-3 opacity-70 ${className}`} aria-label="Sending" />;
+    return <ClockIcon size={12} strokeWidth={1.7} className={`opacity-70 ${className}`} aria-label="Sending" />;
   }
   if (status === "failed") {
     return (
-      <FaExclamationCircle
-        className={`h-3.5 w-3.5 text-[var(--ui-danger)] ${className}`}
+      <CircleAlertIcon
+        size={14}
+        strokeWidth={1.7}
+        className={`text-[var(--pd-coral)] ${className}`}
         aria-label="Failed"
       />
     );
   }
   if (status === "read") {
     return (
-      <FaCheckDouble
-        className={`h-3.5 w-3.5 text-sky-300 ${className}`}
+      <CheckCheckIcon
+        size={14}
+        strokeWidth={1.7}
+        className={`text-[var(--pd-acid)] ${className}`}
         aria-label="Read"
       />
     );
   }
   if (status === "delivered") {
-    return <FaCheckDouble className={`h-3.5 w-3.5 opacity-85 ${className}`} aria-label="Delivered" />;
+    return <CheckCheckIcon size={14} strokeWidth={1.7} className={`opacity-85 ${className}`} aria-label="Delivered" />;
   }
-  return <FaCheck className={`h-3 w-3 opacity-80 ${className}`} aria-label="Sent" />;
+  return <CheckIcon size={12} strokeWidth={1.7} className={`opacity-80 ${className}`} aria-label="Sent" />;
 }
 export default MessageStatusIcon;

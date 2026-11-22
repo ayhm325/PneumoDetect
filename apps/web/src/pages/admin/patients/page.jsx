@@ -1,4 +1,5 @@
 "use client";
+import { BriefcaseMedicalIcon, CalendarIcon, CircleCheckIcon, EyeIcon, EyeOffIcon, HeartIcon, MailIcon, PlusIcon, SaveIcon, SearchIcon, TestTubeIcon, UsersIcon, XIcon } from "lucide-react";
 import React, { useState } from "react";
 import useSWR from "swr";
 import { useToast } from "@/components/ui/ToastProvider";
@@ -6,21 +7,6 @@ import { Button, GlideSelect } from "@/components/ui";
 import { apiRequest } from "@/lib/apiClient";
 import useLocale from "@/lib/compat/intl";
 import { useTranslations } from "@/lib/compat/intl";
-import {
-  FaUsers,
-  FaMagnifyingGlass,
-  FaPlus,
-  FaFloppyDisk,
-  FaX,
-  FaEnvelope,
-  FaCalendar,
-  FaHeart,
-  FaVial,
-  FaUserDoctor,
-  FaEye,
-  FaEyeSlash,
-} from "react-icons/fa6";
-import { FaTimes, FaCheckCircle } from "react-icons/fa";
 
 const CURRENT_YEAR = new Date().getUTCFullYear();
 
@@ -182,12 +168,12 @@ export default function PatientsPage() {
     {
       title: tPatients("stats.totalPatients"),
       value: normalizedPatients.length,
-      icon: FaUsers,
+      icon: UsersIcon,
     },
     {
       title: tPatients("stats.activePatients"),
       value: normalizedPatients.filter((p) => p.status === "active").length,
-      icon: FaHeart,
+      icon: HeartIcon,
     },
     {
       title: tPatients("stats.todayVisits"),
@@ -195,7 +181,7 @@ export default function PatientsPage() {
         (sum, p) => sum + (p.appointmentsCount || 0),
         0,
       ),
-      icon: FaCalendar,
+      icon: CalendarIcon,
     },
     {
       title: tPatients("stats.totalReports"),
@@ -203,7 +189,7 @@ export default function PatientsPage() {
         (sum, p) => sum + (p.reportsCount || 0),
         0,
       ),
-      icon: FaVial,
+      icon: TestTubeIcon,
     },
   ];
 
@@ -423,7 +409,7 @@ export default function PatientsPage() {
                 }}
                 size="lg"
               >
-                <FaPlus size={16} />
+                <PlusIcon size={16} />
                 <span className="hidden sm:inline">
                   {tPatients("addButton")}
                 </span>
@@ -436,11 +422,11 @@ export default function PatientsPage() {
             {stats.map((stat, index) => (
               <div
                 key={index}
-                className="group relative card-glass border border-(--ui-border) rounded-4xl p-6 shadow-(--shadow-soft) hover:shadow-(--shadow-lift) transition-all duration-500 hover:-translate-y-2 overflow-hidden"
+                className="group relative pd-panel pd-shape-asymmetric border border-(--ui-border) rounded-4xl p-6 shadow-(--shadow-soft) hover:shadow-(--shadow-lift) transition-all duration-500 hover:-translate-y-2 overflow-hidden"
               >
                 <div className="relative z-10 flex flex-col h-full">
                   <div className={`flex items-center justify-between mb-4`}>
-                    <div className="w-14 h-14 rounded-2xl brand-gradient flex items-center justify-center text-white shadow-(--shadow-soft) group-hover:scale-110 transition-transform duration-500">
+                    <div className="w-14 h-14 pd-shape-orbital brand-gradient flex items-center justify-center text-[var(--pd-on-accent)] shadow-(--shadow-soft) group-hover:scale-110 transition-transform duration-500">
                       <stat.icon className="text-xl" />
                     </div>
                     <div className="text-xs font-bold text-(--ui-muted-2) uppercase tracking-widest">
@@ -459,10 +445,10 @@ export default function PatientsPage() {
           </div>
 
           {/* Filter Toolbar - Glass */}
-          <div className="sticky top-6 z-40 card-glass border border-(--ui-border) rounded-3xl p-4 shadow-(--shadow-soft) flex flex-col md:flex-row gap-4 items-center">
+          <div className="sticky top-6 z-40 pd-panel pd-shape-layered border border-(--ui-border) rounded-3xl p-4 shadow-(--shadow-soft) flex flex-col md:flex-row gap-4 items-center">
             <div className="relative w-full md:w-100 group">
               <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-(--ui-muted-2) group-focus-within:text-(--ui-info) transition-colors">
-                <FaMagnifyingGlass />
+                <SearchIcon />
               </div>
               <input
                 type="text"
@@ -501,7 +487,7 @@ export default function PatientsPage() {
             {filteredPatients.map((patient, idx) => (
               <div
                 key={patient.id || idx}
-                className="group relative card-glass border border-(--ui-border) rounded-4xl p-8 shadow-(--shadow-soft) hover:shadow-(--shadow-lift) transition-all duration-500 hover:-translate-y-2 overflow-hidden"
+                className="group relative pd-panel pd-shape-organic border border-(--ui-border) rounded-4xl p-8 shadow-(--shadow-soft) hover:shadow-(--shadow-lift) transition-all duration-500 hover:-translate-y-2 overflow-hidden"
               >
                 <div className="relative z-10 flex flex-col h-full">
                   {/* Header */}
@@ -532,7 +518,7 @@ export default function PatientsPage() {
                       {patient.name}
                     </h3>
                     <div className="flex items-center gap-2 text-(--ui-muted-2) text-sm font-medium">
-                      <FaEnvelope className="text-(--ui-muted-2)" />{" "}
+                      <MailIcon className="text-(--ui-muted-2)" />{" "}
                       {patient.email}
                     </div>
                   </div>
@@ -557,7 +543,7 @@ export default function PatientsPage() {
                     </div>
                     <div className="p-3 rounded-2xl bg-(--ui-danger-bg) border border-(--ui-danger-border) flex flex-col gap-1">
                       <span className="text-xs text-(--ui-danger) font-semibold uppercase flex items-center gap-1">
-                        <FaHeart /> {tPatients("labels.blood")}
+                        <HeartIcon /> {tPatients("labels.blood")}
                       </span>
                       <span className="text-sm font-bold text-foreground">
                         {patient.bloodType || placeholder}
@@ -565,7 +551,7 @@ export default function PatientsPage() {
                     </div>
                     <div className="p-3 rounded-2xl bg-(--ui-info-bg) border border-(--ui-info-border) flex flex-col gap-1">
                       <span className="text-xs text-(--ui-info) font-semibold uppercase flex items-center gap-1">
-                        <FaUserDoctor /> {tPatients("labels.doctor")}
+                        <BriefcaseMedicalIcon /> {tPatients("labels.doctor")}
                       </span>
                       <span
                         className="text-sm font-bold text-foreground truncate"
@@ -614,7 +600,7 @@ export default function PatientsPage() {
                       {patient.status === "active" ||
                       patient.status === undefined ? (
                         <>
-                          <FaTimes
+                          <XIcon
                             className="group-hover/btn:scale-110 transition-transform"
                             size={14}
                           />
@@ -622,7 +608,7 @@ export default function PatientsPage() {
                         </>
                       ) : (
                         <>
-                          <FaCheckCircle
+                          <CircleCheckIcon
                             className="group-hover/btn:scale-110 transition-transform"
                             size={14}
                           />
@@ -637,9 +623,9 @@ export default function PatientsPage() {
           </div>
 
           {filteredPatients.length === 0 && (
-            <div className="text-center py-24 card-glass rounded-4xl border border-dashed border-(--ui-border)">
+            <div className="text-center py-24 pd-panel pd-shape-asymmetric rounded-4xl border border-dashed border-(--ui-border)">
               <div className="inline-block p-6 rounded-full bg-(--ui-surface-2) mb-6 text-(--ui-muted-2) animate-bounce border border-(--ui-border)">
-                <FaUsers size={48} />
+                <UsersIcon size={48} />
               </div>
               <p className="text-xl font-medium text-(--ui-muted-2)">
                 {tPatients("table.noMatches")}
@@ -664,7 +650,7 @@ export default function PatientsPage() {
 
             {/* Modal Content */}
             {(showAddModal || showEditModal) && (
-              <div className="relative card-glass rounded-4xl shadow-(--shadow-lift) w-full max-w-lg overflow-hidden animate-[slideUp_0.3s_ease-out] border border-(--ui-border)">
+              <div className="relative pd-panel pd-shape-layered rounded-4xl shadow-(--shadow-lift) w-full max-w-lg overflow-hidden animate-[slideUp_0.3s_ease-out] border border-(--ui-border)">
                 <div className="bg-(--ui-surface) px-8 py-6 border-b border-(--ui-border) flex justify-between items-center">
                   <h3 className="text-2xl font-bold text-foreground">
                     {showAddModal
@@ -679,7 +665,7 @@ export default function PatientsPage() {
                     }}
                     className="w-10 h-10 rounded-full bg-(--ui-surface-2) border border-(--ui-border) flex items-center justify-center hover:bg-(--ui-danger-bg) hover:text-(--ui-danger) transition-colors"
                   >
-                    <FaX />
+                    <XIcon />
                   </button>
                 </div>
 
@@ -756,7 +742,7 @@ export default function PatientsPage() {
                               : tPatients("actions.showPassword")
                           }
                         >
-                          {showPassword ? <FaEyeSlash /> : <FaEye />}
+                          {showPassword ? <EyeOffIcon /> : <EyeIcon />}
                         </button>
                       </div>
                     </div>
@@ -872,7 +858,7 @@ export default function PatientsPage() {
                     fullWidth
                     size="lg"
                   >
-                    <FaFloppyDisk />{" "}
+                    <SaveIcon />{" "}
                     {showAddModal
                       ? tPatients("buttons.save")
                       : tPatients("buttons.saveChanges")}
@@ -895,7 +881,7 @@ export default function PatientsPage() {
 
             {/* Delete Modal */}
             {showDeleteModal && selectedPatient && (
-              <div className="relative card-glass rounded-4xl shadow-(--shadow-lift) w-full max-w-sm p-8 text-center animate-[zoomIn_0.2s_ease-out] border border-(--ui-border)">
+              <div className="relative pd-panel pd-shape-organic rounded-4xl shadow-(--shadow-lift) w-full max-w-sm p-8 text-center animate-[zoomIn_0.2s_ease-out] border border-(--ui-border)">
                 <div className="w-20 h-20 bg-(--ui-danger-bg) text-(--ui-danger) border border-(--ui-danger-border) rounded-full flex items-center justify-center mx-auto mb-6 text-4xl shadow-inner">
                   ⚠️
                 </div>
@@ -927,7 +913,7 @@ export default function PatientsPage() {
                   <button
                     onClick={handleDeletePatient}
                     disabled={deleting}
-                    className={`flex-1 ${deleting ? "opacity-60 cursor-wait" : selectedPatient.status === "active" || selectedPatient.status === undefined ? "bg-(--ui-danger) hover:opacity-90" : "bg-(--ui-success) hover:opacity-90"} text-white py-3.5 rounded-2xl font-bold shadow-(--shadow-lift) transition-all active:scale-95`}
+                    className={`flex-1 ${deleting ? "opacity-60 cursor-wait" : selectedPatient.status === "active" || selectedPatient.status === undefined ? "bg-(--ui-danger) hover:opacity-90" : "bg-(--ui-success) hover:opacity-90"} text-[var(--pd-on-accent)] py-3.5 rounded-2xl font-bold shadow-(--shadow-lift) transition-all active:scale-95`}
                   >
                     {deleting
                       ? safeT("confirmToggle.processing", "…")

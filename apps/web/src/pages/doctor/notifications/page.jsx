@@ -1,7 +1,7 @@
 "use client";
 
+import { BellIcon, CheckCheckIcon, CheckIcon, Trash2Icon } from "lucide-react";
 import { useEffect, useState } from "react";
-import { FaBell, FaTrash, FaCheck, FaCheckDouble } from "react-icons/fa";
 import { useLocale, useTranslations } from "@/lib/compat/intl";
 import { useToast } from "@/components/ui/ToastProvider";
 import { apiRequest } from "@/lib/apiClient";
@@ -214,7 +214,7 @@ export default function NotificationsPage() {
                   : t("allRead", { total: totalCount })}
               </p>
             </div>
-            <FaBell size={32} className="text-(--ui-info)" />
+            <BellIcon size={32} className="text-(--ui-info)" />
           </div>
 
           <div className="flex gap-3 mb-8 flex-wrap">
@@ -256,7 +256,7 @@ export default function NotificationsPage() {
               disabled={unreadCount === 0}
               className="inline-flex items-center gap-2 px-4 py-2 bg-(--ui-success) hover:bg-(--ui-success)/90 disabled:opacity-50 text-(--ui-success-foreground) rounded-lg transition"
             >
-              <FaCheckDouble size={14} />
+              <CheckCheckIcon size={14} />
               {t("markAllRead")}
             </button>
             <button
@@ -264,15 +264,15 @@ export default function NotificationsPage() {
               disabled={totalCount === 0}
               className="inline-flex items-center gap-2 px-4 py-2 bg-(--ui-danger) hover:bg-(--ui-danger)/90 disabled:opacity-50 text-(--ui-danger-foreground) rounded-lg transition"
             >
-              <FaTrash size={14} />
+              <Trash2Icon size={14} />
               {t("deleteAll")}
             </button>
           </div>
 
           <div className="space-y-4">
             {filteredNotifications.length === 0 ? (
-              <div className="card-glass border border-(--ui-border) rounded-xl p-12 text-center">
-                <FaBell
+              <div className="pd-panel pd-shape-asymmetric border border-(--ui-border) rounded-xl p-12 text-center">
+                <BellIcon
                   size={48}
                   className="mx-auto mb-4 text-(--ui-muted-foreground)"
                 />
@@ -288,7 +288,7 @@ export default function NotificationsPage() {
               filteredNotifications.map((notif) => (
                 <div
                   key={notif.id}
-                  className={`card-glass border border-(--ui-border) rounded-xl p-5 transition hover:shadow-(--shadow-lift) ${
+                  className={`pd-panel pd-shape-layered border border-(--ui-border) rounded-xl p-5 transition hover:shadow-(--shadow-lift) ${
                     notif.isRead ? "" : "bg-(--ui-info-bg)"
                   }`}
                 >
@@ -326,7 +326,7 @@ export default function NotificationsPage() {
                           className="p-2 rounded-lg bg-(--ui-success) text-(--ui-success-foreground) hover:bg-(--ui-success)/90"
                           title={t("markAsRead")}
                         >
-                          <FaCheck size={14} />
+                          <CheckIcon size={14} />
                         </button>
                       ) : (
                         <button
@@ -334,7 +334,7 @@ export default function NotificationsPage() {
                           className="p-2 rounded-lg bg-(--ui-surface-2) border border-(--ui-border) hover:bg-(--ui-surface-2)/80"
                           title={t("markAsUnread")}
                         >
-                          <FaCheck size={14} />
+                          <CheckIcon size={14} />
                         </button>
                       )}
                       <button
@@ -342,7 +342,7 @@ export default function NotificationsPage() {
                         className="p-2 rounded-lg bg-(--ui-danger) text-(--ui-danger-foreground) hover:bg-(--ui-danger)/90"
                         title={t("deleteNotification")}
                       >
-                        <FaTrash size={14} />
+                        <Trash2Icon size={14} />
                       </button>
                     </div>
                   </div>

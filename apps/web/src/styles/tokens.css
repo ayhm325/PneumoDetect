@@ -1,140 +1,261 @@
-/* Map design tokens to CSS variables for global use */
-:root {
-  /* Enterprise SaaS Palette */
-  --color-primary: #356ae6;
-  --color-primary-hover: #2858ca;
-  --color-secondary: #13a89e;
-  --color-accent: #356ae6;
-  --color-bright: #d99128;
-  --color-dark: #d94f5c;
-  --color-neutral: #182b45;
-  --color-text: #172338;
-  --color-background: #f3f6fb;
+/* ==========================================================================
+   PNEUMODETECT — BLACKENED FOREST & BURNISHED COPPER
+   Centralised design tokens. No blue, no cyan, no teal, no purple, no pure white.
+   ========================================================================== */
 
-  /* Typography Font Families */
-  --font-arabic: "Cairo", "Readex Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-  --font-latin: "Plus Jakarta Sans", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-  --font-sans: var(--font-arabic);
+:root,
+:root[data-theme="forest"],
+:root[data-theme="night"] {
+  color-scheme: dark;
 
-  /* Dark defaults (for pre-hydration / prefers-color-scheme) */
-  --color-background-dark: #0b1220;
-  --color-text-dark: #e6edf7;
+  /* ------------------------------------------------------------ Foundation */
+  --pd-bg: #111713;
+  --pd-bg-elevated: #151d17;
+  --pd-surface: #1b221d;
+  --pd-surface-2: #252e27;
+  --pd-surface-3: #303a31;
+  --pd-surface-inset: #141b16;
 
-  --color-primary-100: #e9f0ff;
-  --color-primary-500: #356ae6;
-  --color-primary-900: #2858ca;
+  /* ------------------------------------------------------------ Typography */
+  --pd-text-primary: #e0d5c2;
+  --pd-text-secondary: #b9af9b;
+  --pd-text-muted: #a9a394;
+  --pd-text-disabled: #827f73;
 
-  --color-secondary-100: #e0f5f3;
-  --color-secondary-500: #13a89e;
-  --color-secondary-900: #0e7c75;
+  --pd-font-ar: "Alexandria Variable", "Alexandria", sans-serif;
+  --pd-font-en: "Space Grotesk Variable", "Space Grotesk", sans-serif;
+  --pd-weight-regular: 400;
+  --pd-weight-medium: 500;
+  --pd-weight-semibold: 600;
+  --tracking-display: -0.03em;
+  --tracking-heading: -0.02em;
+  --tracking-label: 0.07em;
 
-  --color-accent-100: #e9f0ff;
-  --color-accent-500: #3984c6;
-  --color-accent-900: #203b60;
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-md: 0.9375rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.375rem;
+  --text-2xl: 1.75rem;
+  --text-3xl: clamp(2rem, 3vw, 2.85rem);
+  --text-display: clamp(2.65rem, 4.8vw, 4.25rem);
 
-  --color-bright-100: #fdf3e1;
-  --color-bright-500: #d99128;
-  --color-bright-900: #9a6212;
+  /* -------------------------------------------------------- Brand & Accent */
+  --pd-copper: #d09272;
+  --pd-copper-hover: #dda184;
+  --pd-copper-active: #b97855;
+  --pd-copper-soft: rgba(208, 146, 114, 0.12);
+  --pd-copper-border: rgba(208, 146, 114, 0.24);
+  --pd-on-accent: #14110e;
 
-  --color-dark-100: #fbe9eb;
-  --color-dark-500: #d94f5c;
-  --color-dark-900: #b23340;
+  /* --------------------------------------------------- Secondary & Semantic */
+  --pd-sage: #a8b398;
+  --pd-sage-soft: rgba(168, 179, 152, 0.13);
+  --pd-ochre: #c8ab78;
+  --pd-ochre-soft: rgba(200, 171, 120, 0.13);
+  --pd-clay: #d58f85;
+  --pd-clay-soft: rgba(213, 143, 133, 0.13);
 
-  --radius-sm: 8px;
-  --radius-md: 14px;
-  --radius-lg: 20px;
-  --radius-xl: 24px;
-  --radius-card: 24px;
+  --pd-success: var(--pd-sage);
+  --pd-warning: var(--pd-ochre);
+  --pd-danger: var(--pd-clay);
+  --pd-info: var(--pd-copper);
 
-  --shadow-soft: 0 10px 28px rgba(15, 23, 42, 0.05), 0 2px 6px rgba(15, 23, 42, 0.03);
-  --shadow-lift: 0 20px 42px rgba(15, 23, 42, 0.1), 0 4px 12px rgba(15, 23, 42, 0.05);
-  --shadow-card: 0 14px 34px rgba(15, 23, 42, 0.06), 0 2px 8px rgba(15, 23, 42, 0.04);
-  --shadow-card-media: 0 12px 24px rgba(15, 23, 42, 0.1);
-  --shadow-glow: 0 0 0 1px rgba(53, 106, 230, 0.14),
-    0 8px 24px rgba(53, 106, 230, 0.12);
+  /* Radiograph stage — neutral near-black so grayscale X-ray pixels stay honest */
+  --pd-stage: #0b0e0c;
 
-  --opacity-glass: 0.94;
-  --opacity-sheen: 0.08;
+  /* ------------------------------------------------------ Borders & Shadows */
+  --pd-border: rgba(224, 213, 194, 0.09);
+  --pd-border-strong: rgba(224, 213, 194, 0.16);
+  --pd-scrim: rgba(11, 15, 12, 0.76);
 
-  /* Standard Transitions & Timing */
-  --transition-micro: 160ms cubic-bezier(0.16, 1, 0.3, 1);
-  --transition-hover: 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
-  --transition-dialog: 240ms cubic-bezier(0.16, 1, 0.3, 1);
-  --transition-page: 320ms cubic-bezier(0.22, 1, 0.36, 1);
+  --pd-shadow-soft: 0 12px 32px rgba(0, 0, 0, 0.16);
+  --pd-shadow-deep: 0 24px 60px rgba(0, 0, 0, 0.28);
+  --pd-shadow-floating: 0 16px 48px rgba(0, 0, 0, 0.24);
+  --pd-glow-copper: 0 10px 28px rgba(208, 146, 114, 0.16);
+  --pd-inner-line: inset 0 1px 0 rgba(224, 213, 194, 0.05);
 
-  /* Central Z-Index Scale */
+  /* ---------------------------------------------------------------- Motion */
+  --pd-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --pd-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --pd-duration-fast: 160ms;
+  --pd-duration-normal: 260ms;
+  --pd-duration-page: 380ms;
+
+  /* -------------------------------------------------------------- Layering */
   --z-dropdown: 50;
   --z-sticky: 100;
   --z-modal-backdrop: 200;
   --z-modal: 210;
   --z-toast: 300;
 
-  /* Layout & Surface Tokens */
-  --ui-foreground: #172338;
-  --ui-muted: #63738a;
-  --ui-muted-2: #8996a8;
-  --ui-muted-foreground: #63738a;
-  --ui-border: rgba(23, 35, 56, 0.11);
-  --ui-border-strong: rgba(23, 35, 56, 0.2);
-  --ui-surface: #f9fafd;
-  --ui-surface-2: #eaf0f7;
-  --ui-surface-elevated: #ffffff;
-  --ui-topbar-bg: #203b60;
-  --ui-footer-bg: #e9eff6;
-  --ui-table-bg: #edf2f8;
-  --ui-table-header: #e1e9f3;
-  --ui-table-hover: #e5edf8;
-  --ui-ring: #356ae6;
-  --ui-accent-glow: rgba(53, 106, 230, 0.22);
-  --ui-grid-line: rgba(53, 106, 230, 0.06);
-
-  /* Semantic UI tokens */
-  --ui-info: #3984c6;
-  --ui-info-bg: rgba(57, 132, 198, 0.12);
-  --ui-info-border: rgba(57, 132, 198, 0.26);
-  --ui-info-foreground: #205c93;
-
-  --ui-success: #159a72;
-  --ui-success-bg: rgba(21, 154, 114, 0.12);
-  --ui-success-border: rgba(21, 154, 114, 0.26);
-  --ui-success-foreground: #0e7254;
-
-  --ui-warning: #d99128;
-  --ui-warning-bg: rgba(217, 145, 40, 0.13);
-  --ui-warning-border: rgba(217, 145, 40, 0.28);
-  --ui-warning-foreground: #945f12;
-
-  --ui-danger: #d94f5c;
-  --ui-danger-bg: rgba(217, 79, 92, 0.12);
-  --ui-danger-border: rgba(217, 79, 92, 0.28);
-  --ui-danger-foreground: #a82e3a;
+  --pd-control-height: 2.75rem;
+  --pd-focus-ring: var(--pd-copper);
 }
 
-/* Dark mode (data-theme & .dark) overrides */
-[data-theme="dark"],
-:root.dark {
-  --color-background: var(--color-background-dark);
-  --color-text: var(--color-text-dark);
-  --ui-foreground: #e6edf7;
-  --ui-muted: #9aa8bd;
-  --ui-muted-2: #76859b;
-  --ui-muted-foreground: #9aa8bd;
-  --ui-border: rgba(230, 237, 247, 0.12);
-  --ui-border-strong: rgba(230, 237, 247, 0.24);
-  --ui-surface: #0f172a;
-  --ui-surface-2: #1e293b;
-  --ui-surface-elevated: #162238;
-  --shadow-soft: 0 14px 32px rgba(2, 6, 23, 0.38), 0 2px 8px rgba(2, 6, 23, 0.25);
-  --shadow-lift: 0 24px 48px rgba(2, 6, 23, 0.52), 0 6px 16px rgba(2, 6, 23, 0.32);
-  --shadow-card: 0 18px 40px rgba(2, 6, 23, 0.42), 0 3px 10px rgba(2, 6, 23, 0.28);
-  --shadow-card-media: 0 14px 28px rgba(2, 6, 23, 0.45);
-  --ui-topbar-bg: #15243b;
-  --ui-footer-bg: #10192b;
-  --ui-table-bg: #141f35;
-  --ui-table-header: #1a2843;
-  --ui-table-hover: #203152;
-  --ui-info-foreground: #7bc0fa;
-  --ui-success-foreground: #4cd9ac;
-  --ui-warning-foreground: #f2be6b;
-  --ui-danger-foreground: #f28a94;
+/* Warm Mineral Clay alternate theme (preserves theme toggle without white or blue) */
+:root[data-theme="clay"] {
+  color-scheme: light;
+
+  --pd-bg: #d4c6b2;
+  --pd-bg-elevated: #c9b9a3;
+  --pd-surface: #c1b099;
+  --pd-surface-2: #b5a38b;
+  --pd-surface-3: #a8957c;
+  --pd-surface-inset: #cbbca7;
+
+  --pd-text-primary: #21261f;
+  --pd-text-secondary: #43493e;
+  --pd-text-muted: #5b6154;
+  --pd-text-disabled: #75796d;
+
+  --pd-copper: #9b5a3c;
+  --pd-copper-hover: #874b30;
+  --pd-copper-active: #723e26;
+  --pd-copper-soft: rgba(155, 90, 60, 0.14);
+  --pd-copper-border: rgba(155, 90, 60, 0.28);
+  --pd-on-accent: #efe6d7;
+
+  --pd-sage: #4d6247;
+  --pd-sage-soft: rgba(77, 98, 71, 0.14);
+  --pd-ochre: #876632;
+  --pd-ochre-soft: rgba(135, 102, 50, 0.14);
+  --pd-clay: #9c4a40;
+  --pd-clay-soft: rgba(156, 74, 64, 0.14);
+
+  --pd-border: rgba(33, 38, 31, 0.13);
+  --pd-border-strong: rgba(33, 38, 31, 0.24);
+  --pd-scrim: rgba(24, 28, 22, 0.56);
+
+  --pd-shadow-soft: 0 12px 28px rgba(33, 38, 31, 0.12);
+  --pd-shadow-deep: 0 22px 50px rgba(33, 38, 31, 0.18);
+  --pd-shadow-floating: 0 16px 40px rgba(33, 38, 31, 0.16);
+  --pd-glow-copper: 0 10px 24px rgba(155, 90, 60, 0.2);
+  --pd-inner-line: inset 0 1px 0 rgba(239, 230, 215, 0.22);
+}
+
+/* ==========================================================================
+   Compatibility aliases so every existing page resolves to Blackened Forest
+   ========================================================================== */
+:root {
+  --pd-canvas: var(--pd-bg);
+  --pd-canvas-raised: var(--pd-bg-elevated);
+  --pd-surface-raised: var(--pd-surface-2);
+  --pd-surface-hover: var(--pd-surface-3);
+  --pd-surface-deep: var(--pd-surface-inset);
+  --pd-text-subtle: var(--pd-text-disabled);
+
+  --pd-acid: var(--pd-copper);
+  --pd-acid-soft: var(--pd-copper-soft);
+  --pd-coral: var(--pd-clay);
+  --pd-coral-soft: var(--pd-clay-soft);
+  --pd-marigold: var(--pd-ochre);
+  --pd-marigold-soft: var(--pd-ochre-soft);
+  --pd-orchid: var(--pd-sage);
+  --pd-orchid-soft: var(--pd-sage-soft);
+  --pd-moss: var(--pd-sage);
+  --pd-moss-soft: var(--pd-sage-soft);
+  --pd-line: var(--pd-border);
+  --pd-line-strong: var(--pd-border-strong);
+
+  --font-arabic: var(--pd-font-ar);
+  --font-latin: var(--pd-font-en);
+  --font-weight-regular: var(--pd-weight-regular);
+  --font-weight-medium: var(--pd-weight-medium);
+  --font-weight-semibold: var(--pd-weight-semibold);
+
+  --shape-control: 14px;
+  --shape-card: 22px;
+  --shape-feature: 34px 10px 30px 14px;
+  --shape-feature-alt: 14px 30px 10px 34px;
+  --shape-organic: 30px 30px 10px 30px;
+  --shape-leaf: 26px 10px 26px 10px;
+  --shape-bubble-in: 6px 20px 20px 20px;
+  --shape-bubble-out: 20px 6px 20px 20px;
+  --shape-pill: 999px;
+  --shape-circle: 50%;
+
+  --pd-shadow-depth: var(--pd-shadow-deep);
+  --pd-shadow-float: var(--pd-shadow-floating);
+  --pd-glow-acid: var(--pd-glow-copper);
+
+  --color-primary: var(--pd-copper);
+  --color-primary-hover: var(--pd-copper-hover);
+  --color-primary-100: var(--pd-copper-soft);
+  --color-primary-500: var(--pd-copper);
+  --color-primary-900: var(--pd-copper-active);
+  --color-secondary: var(--pd-sage);
+  --color-secondary-100: var(--pd-sage-soft);
+  --color-secondary-500: var(--pd-sage);
+  --color-secondary-900: var(--pd-surface-3);
+  --color-accent: var(--pd-copper);
+  --color-accent-100: var(--pd-copper-soft);
+  --color-accent-500: var(--pd-copper);
+  --color-accent-900: var(--pd-surface-2);
+  --color-bright: var(--pd-ochre);
+  --color-bright-100: var(--pd-ochre-soft);
+  --color-bright-500: var(--pd-ochre);
+  --color-bright-900: var(--pd-surface-3);
+  --color-dark: var(--pd-clay);
+  --color-dark-100: var(--pd-clay-soft);
+  --color-dark-500: var(--pd-clay);
+  --color-dark-900: var(--pd-surface-3);
+  --color-neutral: var(--pd-surface-2);
+  --color-text: var(--pd-text-primary);
+  --color-background: var(--pd-bg);
+  --color-background-dark: var(--pd-bg);
+  --color-text-dark: var(--pd-text-primary);
+
+  --radius-sm: 8px;
+  --radius-md: var(--shape-control);
+  --radius-lg: 20px;
+  --radius-xl: var(--shape-card);
+  --radius-card: var(--shape-card);
+
+  --shadow-soft: var(--pd-shadow-soft);
+  --shadow-lift: var(--pd-shadow-deep);
+  --shadow-card: var(--pd-shadow-soft);
+  --shadow-card-media: var(--pd-shadow-deep);
+  --shadow-glow: 0 0 0 1px var(--pd-copper-border), var(--pd-glow-copper);
+
+  --transition-micro: var(--pd-duration-fast) var(--pd-ease-out);
+  --transition-hover: 200ms var(--pd-ease-out);
+  --transition-dialog: 240ms var(--pd-ease-out);
+  --transition-page: var(--pd-duration-page) var(--pd-ease-out);
+
+  --ui-foreground: var(--pd-text-primary);
+  --ui-muted: var(--pd-text-secondary);
+  --ui-muted-2: var(--pd-text-muted);
+  --ui-muted-foreground: var(--pd-text-muted);
+  --ui-border: var(--pd-border);
+  --ui-border-strong: var(--pd-border-strong);
+  --ui-surface: var(--pd-bg-elevated);
+  --ui-surface-2: var(--pd-surface);
+  --ui-surface-elevated: var(--pd-surface);
+  --ui-topbar-bg: var(--pd-bg);
+  --ui-footer-bg: var(--pd-surface-inset);
+  --ui-table-bg: transparent;
+  --ui-table-header: var(--pd-bg-elevated);
+  --ui-table-hover: var(--pd-surface-2);
+  --ui-ring: var(--pd-focus-ring);
+  --ui-accent-glow: var(--pd-copper-soft);
+  --ui-grid-line: var(--pd-border);
+
+  --ui-info: var(--pd-copper);
+  --ui-info-bg: var(--pd-copper-soft);
+  --ui-info-border: var(--pd-copper-border);
+  --ui-info-foreground: var(--pd-copper);
+  --ui-success: var(--pd-sage);
+  --ui-success-bg: var(--pd-sage-soft);
+  --ui-success-border: color-mix(in srgb, var(--pd-sage) 34%, transparent);
+  --ui-success-foreground: var(--pd-sage);
+  --ui-warning: var(--pd-ochre);
+  --ui-warning-bg: var(--pd-ochre-soft);
+  --ui-warning-border: color-mix(in srgb, var(--pd-ochre) 34%, transparent);
+  --ui-warning-foreground: var(--pd-ochre);
+  --ui-danger: var(--pd-clay);
+  --ui-danger-bg: var(--pd-clay-soft);
+  --ui-danger-border: color-mix(in srgb, var(--pd-clay) 36%, transparent);
+  --ui-danger-foreground: var(--pd-clay);
 }

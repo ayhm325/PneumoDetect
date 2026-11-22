@@ -1,5 +1,5 @@
+import { InfoIcon, TriangleAlertIcon } from "lucide-react";
 import React from "react";
-import { FaExclamationTriangle, FaInfoCircle } from "react-icons/fa";
 import { Modal } from "./Modal";
 import { Button } from "./Button";
 import { useTranslations } from "@/lib/compat/intl";
@@ -46,38 +46,27 @@ export function ConfirmDialog({
       showCloseButton={!isLoading}
       {...props}
     >
-      <div className="flex flex-col items-center gap-4 text-center">
-        <div
-          className={`flex h-12 w-12 items-center justify-center rounded-2xl border text-xl ${
-            isDanger
-              ? "border-[var(--ui-danger-border)] bg-[var(--ui-danger-bg)] text-[var(--ui-danger)]"
-              : "border-[var(--ui-info-border)] bg-[var(--ui-info-bg)] text-[var(--ui-info)]"
-          }`}
-        >
-          {isDanger ? <FaExclamationTriangle /> : <FaInfoCircle />}
+      <div className="flex flex-col items-start gap-4">
+        <div className={`pd-orb pd-orb--lg ${isDanger ? "pd-orb--coral" : "pd-orb--orchid"}`}>
+          {isDanger ? <TriangleAlertIcon size={22} strokeWidth={1.7} /> : <InfoIcon size={22} strokeWidth={1.7} />}
         </div>
 
         {title && (
-          <h4 className="text-lg font-bold text-[var(--ui-foreground)]">
+          <h4 className="text-[length:var(--text-lg)] font-semibold text-[var(--pd-text-primary)]">
             {title}
           </h4>
         )}
 
-        <p className="text-sm font-medium text-[var(--ui-muted-foreground)] leading-relaxed">
+        <p className="text-sm leading-relaxed text-[var(--pd-text-secondary)]">
           {msg}
         </p>
 
-        <div className="mt-4 flex w-full items-center justify-end gap-3 pt-3 border-t border-[var(--ui-border)]">
-          <Button
-            variant="secondary"
-            size="md"
-            onClick={onCancel}
-            disabled={isLoading}
-          >
+        <div className="mt-2 flex w-full items-center justify-end gap-3 border-t border-[var(--pd-line)] pt-4">
+          <Button variant="secondary" size="md" onClick={onCancel} disabled={isLoading}>
             {cancelText}
           </Button>
           <Button
-            variant={variant === "danger" ? "danger" : "primary"}
+            variant={isDanger ? "danger" : "primary"}
             size="md"
             onClick={onConfirm}
             isLoading={isLoading}

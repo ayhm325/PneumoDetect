@@ -1,21 +1,22 @@
+import {
+  BellIcon,
+  ChevronDownIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  CircleUserIcon,
+  HouseIcon,
+  LogOutIcon,
+  MenuIcon,
+  MoonIcon,
+  SettingsIcon,
+  SunIcon,
+} from "lucide-react";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import {
-  FaBars,
-  FaBell,
-  FaChevronDown,
-  FaChevronLeft,
-  FaChevronRight,
-  FaCog,
-  FaHome,
-  FaMoon,
-  FaSignOutAlt,
-  FaSun,
-  FaUserCircle,
-} from "react-icons/fa";
 import type { AuthUser } from "@pneumodetect/contracts";
 import type { PortalNavItem } from "./UnifiedPortalShell";
 import { apiRequest } from "@/lib/apiClient";
+import { getInitials } from "@/lib/format";
 
 export interface PortalTopbarProps {
   portalTitle: string;
@@ -43,16 +44,6 @@ function resolveActivePageLabel(navItems: PortalNavItem[] | undefined, pathname:
     (item) => item.to !== "/" && pathname.startsWith(item.to + "/"),
   );
   return prefixMatch ? prefixMatch.label : null;
-}
-
-function getInitials(nameOrEmail?: string | null): string {
-  const raw = String(nameOrEmail || "").trim();
-  if (!raw) return "U";
-  const parts = raw.split(/\s+/).filter(Boolean);
-  if (parts.length >= 2) {
-    return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-  }
-  return raw.slice(0, 2).toUpperCase();
 }
 
 export function PortalTopbar({
@@ -89,7 +80,6 @@ export function PortalTopbar({
     [navItems, pathname],
   );
 
-  // Fetch unread notification count and refresh on route change or notification events
   useEffect(() => {
     if (!user) return;
     let active = true;
@@ -131,7 +121,6 @@ export function PortalTopbar({
     };
   }, [user, pathname]);
 
-  // Close user menu on outside click or Escape
   useEffect(() => {
     if (!menuOpen) return;
     const handleOutside = (e: MouseEvent) => {
@@ -150,43 +139,43 @@ export function PortalTopbar({
     };
   }, [menuOpen]);
 
-  const BreadcrumbSeparator = isAr ? FaChevronLeft : FaChevronRight;
+  const BreadcrumbSeparator = isAr ? ChevronLeftIcon : ChevronRightIcon;
   const displayName = user?.fullName || user?.email || (isAr ? "المستخدم" : "User");
 
   return (
-    <header className="sticky top-3 z-30 mx-3 mt-3 flex h-[66px] items-center justify-between gap-3 rounded-2xl border border-white/15 bg-[var(--ui-topbar-bg)]/95 px-4 text-white shadow-lg backdrop-blur-md sm:px-6 md:top-4 md:mx-4 md:mt-4">
-      {/* Context & Breadcrumb Section */}
+    <header className="shape-leaf sticky top-3 z-30 mx-3 mt-3 flex h-[66px] items-center justify-between gap-3 border border-[var(--pd-line)] bg-[var(--pd-surface)]/92 px-4 text-[var(--pd-text-primary)] shadow-[var(--pd-shadow-soft)] backdrop-blur-md sm:px-6 md:top-4 md:mx-4 md:mt-4">
+      {/* Context & Breadcrumb */}
       <div className="flex min-w-0 items-center gap-3">
         <button
           type="button"
           onClick={onOpenMobileMenu}
           aria-label={isAr ? "فتح قائمة التنقل" : "Open navigation menu"}
-          className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/15 bg-white/10 text-white transition hover:bg-white/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300 md:hidden"
+          className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--pd-line)] bg-[var(--pd-canvas-raised)] text-[var(--pd-text-primary)] transition-colors hover:bg-[var(--pd-surface-raised)] md:hidden"
         >
-          <FaBars className="h-4 w-4" />
+          <MenuIcon size={18} strokeWidth={1.7} />
         </button>
 
         <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-2">
-          <span className="truncate text-sm font-semibold tracking-wide text-white/90 sm:text-[15px]">
+          <span className="truncate text-sm font-medium text-[var(--pd-text-muted)] sm:text-[15px]">
             {portalTitle}
           </span>
           {currentPageLabel && (
             <>
-              <BreadcrumbSeparator className="h-2.5 w-2.5 shrink-0 text-sky-200/70" />
-              <h1 className="truncate text-sm font-bold text-white sm:text-base">
+              <BreadcrumbSeparator size={14} strokeWidth={1.7} className="shrink-0 text-[var(--pd-text-subtle)]" />
+              <span className="truncate text-sm font-semibold text-[var(--pd-text-primary)] sm:text-base">
                 {currentPageLabel}
-              </h1>
+              </span>
             </>
           )}
           {portalBadge && (
-            <span className="hidden rounded-full border border-white/15 bg-white/10 px-2.5 py-0.5 text-xs font-semibold text-sky-100 lg:inline-flex">
+            <span className="hidden rounded-full border border-[color-mix(in_srgb,var(--pd-orchid)_28%,transparent)] bg-[var(--pd-orchid-soft)] px-2.5 py-0.5 text-xs font-medium text-[var(--pd-orchid)] lg:inline-flex">
               {portalBadge}
             </span>
           )}
         </nav>
       </div>
 
-      {/* Actions Section */}
+      {/* Actions */}
       <div className="flex shrink-0 items-center gap-2">
         <button
           type="button"
@@ -202,15 +191,15 @@ export function PortalTopbar({
           }
           title={isAr ? "الإشعارات" : "Notifications"}
           aria-current={pathname === notificationsPath ? "page" : undefined}
-          className={`relative inline-flex h-10 w-10 items-center justify-center rounded-xl border transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300 ${
+          className={`relative inline-flex h-10 w-10 items-center justify-center rounded-full border transition-colors ${
             pathname === notificationsPath
-              ? "border-sky-300/60 bg-white/20 text-white"
-              : "border-white/15 bg-white/10 text-white/90 hover:bg-white/20 hover:text-white"
+              ? "border-[color-mix(in_srgb,var(--pd-acid)_45%,transparent)] bg-[var(--pd-acid-soft)] text-[var(--pd-acid)]"
+              : "border-[var(--pd-line)] bg-[var(--pd-canvas-raised)] text-[var(--pd-text-secondary)] hover:border-[var(--pd-line-strong)] hover:text-[var(--pd-text-primary)]"
           }`}
         >
-          <FaBell className="h-4 w-4" />
+          <BellIcon size={17} strokeWidth={1.7} />
           {unreadCount > 0 && (
-            <span className="absolute -top-1 -end-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 px-1 text-[11px] font-bold text-white shadow-xs ring-2 ring-slate-900">
+            <span className="pd-tabular absolute -top-1 -end-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--pd-coral)] px-1 text-[11px] font-semibold text-[var(--pd-on-accent)] ring-2 ring-[var(--pd-surface)]">
               {unreadCount > 99 ? "99+" : unreadCount}
             </span>
           )}
@@ -222,31 +211,35 @@ export function PortalTopbar({
           aria-label={
             isDark
               ? isAr
-                ? "الوضع النهاري"
-                : "Switch to light mode"
+                ? "الوضع الدافئ"
+                : "Switch to warm clay theme"
               : isAr
                 ? "الوضع الليلي"
-                : "Switch to dark mode"
+                : "Switch to night fig theme"
           }
           title={
             isDark
               ? isAr
-                ? "الوضع النهاري"
-                : "Light mode"
+                ? "الوضع الدافئ"
+                : "Clay theme"
               : isAr
                 ? "الوضع الليلي"
-                : "Dark mode"
+                : "Night Fig theme"
           }
-          className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-white/10 text-white transition hover:bg-white/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[var(--pd-line)] bg-[var(--pd-canvas-raised)] text-[var(--pd-text-secondary)] transition-colors hover:border-[var(--pd-line-strong)] hover:text-[var(--pd-text-primary)]"
         >
-          {isDark ? <FaSun className="h-4 w-4 text-amber-300" /> : <FaMoon className="h-4 w-4" />}
+          {isDark ? (
+            <SunIcon size={17} strokeWidth={1.7} className="text-[var(--pd-marigold)]" />
+          ) : (
+            <MoonIcon size={17} strokeWidth={1.7} className="text-[var(--pd-orchid)]" />
+          )}
         </button>
 
         <button
           type="button"
           onClick={onToggleLocale}
           aria-label={isAr ? "Switch to English" : "التبديل إلى العربية"}
-          className="inline-flex h-10 items-center justify-center rounded-xl border border-white/15 bg-white/10 px-3 text-sm font-bold tracking-wide text-white transition hover:bg-white/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300"
+          className="inline-flex h-10 items-center justify-center rounded-full border border-[var(--pd-line)] bg-[var(--pd-canvas-raised)] px-3.5 text-xs font-medium tracking-wider text-[var(--pd-text-secondary)] transition-colors hover:border-[var(--pd-line-strong)] hover:text-[var(--pd-text-primary)]"
         >
           {isAr ? "EN" : "AR"}
         </button>
@@ -259,16 +252,18 @@ export function PortalTopbar({
               aria-expanded={menuOpen}
               aria-haspopup="menu"
               aria-label={displayName}
-              className="inline-flex h-10 items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-2.5 text-white transition hover:bg-white/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300 sm:px-3"
+              className="inline-flex h-10 items-center gap-2 rounded-full border border-[var(--pd-line)] bg-[var(--pd-canvas-raised)] px-2 text-[var(--pd-text-primary)] transition-colors hover:border-[var(--pd-line-strong)] hover:bg-[var(--pd-surface-raised)] sm:pe-3"
             >
-              <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-sky-400/25 text-xs font-bold text-sky-100">
+              <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--pd-acid-soft)] text-xs font-semibold text-[var(--pd-acid)]">
                 {getInitials(displayName)}
               </span>
-              <span className="hidden max-w-[130px] truncate text-sm font-medium sm:inline">
+              <span className="hidden max-w-[130px] truncate text-sm font-medium text-[var(--pd-text-secondary)] sm:inline">
                 {displayName}
               </span>
-              <FaChevronDown
-                className={`hidden h-3 w-3 shrink-0 text-white/75 transition-transform duration-200 sm:inline ${
+              <ChevronDownIcon
+                size={14}
+                strokeWidth={1.7}
+                className={`hidden shrink-0 text-[var(--pd-text-muted)] transition-transform duration-200 sm:inline ${
                   menuOpen ? "rotate-180" : ""
                 }`}
               />
@@ -277,14 +272,14 @@ export function PortalTopbar({
             {menuOpen && (
               <div
                 role="menu"
-                className="absolute end-0 mt-2 w-60 origin-top-end rounded-2xl border border-[var(--ui-border)] bg-[var(--ui-surface)] p-2 text-[var(--ui-foreground)] shadow-2xl"
+                className="pd-panel pd-panel--leaf pd-panel--raised absolute end-0 mt-2 w-60 origin-top-end p-2 shadow-[var(--pd-shadow-float)]"
               >
-                <div className="mb-1.5 border-b border-[var(--ui-border)] px-3 py-2">
-                  <p className="truncate text-sm font-bold text-[var(--ui-foreground)]">
+                <div className="mb-1.5 border-b border-[var(--pd-line)] px-3 py-2">
+                  <p className="truncate text-sm font-semibold text-[var(--pd-text-primary)]">
                     {displayName}
                   </p>
                   {user.email && (
-                    <p className="truncate text-xs text-[var(--ui-muted)]">{user.email}</p>
+                    <p className="truncate text-xs text-[var(--pd-text-muted)]">{user.email}</p>
                   )}
                 </div>
 
@@ -295,9 +290,9 @@ export function PortalTopbar({
                     setMenuOpen(false);
                     navigate(dashboardPath);
                   }}
-                  className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-start text-sm font-medium transition hover:bg-[var(--ui-surface-2)]"
+                  className="flex w-full items-center gap-2.5 rounded-[var(--shape-control)] px-3 py-2 text-start text-sm font-medium text-[var(--pd-text-secondary)] transition-colors hover:bg-[var(--pd-surface-hover)] hover:text-[var(--pd-text-primary)]"
                 >
-                  <FaHome className="h-3.5 w-3.5 text-[var(--color-primary-500)]" />
+                  <HouseIcon size={15} strokeWidth={1.7} className="text-[var(--pd-acid)]" />
                   <span>{isAr ? "لوحة التحكم" : "Dashboard"}</span>
                 </button>
 
@@ -308,12 +303,12 @@ export function PortalTopbar({
                     setMenuOpen(false);
                     navigate(profilePath);
                   }}
-                  className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-start text-sm font-medium transition hover:bg-[var(--ui-surface-2)]"
+                  className="flex w-full items-center gap-2.5 rounded-[var(--shape-control)] px-3 py-2 text-start text-sm font-medium text-[var(--pd-text-secondary)] transition-colors hover:bg-[var(--pd-surface-hover)] hover:text-[var(--pd-text-primary)]"
                 >
                   {user.role === "patient" ? (
-                    <FaUserCircle className="h-3.5 w-3.5 text-[var(--color-primary-500)]" />
+                    <CircleUserIcon size={15} strokeWidth={1.7} className="text-[var(--pd-orchid)]" />
                   ) : (
-                    <FaCog className="h-3.5 w-3.5 text-[var(--color-primary-500)]" />
+                    <SettingsIcon size={15} strokeWidth={1.7} className="text-[var(--pd-orchid)]" />
                   )}
                   <span>
                     {user.role === "patient"
@@ -334,9 +329,9 @@ export function PortalTopbar({
                       setMenuOpen(false);
                       onLogout();
                     }}
-                    className="mt-1 flex w-full items-center gap-2.5 rounded-xl border-t border-[var(--ui-border)] px-3 py-2 pt-2.5 text-start text-sm font-semibold text-rose-600 transition hover:bg-rose-500/10 dark:text-rose-400"
+                    className="mt-1 flex w-full items-center gap-2.5 rounded-[var(--shape-control)] border-t border-[var(--pd-line)] px-3 py-2 pt-2.5 text-start text-sm font-medium text-[var(--pd-coral)] transition-colors hover:bg-[var(--pd-coral-soft)]"
                   >
-                    <FaSignOutAlt className="h-3.5 w-3.5" />
+                    <LogOutIcon size={15} strokeWidth={1.7} />
                     <span>{isAr ? "تسجيل الخروج" : "Logout"}</span>
                   </button>
                 )}

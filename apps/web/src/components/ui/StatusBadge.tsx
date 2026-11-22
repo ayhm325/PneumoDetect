@@ -27,83 +27,83 @@ interface StatusConfig {
 const STATUS_CONFIG: Record<string, StatusConfig> = {
   active: {
     labelKey: "active",
-    className: "bg-[var(--ui-success-bg)] text-[var(--ui-success-foreground)] border-[var(--ui-success-border)]",
-    dotClassName: "bg-[var(--ui-success)]",
+    className: "bg-[var(--pd-moss-soft)] text-[var(--pd-success)] border-[color-mix(in_srgb,var(--pd-success)_32%,transparent)]",
+    dotClassName: "bg-[var(--pd-success)]",
     pulse: true,
   },
   online: {
     labelKey: "online",
-    className: "bg-[var(--ui-success-bg)] text-[var(--ui-success-foreground)] border-[var(--ui-success-border)]",
-    dotClassName: "bg-[var(--ui-success)]",
+    className: "bg-[var(--pd-moss-soft)] text-[var(--pd-success)] border-[color-mix(in_srgb,var(--pd-success)_32%,transparent)]",
+    dotClassName: "bg-[var(--pd-success)]",
     pulse: true,
   },
   ready: {
     labelKey: "ready",
-    className: "bg-[var(--ui-success-bg)] text-[var(--ui-success-foreground)] border-[var(--ui-success-border)]",
-    dotClassName: "bg-[var(--ui-success)]",
+    className: "bg-[var(--pd-moss-soft)] text-[var(--pd-success)] border-[color-mix(in_srgb,var(--pd-success)_32%,transparent)]",
+    dotClassName: "bg-[var(--pd-success)]",
   },
   reviewed: {
     labelKey: "reviewed",
-    className: "bg-[var(--ui-success-bg)] text-[var(--ui-success-foreground)] border-[var(--ui-success-border)]",
-    dotClassName: "bg-[var(--ui-success)]",
+    className: "bg-[var(--pd-moss-soft)] text-[var(--pd-success)] border-[color-mix(in_srgb,var(--pd-success)_32%,transparent)]",
+    dotClassName: "bg-[var(--pd-success)]",
   },
   confirmed: {
     labelKey: "confirmed",
-    className: "bg-[var(--ui-success-bg)] text-[var(--ui-success-foreground)] border-[var(--ui-success-border)]",
-    dotClassName: "bg-[var(--ui-success)]",
+    className: "bg-[var(--pd-moss-soft)] text-[var(--pd-success)] border-[color-mix(in_srgb,var(--pd-success)_32%,transparent)]",
+    dotClassName: "bg-[var(--pd-success)]",
   },
   approved: {
     labelKey: "approved",
-    className: "bg-[var(--ui-success-bg)] text-[var(--ui-success-foreground)] border-[var(--ui-success-border)]",
-    dotClassName: "bg-[var(--ui-success)]",
+    className: "bg-[var(--pd-moss-soft)] text-[var(--pd-success)] border-[color-mix(in_srgb,var(--pd-success)_32%,transparent)]",
+    dotClassName: "bg-[var(--pd-success)]",
   },
   completed: {
     labelKey: "completed",
-    className: "bg-[var(--ui-info-bg)] text-[var(--ui-info-foreground)] border-[var(--ui-info-border)]",
-    dotClassName: "bg-[var(--ui-info)]",
+    className: "bg-[var(--pd-orchid-soft)] text-[var(--pd-orchid)] border-[color-mix(in_srgb,var(--pd-orchid)_32%,transparent)]",
+    dotClassName: "bg-[var(--pd-orchid)]",
   },
   processing: {
     labelKey: "processing",
-    className: "bg-[var(--ui-warning-bg)] text-[var(--ui-warning-foreground)] border-[var(--ui-warning-border)]",
-    dotClassName: "bg-[var(--ui-warning)]",
+    className: "bg-[var(--pd-marigold-soft)] text-[var(--pd-marigold)] border-[color-mix(in_srgb,var(--pd-marigold)_34%,transparent)]",
+    dotClassName: "bg-[var(--pd-marigold)]",
     pulse: true,
   },
   pending: {
     labelKey: "pending",
-    className: "bg-[var(--ui-warning-bg)] text-[var(--ui-warning-foreground)] border-[var(--ui-warning-border)]",
-    dotClassName: "bg-[var(--ui-warning)]",
+    className: "bg-[var(--pd-marigold-soft)] text-[var(--pd-marigold)] border-[color-mix(in_srgb,var(--pd-marigold)_34%,transparent)]",
+    dotClassName: "bg-[var(--pd-marigold)]",
   },
   inactive: {
     labelKey: "inactive",
-    className: "bg-[var(--ui-surface-2)] text-[var(--ui-muted-foreground)] border-[var(--ui-border)]",
-    dotClassName: "bg-[var(--ui-muted)]",
+    className: "bg-[var(--pd-canvas-raised)] text-[var(--pd-text-muted)] border-[var(--pd-line)]",
+    dotClassName: "bg-[var(--pd-text-muted)]",
   },
   offline: {
     labelKey: "offline",
-    className: "bg-[var(--ui-surface-2)] text-[var(--ui-muted-foreground)] border-[var(--ui-border)]",
-    dotClassName: "bg-[var(--ui-muted)]",
+    className: "bg-[var(--pd-canvas-raised)] text-[var(--pd-text-muted)] border-[var(--pd-line)]",
+    dotClassName: "bg-[var(--pd-text-muted)]",
   },
   cancelled: {
     labelKey: "cancelled",
-    className: "bg-[var(--ui-surface-2)] text-[var(--ui-muted-foreground)] border-[var(--ui-border)]",
-    dotClassName: "bg-[var(--ui-muted)]",
+    className: "bg-[var(--pd-canvas-raised)] text-[var(--pd-text-muted)] border-[var(--pd-line)]",
+    dotClassName: "bg-[var(--pd-text-muted)]",
   },
   rejected: {
     labelKey: "rejected",
-    className: "bg-[var(--ui-danger-bg)] text-[var(--ui-danger-foreground)] border-[var(--ui-danger-border)]",
-    dotClassName: "bg-[var(--ui-danger)]",
+    className: "bg-[var(--pd-coral-soft)] text-[var(--pd-coral)] border-[color-mix(in_srgb,var(--pd-coral)_34%,transparent)]",
+    dotClassName: "bg-[var(--pd-coral)]",
   },
   failed: {
     labelKey: "failed",
-    className: "bg-[var(--ui-danger-bg)] text-[var(--ui-danger-foreground)] border-[var(--ui-danger-border)]",
-    dotClassName: "bg-[var(--ui-danger)]",
+    className: "bg-[var(--pd-coral-soft)] text-[var(--pd-coral)] border-[color-mix(in_srgb,var(--pd-coral)_34%,transparent)]",
+    dotClassName: "bg-[var(--pd-coral)]",
   },
 };
 
 const DEFAULT_CONFIG: StatusConfig = {
   labelKey: "unknown",
-  className: "bg-[var(--ui-surface-2)] text-[var(--ui-muted-foreground)] border-[var(--ui-border)]",
-  dotClassName: "bg-[var(--ui-muted)]",
+  className: "bg-[var(--pd-canvas-raised)] text-[var(--pd-text-muted)] border-[var(--pd-line)]",
+  dotClassName: "bg-[var(--pd-text-muted)]",
 };
 
 interface StatusBadgeProps {
@@ -139,22 +139,18 @@ export default function StatusBadge({
 
   const sizeClasses =
     size === "sm"
-      ? "px-2 py-0.5 text-xs gap-1.5"
-      : "px-2.5 py-1 text-xs sm:text-[13px] font-semibold gap-2";
+      ? "px-2.5 py-0.5 text-xs gap-1.5"
+      : "px-3 py-1 text-xs sm:text-[13px] font-medium gap-2";
 
   return (
     <span
-      className={`inline-flex items-center rounded-full border shadow-2xs transition-colors ${sizeClasses} ${config.className} ${className}`}
+      className={`inline-flex items-center rounded-full border transition-colors ${sizeClasses} ${config.className} ${className}`}
     >
       {showDot && (
-        <span className="relative flex h-2 w-2 shrink-0">
-          {config.pulse && (
-            <span
-              className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-75 ${config.dotClassName}`}
-            />
-          )}
-          <span className={`relative inline-flex h-2 w-2 rounded-full ${config.dotClassName}`} />
-        </span>
+        <span
+          aria-hidden="true"
+          className={`inline-block h-1.5 w-1.5 shrink-0 rounded-full ${config.dotClassName} ${config.pulse ? "pd-breathe" : ""}`}
+        />
       )}
       <span className="truncate">{displayText}</span>
     </span>

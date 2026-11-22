@@ -1,4 +1,5 @@
 "use client";
+import { EyeIcon, EyeOffIcon, PlusIcon, SaveIcon, SearchIcon, XIcon } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { useLocale, useTranslations } from "@/lib/compat/intl";
 import DoctorDetailsCard from "@/components/admin/DoctorDetailsCard";
@@ -6,14 +7,6 @@ import DoctorsTable from "@/components/admin/DoctorsTable";
 import { useToast } from "@/components/ui/ToastProvider";
 import { Button, GlideSelect } from "@/components/ui";
 import { apiRequest } from "@/lib/apiClient";
-import {
-  FaMagnifyingGlass,
-  FaPlus,
-  FaX,
-  FaFloppyDisk,
-  FaEye,
-  FaEyeSlash,
-} from "react-icons/fa6";
 
 function DoctorsPage() {
   const { showSuccess, showError, showInfo } = useToast();
@@ -384,7 +377,7 @@ function DoctorsPage() {
                 setShowAddModal(true);
               }}
             >
-              <FaPlus />
+              <PlusIcon />
               <span>{tDoctors("addButton")}</span>
             </Button>
           </div>
@@ -400,10 +393,10 @@ function DoctorsPage() {
         )}
 
         {/* Filters */}
-        <div className="card-glass rounded-xl shadow-(--shadow-soft) p-6 mb-8 border border-(--ui-border)">
+        <div className="pd-panel pd-shape-asymmetric shadow-(--shadow-soft) p-6 mb-8 border border-(--ui-border)">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="relative">
-              <FaMagnifyingGlass className="absolute right-3 top-1/2 transform -translate-y-1/2 text-(--ui-muted-2)" />
+              <SearchIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 text-(--ui-muted-2)" />
               <input
                 type="text"
                 placeholder={tDoctors("filters.searchPlaceholder")}
@@ -463,7 +456,7 @@ function DoctorsPage() {
         {/* Add Doctor Modal */}
         {showAddModal && (
           <div className="fixed inset-0 bg-(--color-neutral)/50 flex items-center justify-center z-50 p-4">
-            <div className="card-glass rounded-xl shadow-(--shadow-lift) max-w-md w-full p-6">
+            <div className="pd-panel pd-shape-layered shadow-(--shadow-lift) max-w-md w-full p-6">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-bold text-foreground">
                   {tDoctors("modals.addTitle")}
@@ -472,7 +465,7 @@ function DoctorsPage() {
                   onClick={() => setShowAddModal(false)}
                   className="p-2 hover:bg-(--ui-surface-2) rounded-lg"
                 >
-                  <FaX className="text-(--ui-muted-2)" />
+                  <XIcon className="text-(--ui-muted-2)" />
                 </button>
               </div>
               <div className="space-y-4">
@@ -559,7 +552,7 @@ function DoctorsPage() {
                       }
                       className="absolute inset-y-0 end-3 flex items-center text-(--ui-muted-2) hover:text-foreground"
                     >
-                      {showPassword ? <FaEyeSlash /> : <FaEye />}
+                      {showPassword ? <EyeOffIcon /> : <EyeIcon />}
                     </button>
                   </div>
                 </div>
@@ -592,7 +585,7 @@ function DoctorsPage() {
                   isLoading={submitting}
                   fullWidth
                 >
-                  <FaFloppyDisk />
+                  <SaveIcon />
                   <span>{tDoctors("buttons.save")}</span>
                 </Button>
                 <Button
@@ -611,7 +604,7 @@ function DoctorsPage() {
         {/* Edit Doctor Modal */}
         {showEditModal && (
           <div className="fixed inset-0 bg-(--color-neutral)/50 flex items-center justify-center z-50 p-4">
-            <div className="card-glass rounded-xl shadow-(--shadow-lift) max-w-md w-full p-6">
+            <div className="pd-panel pd-shape-organic shadow-(--shadow-lift) max-w-md w-full p-6">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-bold text-foreground">
                   {tDoctors("modals.editTitle")}
@@ -620,7 +613,7 @@ function DoctorsPage() {
                   onClick={() => setShowEditModal(false)}
                   className="p-2 hover:bg-(--ui-surface-2) rounded-lg"
                 >
-                  <FaX className="text-(--ui-muted-2)" />
+                  <XIcon className="text-(--ui-muted-2)" />
                 </button>
               </div>
               <div className="space-y-4">
@@ -708,7 +701,7 @@ function DoctorsPage() {
                   isLoading={submitting}
                   fullWidth
                 >
-                  <FaFloppyDisk />
+                  <SaveIcon />
                   <span>{tDoctors("buttons.saveChanges")}</span>
                 </Button>
                 <Button
@@ -739,7 +732,7 @@ function DoctorsPage() {
         {/* Block/Suspend Confirmation Modal */}
         {showDeleteModal && selectedDoctor && (
           <div className="fixed inset-0 bg-(--color-neutral)/50 flex items-center justify-center z-50 p-4">
-            <div className="card-glass rounded-xl shadow-(--shadow-lift) max-w-md w-full p-6">
+            <div className="pd-panel pd-shape-asymmetric shadow-(--shadow-lift) max-w-md w-full p-6">
               <div className="text-center mb-6">
                 <div className="text-6xl mb-4">⚠️</div>
                 <h3 className="text-xl font-bold text-foreground mb-2">

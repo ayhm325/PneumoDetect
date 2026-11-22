@@ -1,25 +1,10 @@
 "use client";
 
+import { BriefcaseMedicalIcon, CalendarIcon, EyeIcon, EyeOffIcon, HeartIcon, IdCardIcon, LockIcon, MailIcon, PenLineIcon, PhoneIcon, SaveIcon, ShieldCheckIcon, UserIcon, XIcon } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, usePathname } from "@/lib/compat/navigation";
 import { useToast } from "@/components/ui/ToastProvider";
 import { useTranslations, useLocale } from "@/lib/compat/intl";
-import {
-  FaUser,
-  FaEnvelope,
-  FaPhone,
-  FaEye,
-  FaEyeSlash,
-  FaIdCard,
-  FaUserMd,
-  FaLock,
-  FaSave,
-  FaTimes,
-  FaEdit,
-  FaShieldAlt,
-  FaHeart,
-  FaCalendar,
-} from "react-icons/fa";
 import UnifiedCard from "@/components/ui/UnifiedCard";
 import { Button, GlideSelect } from "@/components/ui";
 import { apiRequest } from "@/lib/apiClient";
@@ -153,7 +138,7 @@ export default function PatientProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-(--ui-surface) text-(--ui-foreground) font-sans selection:bg-(--ui-ring) selection:text-white relative overflow-hidden">
+    <div className="min-h-screen bg-(--ui-surface) text-(--ui-foreground) font-sans selection:bg-(--ui-ring) selection:text-[var(--pd-on-accent)] relative overflow-hidden">
       {/* Decorative Background Elements */}
       <div className="absolute top-[-10%] left-[-5%] w-125 h-125 bg-(--ui-info)/10 rounded-full blur-[100px] pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-5%] w-100 h-100 bg-(--ui-success)/10 rounded-full blur-[100px] pointer-events-none" />
@@ -204,7 +189,7 @@ export default function PatientProfilePage() {
           <div className="relative z-10">
             <div className="flex items-center gap-3 mb-6">
               <div className="p-3 bg-(--ui-info)/10 text-(--ui-info) rounded-xl border border-(--ui-info-border)">
-                <FaUserMd size={20} />
+                <BriefcaseMedicalIcon size={20} />
               </div>
               <h2 className="text-xl font-bold text-(--ui-foreground)">
                 {t("doctorChange.title")}
@@ -226,7 +211,7 @@ export default function PatientProfilePage() {
           <div className="relative z-10">
             <div className="flex items-center gap-3 mb-6">
               <div className="p-3 bg-(--ui-danger)/10 text-(--ui-danger) rounded-xl border border-(--ui-danger-border)">
-                <FaShieldAlt size={20} />
+                <ShieldCheckIcon size={20} />
               </div>
               <h2 className="text-xl font-bold text-(--ui-foreground)">
                 {t("security.changePasswordTitle")}
@@ -261,7 +246,7 @@ function HeaderSection({
       <div className="flex gap-3">
         {!isEditing ? (
           <Button onClick={() => setIsEditing(true)}>
-            <FaEdit /> {t("btnEdit")}
+            <PenLineIcon /> {t("btnEdit")}
           </Button>
         ) : (
           <>
@@ -270,7 +255,7 @@ function HeaderSection({
               onClick={handleCancel}
               disabled={loading}
             >
-              <FaTimes /> {t("btnCancel")}
+              <XIcon /> {t("btnCancel")}
             </Button>
             <Button
               onClick={handleSave}
@@ -278,7 +263,7 @@ function HeaderSection({
               isLoading={loading}
               loadingText={t("saving")}
             >
-              <FaSave /> {t("btnSave")}
+              <SaveIcon /> {t("btnSave")}
             </Button>
           </>
         )}
@@ -303,7 +288,7 @@ function ProfileCard({
       <div className="flex flex-col md:flex-row gap-8 items-center md:items-start mb-8 border-b border-(--ui-border) pb-8">
         <div className="relative shrink-0">
           <div className="profile-card-image profile-card-image--avatar w-36 h-40 rounded-[24px] bg-(--ui-surface-2) flex items-center justify-center text-5xl text-(--ui-info) shadow-(--shadow-card-media) border border-(--ui-border)">
-            <FaUser />
+            <UserIcon />
           </div>
           {profileData.status === "active" && (
             <div className="absolute bottom-2 right-2 w-6 h-6 bg-(--ui-success) border-4 border-(--ui-surface) rounded-full" />
@@ -332,7 +317,7 @@ function ProfileCard({
             {/* Email */}
             <div className="group min-w-0">
               <label className="text-xs font-bold text-(--ui-muted-foreground) uppercase tracking-wider mb-1 flex items-center gap-2">
-                <FaEnvelope className="text-(--ui-info)" /> {t("field.email")}
+                <MailIcon className="text-(--ui-info)" /> {t("field.email")}
               </label>
               {isEditing ? (
                 <input
@@ -353,7 +338,7 @@ function ProfileCard({
             {/* Phone */}
             <div className="group min-w-0">
               <label className="text-xs font-bold text-(--ui-muted-foreground) uppercase tracking-wider mb-1 flex items-center gap-2">
-                <FaPhone className="text-(--ui-info)" /> {t("field.phone")}
+                <PhoneIcon className="text-(--ui-info)" /> {t("field.phone")}
               </label>
               {isEditing ? (
                 <input
@@ -375,11 +360,11 @@ function ProfileCard({
           {/* IDs */}
           <div className="flex flex-wrap gap-4 text-xs font-mono text-(--ui-muted-foreground) pt-2">
             <div className="flex items-center gap-2">
-              <FaIdCard /> {t("field.patientNumber")}:{" "}
+              <IdCardIcon /> {t("field.patientNumber")}:{" "}
               {profileData.id || placeholder}
             </div>
             <div className="flex items-center gap-2">
-              <FaIdCard /> {t("userId")}: {profileData.userId || placeholder}
+              <IdCardIcon /> {t("userId")}: {profileData.userId || placeholder}
             </div>
           </div>
         </div>
@@ -482,7 +467,7 @@ function ProfileCard({
           {profileData.doctorName && (
             <div className="flex items-center gap-3 p-3 bg-(--ui-info-bg) rounded-xl border border-(--ui-info-border) w-full sm:w-auto max-w-full">
               <div className="p-2 bg-(--ui-surface) border border-(--ui-border) rounded-lg text-(--ui-info) shadow-sm">
-                <FaUserMd />
+                <BriefcaseMedicalIcon />
               </div>
               <div className="min-w-0 flex-1">
                 <div className="text-xs text-(--ui-muted-foreground) uppercase font-bold">
@@ -497,7 +482,7 @@ function ProfileCard({
           {profileData.joinDate && (
             <div className="flex items-center gap-3 p-3 bg-(--ui-success-bg) rounded-xl border border-(--ui-success-border) w-full sm:w-auto max-w-full">
               <div className="p-2 bg-(--ui-surface) border border-(--ui-border) rounded-lg text-(--ui-success) shadow-sm">
-                <FaCalendar />
+                <CalendarIcon />
               </div>
               <div>
                 <div className="text-xs text-(--ui-muted-foreground) uppercase font-bold">
@@ -512,7 +497,7 @@ function ProfileCard({
           {profileData.clinicalStatus && (
             <div className="flex items-center gap-3 p-3 bg-(--ui-info-bg) rounded-xl border border-(--ui-info-border) w-full sm:w-auto max-w-full">
               <div className="p-2 bg-(--ui-surface) border border-(--ui-border) rounded-lg text-(--ui-info) shadow-sm">
-                <FaHeart />
+                <HeartIcon />
               </div>
               <div>
                 <div className="text-xs text-(--ui-muted-foreground) uppercase font-bold">
@@ -743,7 +728,7 @@ function ChangePasswordForm({ t, router, pathname }) {
           isLoading={loading}
           loadingText={t("saving")}
         >
-          <FaLock /> {t("security.changePasswordButton")}
+          <LockIcon /> {t("security.changePasswordButton")}
         </Button>
       </div>
     </form>
@@ -780,7 +765,7 @@ function PasswordInputGroup({
           onClick={onToggleShow}
           className="absolute right-3 top-1/2 -translate-y-1/2 text-(--ui-muted-foreground) hover:text-(--ui-foreground) transition-colors"
         >
-          {show ? <FaEyeSlash /> : <FaEye />}
+          {show ? <EyeOffIcon /> : <EyeIcon />}
         </button>
       </div>
     </div>

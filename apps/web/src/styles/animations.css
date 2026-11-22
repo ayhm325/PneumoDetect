@@ -1,1 +1,75 @@
-/* ===========================   ?????? ?????????? ??????   + gradient animated + shimmer + floating shapes   =========================== */.hologram-bg {  background-image: linear-gradient(    135deg,    var(--color-secondary),    var(--color-primary),    var(--color-accent),    var(--color-bright)  );  background-size: 200% 200%;  animation: gradientFlow 14s ease infinite; /* ????? ?????? */}.hue-animated {  animation: hueShift 10s linear infinite; /* ????? ??????? ???????? */}.holo-sheen {  position: relative;  overflow: hidden;}.holo-sheen::after {  content: "";  position: absolute;  inset: 0;  background: linear-gradient(    120deg,    transparent 0%,    rgb(from var(--ui-foreground) r g b / var(--opacity-sheen)) 15%,    transparent 30%  );  background-size: 200% 100%;  transform: translateX(-100%);}.holo-sheen:hover::after {  animation: holoSheen 1200ms ease forwards; /* shimmer ??? hover */}.floaty-shape {  animation: floaty 6s ease-in-out infinite; /* ???? ????? ??????? ??????? */}/* ===========================   ??????? ?????? ??????   ???? ?????? ??? ???????? ????? reduced motion   =========================== */@media (prefers-reduced-motion: reduce) {  .hologram-bg,  .hue-animated,  .holo-sheen::after,  .floaty-shape,  .animate-float,  .animate-fadeIn,  .animate-gradient,  .animate-bounce {    animation: none !important;    transition: none !important;  }}/* ===========================   Keyframes ??????? ???????   =========================== */@keyframes hueShift {  0% { filter: hue-rotate(0deg); }  50% { filter: hue-rotate(45deg); }  100% { filter: hue-rotate(0deg); }}@keyframes gradientFlow {  0% { background-position: 0% 50%; }  50% { background-position: 100% 50%; }  100% { background-position: 0% 50%; }}@keyframes holoSheen {  0% { background-position: -200% 0; }  100% { background-position: 200% 0; }}@keyframes floaty {  0% { transform: translateY(0) rotate(0deg); }  50% { transform: translateY(-6px) rotate(2deg); }  100% { transform: translateY(0) rotate(0deg); }}/* ===========================   SignUpSide / General Animations   =========================== */@keyframes fadeIn {  from { opacity: 0; transform: translateY(20px); }  to { opacity: 1; transform: translateY(0); }}@keyframes glowPulse {  0%, 100% { box-shadow: 0 0 20px color-mix(in srgb, var(--ui-info) 50%, transparent); }  50% { box-shadow: 0 0 40px color-mix(in srgb, var(--ui-info) 80%, transparent); }}@keyframes shimmer {  0% { background-position: -1000px 0; }  100% { background-position: 1000px 0; }}@keyframes typewriter {  0% { width: 0; }  100% { width: 100%; }}@keyframes slideInRight {  from { opacity: 0; transform: translateX(-30px); }  to { opacity: 1; transform: translateX(0); }}@keyframes bounce {  0%, 100% { transform: translateY(0); }  50% { transform: translateY(-10px); }}/* ===========================   Homepage / Floating Animations   =========================== */@keyframes float {  0%, 100% { transform: translateY(0) translateX(0); }  25% { transform: translateY(-10px) translateX(5px); }  50% { transform: translateY(-20px) translateX(0); }  75% { transform: translateY(-10px) translateX(-5px); }}@keyframes floatParticle {  0%, 100% { transform: translate(0, 0); opacity: 0.3; }  25% { transform: translate(20px, -40px); opacity: 0.8; }  50% { transform: translate(-30px, -80px); opacity: 0.5; }  75% { transform: translate(10px, -120px); opacity: 0.7; }}@keyframes gridMove {  0% { transform: translate(0, 0); }  100% { transform: translate(80px, 80px); }}@keyframes dataFlow {  0% { transform: translate(0, 0) scale(1); opacity: 0; }  10% { opacity: 0.8; }  50% { transform: translate(100px, -100px) scale(1.5); opacity: 0.6; }  90% { opacity: 0.8; }  100% { transform: translate(200px, -200px) scale(1); opacity: 0; }}@keyframes scanLine {  0% { top: -10%; }  50% { top: 110%; }  100% { top: -10%; }}@keyframes gradient {  0% { background-position: 0% 50%; }  50% { background-position: 100% 50%; }  100% { background-position: 0% 50%; }}/* ===========================   Utility Classes ?????? ???????   =========================== */.animate-float {  animation: float 8s ease-in-out infinite;}.animate-fadeIn {  animation: fadeIn 0.8s ease-out forwards;  opacity: 0;}.animate-gradient {  background-size: 200% 200%;  animation: gradient 5s ease infinite;}.animate-bounce {  animation: bounce 2s ease-in-out infinite;}
+/* ==========================================================================
+   PNEUMODETECT — MOTION KEYFRAMES
+   Purposeful, low-amplitude motion. Everything stops under reduced motion.
+   ========================================================================== */
+
+@keyframes pd-fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pd-shimmer {
+  0% { background-position: 120% 0; }
+  100% { background-position: -120% 0; }
+}
+
+/* Slow vertical sweep used by the radiograph scan line while analysis runs */
+@keyframes pd-scan {
+  0% { transform: translateY(-10%); opacity: 0; }
+  12% { opacity: 1; }
+  88% { opacity: 1; }
+  100% { transform: translateY(1100%); opacity: 0; }
+}
+
+/* Indeterminate progress — conveys activity without inventing percentages */
+@keyframes pd-indeterminate {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(260%); }
+}
+
+@keyframes pd-breathe {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.08); }
+}
+
+@keyframes pd-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pd-orbit-dash {
+  to { stroke-dashoffset: -220; }
+}
+
+/* Legacy keyframe names still referenced by feature pages */
+@keyframes shimmer {
+  0% { background-position: 120% 0; }
+  100% { background-position: -120% 0; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fadeIn {
+  animation: pd-fade-up var(--pd-duration-page) var(--pd-ease-out) both;
+}
+
+.pd-animate-in {
+  animation: pd-fade-up var(--pd-duration-page) var(--pd-ease-out) both;
+}
+
+.pd-breathe {
+  animation: pd-breathe 2.4s var(--pd-ease-in-out) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

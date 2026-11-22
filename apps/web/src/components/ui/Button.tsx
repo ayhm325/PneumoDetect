@@ -5,81 +5,35 @@ import { SpecularButton, type SpecularButtonProps } from "./SpecularButton";
 export type ButtonVariant =
   | "primary"
   | "secondary"
+  | "tertiary"
   | "outline"
   | "ghost"
   | "danger"
+  | "destructive"
   | "success"
   | "link";
 
 export type ButtonSize = "sm" | "md" | "lg";
 
-type SpecularPreset = {
-  tint: string;
-  tintOpacity: number;
-  textColor: string;
-  lineColor: string;
-  baseColor: string;
-  idleIntensity: number;
-  glow: number;
+const variantClass: Record<ButtonVariant, string> = {
+  primary: "pd-btn--primary",
+  secondary: "pd-btn--secondary",
+  tertiary: "pd-btn--tertiary",
+  outline: "pd-btn--outline",
+  ghost: "pd-btn--ghost",
+  danger: "pd-btn--danger",
+  destructive: "pd-btn--danger",
+  success: "pd-btn--success",
+  link: "pd-btn--link",
 };
 
-const SPECULAR_PRESETS: Record<Exclude<ButtonVariant, "link">, SpecularPreset> = {
-  primary: {
-    tint: "#356ae6",
-    tintOpacity: 0.9,
-    textColor: "#ffffff",
-    lineColor: "#ffffff",
-    baseColor: "#2858ca",
-    idleIntensity: 0.42,
-    glow: 1,
-  },
-  secondary: {
-    tint: "#ffffff",
-    tintOpacity: 0.05,
-    textColor: "var(--ui-foreground)",
-    lineColor: "#ffffff",
-    baseColor: "#525252",
-    idleIntensity: 0.35,
-    glow: 1,
-  },
-  outline: {
-    tint: "#ffffff",
-    tintOpacity: 0.03,
-    textColor: "var(--ui-foreground)",
-    lineColor: "#356ae6",
-    baseColor: "#525252",
-    idleIntensity: 0.35,
-    glow: 0.9,
-  },
-  ghost: {
-    tint: "#ffffff",
-    tintOpacity: 0.02,
-    textColor: "var(--ui-foreground)",
-    lineColor: "#9aa8bd",
-    baseColor: "#3b4252",
-    idleIntensity: 0.22,
-    glow: 0.7,
-  },
-  danger: {
-    tint: "#d94f5c",
-    tintOpacity: 0.9,
-    textColor: "#ffffff",
-    lineColor: "#ffd6da",
-    baseColor: "#b23340",
-    idleIntensity: 0.4,
-    glow: 1,
-  },
-  success: {
-    tint: "#159a72",
-    tintOpacity: 0.9,
-    textColor: "#ffffff",
-    lineColor: "#bcf0e1",
-    baseColor: "#0e7254",
-    idleIntensity: 0.4,
-    glow: 1,
-  },
+const sizeClass: Record<ButtonSize, string> = {
+  sm: "pd-btn--sm",
+  md: "",
+  lg: "pd-btn--lg",
 };
 
+/** Class string for non-button elements (e.g. router links) that should look like buttons. */
 export function buttonClasses({
   variant = "primary",
   size = "md",
@@ -91,18 +45,11 @@ export function buttonClasses({
   fullWidth?: boolean;
   className?: string;
 } = {}): string {
-  if (variant === "link") {
-    return clsx(
-      "inline-flex items-center justify-center gap-2 font-semibold border border-transparent bg-transparent px-0 text-[var(--color-primary)] underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ui-ring)] disabled:opacity-50 disabled:cursor-not-allowed",
-      fullWidth ? "w-full" : "w-auto",
-      className,
-    );
-  }
   return clsx(
-    "specular-button",
-    `specular-button--${size}`,
-    `specular-button--variant-${variant}`,
-    fullWidth ? "w-full" : "w-auto",
+    "pd-btn",
+    variantClass[variant],
+    variant !== "link" && sizeClass[size],
+    fullWidth && "w-full",
     className,
   );
 }
@@ -113,8 +60,19 @@ export type ButtonProps = Omit<SpecularButtonProps, "size"> & {
   fullWidth?: boolean;
   isLoading?: boolean;
   loadingText?: string;
+  /** Retired shader toggle — accepted for compatibility. */
   specular?: boolean;
 };
+
+function Spinner() {
+  return (
+    <span
+      aria-hidden="true"
+      className="inline-block h-4 w-4 rounded-full border-2 border-current border-e-transparent"
+      style={{ animation: "pd-spin 0.8s linear infinite" }}
+    />
+  );
+}
 
 export function Button({
   className,
@@ -126,20 +84,6 @@ export function Button({
   loadingText = "Loading...",
   disabled,
   type = "button",
-  radius = 18,
-  tint,
-  tintOpacity,
-  textColor,
-  lineColor,
-  baseColor,
-  intensity = 1,
-  idleIntensity,
-  shineSize = 10,
-  shineFade = 34,
-  thickness = 1.2,
-  glow,
-  followMouse = true,
-  proximity = 250,
   specular,
   enableWebGL,
   ...props
@@ -147,7 +91,7 @@ export function Button({
   const isDisabled = Boolean(disabled || isLoading);
   const content = isLoading ? (
     <span className="inline-flex items-center gap-2" aria-live="polite">
-      <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+      <Spinner />
       <span>{loadingText}</span>
     </span>
   ) : (
@@ -155,21 +99,21 @@ export function Button({
   );
 
   if (variant === "link") {
+    const { radius: _r, tint: _t, textColor: _tc, lineColor: _lc, ...native } = props;
     return (
       <button
         type={type}
         aria-busy={isLoading || undefined}
         className={buttonClasses({ variant, size, fullWidth, className })}
         disabled={isDisabled}
-        {...props}
+        {...(native as React.ButtonHTMLAttributes<HTMLButtonElement>)}
       >
         {content}
       </button>
     );
   }
 
-  const preset = SPECULAR_PRESETS[variant] || SPECULAR_PRESETS.primary;
-  const shouldEnableWebGL =
+  const shouldHighlight =
     enableWebGL !== undefined
       ? enableWebGL
       : specular !== undefined
@@ -180,28 +124,10 @@ export function Button({
     <SpecularButton
       type={type}
       size={size}
-      radius={radius}
-      tint={tint ?? preset.tint}
-      tintOpacity={tintOpacity ?? preset.tintOpacity}
-      textColor={textColor ?? preset.textColor}
-      lineColor={lineColor ?? preset.lineColor}
-      baseColor={baseColor ?? preset.baseColor}
-      intensity={intensity}
-      idleIntensity={idleIntensity ?? preset.idleIntensity}
-      shineSize={shineSize}
-      shineFade={shineFade}
-      thickness={thickness}
-      glow={glow ?? preset.glow}
-      followMouse={followMouse}
-      proximity={proximity}
-      enableWebGL={shouldEnableWebGL}
       disabled={isDisabled}
       aria-busy={isLoading || undefined}
-      className={clsx(
-        `specular-button--variant-${variant}`,
-        fullWidth ? "w-full" : "w-auto",
-        className,
-      )}
+      enableWebGL={shouldHighlight}
+      className={clsx(variantClass[variant], fullWidth && "w-full", className)}
       {...props}
     >
       {content}
@@ -209,48 +135,29 @@ export function Button({
   );
 }
 
-export type IconButtonProps = Omit<
-  SpecularButtonProps,
-  "aria-label" | "size"
-> & {
+export type IconButtonProps = Omit<SpecularButtonProps, "aria-label" | "size"> & {
   "aria-label": string;
   variant?: Exclude<ButtonVariant, "link">;
   size?: ButtonSize;
   specular?: boolean;
 };
 
+/** Circular icon-only action. Always requires an accessible label. */
 export function IconButton({
   className,
   children,
   variant = "ghost",
   size = "md",
   type = "button",
-  radius = 14,
-  specular = false,
-  enableWebGL,
+  specular: _specular,
   ...props
 }: IconButtonProps) {
-  const preset = SPECULAR_PRESETS[variant] || SPECULAR_PRESETS.ghost;
   const iconSize = `icon-${size}` as "icon-sm" | "icon-md" | "icon-lg";
-
   return (
     <SpecularButton
       type={type}
       size={iconSize}
-      radius={radius}
-      tint={preset.tint}
-      tintOpacity={preset.tintOpacity}
-      textColor={preset.textColor}
-      lineColor={preset.lineColor}
-      baseColor={preset.baseColor}
-      idleIntensity={preset.idleIntensity}
-      glow={preset.glow}
-      enableWebGL={enableWebGL ?? specular}
-      className={clsx(
-        "shrink-0",
-        `specular-button--variant-${variant}`,
-        className,
-      )}
+      className={clsx("shrink-0", variantClass[variant], "!rounded-full", className)}
       {...props}
     >
       {children}

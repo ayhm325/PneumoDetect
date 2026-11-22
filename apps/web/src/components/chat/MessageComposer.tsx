@@ -1,5 +1,5 @@
+import { PaperclipIcon, SendHorizontalIcon, XIcon } from "lucide-react";
 import React, { useRef, useState } from "react";
-import { FaPaperclip, FaPaperPlane, FaTimes } from "react-icons/fa";
 
 const MAX_MESSAGE_CHARS = 500;
 
@@ -26,7 +26,8 @@ export function MessageComposer({
 
   const trimmed = text.trim();
   const overLimit = text.length > MAX_MESSAGE_CHARS;
-  const canSend = !disabled && !uploading && !submitting && !overLimit && (Boolean(trimmed) || Boolean(selectedFile));
+  const canSend =
+    !disabled && !uploading && !submitting && !overLimit && (Boolean(trimmed) || Boolean(selectedFile));
 
   const submit = async () => {
     if (!canSend) return;
@@ -65,24 +66,24 @@ export function MessageComposer({
   };
 
   return (
-    <div className="border-t border-[var(--ui-border)] bg-[var(--ui-surface)] p-3 sm:p-4">
+    <div className="border-t border-[var(--pd-line)] bg-[var(--pd-canvas-raised)] p-3 sm:p-4">
       {errorMsg && (
-        <div className="mb-2 flex items-center justify-between rounded-xl border border-rose-500/30 bg-rose-500/10 px-3 py-1.5 text-xs font-medium text-rose-600 dark:text-rose-400">
+        <div className="mb-2 flex items-center justify-between rounded-[var(--shape-control)] border border-[color-mix(in_srgb,var(--pd-coral)_38%,transparent)] bg-[var(--pd-coral-soft)] px-3 py-1.5 text-xs font-medium text-[var(--pd-coral)]">
           <span>{errorMsg}</span>
           <button type="button" onClick={() => setErrorMsg(null)} aria-label="Dismiss error">
-            <FaTimes className="h-3 w-3" />
+            <XIcon size={13} strokeWidth={1.7} />
           </button>
         </div>
       )}
 
       {selectedFile && (
-        <div className="mb-2 flex items-center justify-between gap-2 rounded-xl border border-[var(--ui-border)] bg-[var(--ui-surface-2)] px-3 py-2 text-xs">
+        <div className="mb-2 flex items-center justify-between gap-2 rounded-[var(--shape-control)] border border-[var(--pd-line)] bg-[var(--pd-surface)] px-3 py-2 text-xs">
           <div className="flex min-w-0 items-center gap-2">
-            <FaPaperclip className="h-3.5 w-3.5 shrink-0 text-[var(--color-primary-500)]" />
-            <span className="truncate font-medium text-[var(--ui-foreground)]">
+            <PaperclipIcon size={14} strokeWidth={1.7} className="shrink-0 text-[var(--pd-acid)]" />
+            <span className="truncate font-medium text-[var(--pd-text-primary)]">
               {selectedFile.name}
             </span>
-            <span className="shrink-0 text-[var(--ui-muted)]">
+            <span className="pd-tabular shrink-0 text-[var(--pd-text-muted)]">
               ({Math.max(1, Math.round(selectedFile.size / 1024))} KB)
             </span>
           </div>
@@ -93,14 +94,14 @@ export function MessageComposer({
               if (fileInputRef.current) fileInputRef.current.value = "";
             }}
             aria-label={isAr ? "إزالة المرفق" : "Remove attachment"}
-            className="rounded-lg p-1 text-[var(--ui-muted)] hover:bg-[var(--ui-surface)] hover:text-[var(--ui-foreground)]"
+            className="rounded-full p-1 text-[var(--pd-text-muted)] hover:bg-[var(--pd-surface-raised)] hover:text-[var(--pd-text-primary)]"
           >
-            <FaTimes className="h-3.5 w-3.5" />
+            <XIcon size={14} strokeWidth={1.7} />
           </button>
         </div>
       )}
 
-      <div className="flex items-end gap-2">
+      <div className="flex items-end gap-2.5">
         <input
           ref={fileInputRef}
           type="file"
@@ -119,9 +120,9 @@ export function MessageComposer({
           disabled={disabled || uploading || submitting}
           aria-label={isAr ? "إرفاق ملف" : "Attach file"}
           title={isAr ? "إرفاق صورة أو ملف PDF" : "Attach image or PDF"}
-          className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[var(--ui-border)] bg-[var(--ui-surface-2)] text-[var(--ui-foreground)] transition hover:border-[var(--color-primary-500)] hover:text-[var(--color-primary-500)] disabled:opacity-50"
+          className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[var(--pd-line)] bg-[var(--pd-surface)] text-[var(--pd-text-secondary)] transition-colors hover:border-[var(--pd-acid)] hover:text-[var(--pd-acid)] disabled:opacity-50"
         >
-          <FaPaperclip className="h-4 w-4" />
+          <PaperclipIcon size={17} strokeWidth={1.7} />
         </button>
 
         <div className="relative flex-1">
@@ -140,12 +141,12 @@ export function MessageComposer({
                 : "Type a message... (Enter to send, Shift+Enter for new line)"
             }
             aria-label={isAr ? "نص الرسالة" : "Message text"}
-            className="max-h-32 min-h-[44px] w-full resize-none rounded-xl border border-[var(--ui-border)] bg-[var(--ui-surface-2)] px-3.5 py-2.5 text-sm text-[var(--ui-foreground)] outline-none transition focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-500)]/20 disabled:opacity-50"
+            className="pd-field max-h-32 !min-h-[44px] resize-none px-4 py-2.5 text-sm disabled:opacity-50"
           />
           {text.length > MAX_MESSAGE_CHARS - 80 && (
             <span
-              className={`absolute bottom-1.5 end-2.5 text-[10px] font-semibold ${
-                overLimit ? "text-rose-500" : "text-[var(--ui-muted)]"
+              className={`pd-tabular absolute bottom-1.5 end-3 text-[10px] font-semibold ${
+                overLimit ? "text-[var(--pd-coral)]" : "text-[var(--pd-text-muted)]"
               }`}
             >
               {text.length}/{MAX_MESSAGE_CHARS}
@@ -158,9 +159,9 @@ export function MessageComposer({
           onClick={() => void submit()}
           disabled={!canSend}
           aria-label={isAr ? "إرسال" : "Send"}
-          className="inline-flex h-11 shrink-0 items-center gap-2 rounded-xl bg-[var(--color-primary-500)] px-4 text-sm font-semibold text-white shadow-xs transition hover:bg-[var(--color-primary-900)] disabled:cursor-not-allowed disabled:opacity-50"
+          className="pd-btn pd-btn--primary shrink-0 disabled:cursor-not-allowed disabled:opacity-45"
         >
-          <FaPaperPlane className="h-3.5 w-3.5" />
+          <SendHorizontalIcon size={15} strokeWidth={1.7} />
           <span className="hidden sm:inline">
             {uploading
               ? isAr

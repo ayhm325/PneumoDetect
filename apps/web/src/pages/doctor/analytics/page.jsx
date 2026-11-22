@@ -1,20 +1,9 @@
 "use client";
 
+import { ArrowDownIcon, ArrowUpIcon, CalendarDaysIcon, ChartLineIcon, CircleCheckIcon, ClockIcon, DownloadIcon, EyeIcon, ScanLineIcon, UserRoundIcon } from "lucide-react";
 import DoctorLayout from "../DoctorLayout";
 import { useToast } from "@/components/ui/ToastProvider";
 import { useEffect, useMemo, useState } from "react";
-import {
-  FaUserInjured,
-  FaXRay,
-  FaCheckCircle,
-  FaClock,
-  FaChartLine,
-  FaCalendarAlt,
-  FaArrowUp,
-  FaArrowDown,
-  FaDownload,
-  FaEye,
-} from "react-icons/fa";
 import { useLocale, useTranslations } from "@/lib/compat/intl";
 import { apiRequest } from "@/lib/apiClient";
 import { Card, GlideSelect } from "@/components/ui";
@@ -155,7 +144,7 @@ export default function Page() {
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <h1 className="flex items-center gap-3 text-3xl font-bold text-(--ui-foreground)">
-                <FaChartLine className="text-(--ui-info)" />
+                <ChartLineIcon className="text-(--ui-info)" />
                 {t("title")}
               </h1>
               <p className="mt-2 text-(--ui-muted-foreground)">
@@ -186,7 +175,7 @@ export default function Page() {
               <div className="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 transform rounded-full bg-(--ui-info)/10 transition-transform group-hover:scale-150"></div>
               <div className="relative">
                 <div className="flex items-center justify-between">
-                  <FaUserInjured className="text-4xl text-(--ui-info)" />
+                  <UserRoundIcon className="text-4xl text-(--ui-info)" />
                   <div
                     className={`flex items-center gap-1 text-sm font-medium ${
                       currentStats.patients.percentage > 0
@@ -195,9 +184,9 @@ export default function Page() {
                     }`}
                   >
                     {currentStats.patients.percentage > 0 ? (
-                      <FaArrowUp />
+                      <ArrowUpIcon />
                     ) : (
-                      <FaArrowDown />
+                      <ArrowDownIcon />
                     )}
                     {Math.abs(currentStats.patients.percentage)}%
                   </div>
@@ -221,7 +210,7 @@ export default function Page() {
               <div className="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 transform rounded-full bg-(--ui-info)/10 transition-transform group-hover:scale-150"></div>
               <div className="relative">
                 <div className="flex items-center justify-between">
-                  <FaXRay className="text-4xl text-(--ui-info)" />
+                  <ScanLineIcon className="text-4xl text-(--ui-info)" />
                   <div
                     className={`flex items-center gap-1 text-sm font-medium ${
                       currentStats.scans.percentage > 0
@@ -230,9 +219,9 @@ export default function Page() {
                     }`}
                   >
                     {currentStats.scans.percentage > 0 ? (
-                      <FaArrowUp />
+                      <ArrowUpIcon />
                     ) : (
-                      <FaArrowDown />
+                      <ArrowDownIcon />
                     )}
                     {Math.abs(currentStats.scans.percentage)}%
                   </div>
@@ -256,7 +245,7 @@ export default function Page() {
               <div className="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 transform rounded-full bg-(--ui-success)/10 transition-transform group-hover:scale-150"></div>
               <div className="relative">
                 <div className="flex items-center justify-between">
-                  <FaCheckCircle className="text-4xl text-(--ui-success)" />
+                  <CircleCheckIcon className="text-4xl text-(--ui-success)" />
                   <div
                     className={`flex items-center gap-1 text-sm font-medium ${
                       currentStats.completed.percentage > 0
@@ -265,9 +254,9 @@ export default function Page() {
                     }`}
                   >
                     {currentStats.completed.percentage > 0 ? (
-                      <FaArrowUp />
+                      <ArrowUpIcon />
                     ) : (
-                      <FaArrowDown />
+                      <ArrowDownIcon />
                     )}
                     {Math.abs(currentStats.completed.percentage)}%
                   </div>
@@ -291,7 +280,7 @@ export default function Page() {
               <div className="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 transform rounded-full bg-(--ui-warning)/10 transition-transform group-hover:scale-150"></div>
               <div className="relative">
                 <div className="flex items-center justify-between">
-                  <FaClock className="text-4xl text-(--ui-warning)" />
+                  <ClockIcon className="text-4xl text-(--ui-warning)" />
                   <div
                     className={`flex items-center gap-1 text-sm font-medium ${
                       currentStats.pending.percentage < 0
@@ -300,9 +289,9 @@ export default function Page() {
                     }`}
                   >
                     {currentStats.pending.percentage < 0 ? (
-                      <FaArrowDown />
+                      <ArrowDownIcon />
                     ) : (
-                      <FaArrowUp />
+                      <ArrowUpIcon />
                     )}
                     {Math.abs(currentStats.pending.percentage)}%
                   </div>
@@ -325,10 +314,10 @@ export default function Page() {
           {/* Charts Section */}
           <div className="grid gap-6 lg:grid-cols-3">
             {/* Patient Distribution Chart */}
-            <Card className="lg:col-span-2">
+            <Card variant="feature" className="lg:col-span-2">
               <div className="mb-6 flex items-center justify-between">
                 <h2 className="flex items-center gap-2 text-xl font-bold text-(--ui-foreground)">
-                  <FaCalendarAlt className="text-(--ui-info)" />
+                  <CalendarDaysIcon className="text-(--ui-info)" />
                   {t("chart.patientDistribution")}
                 </h2>
               </div>
@@ -355,9 +344,9 @@ export default function Page() {
             </Card>
 
             {/* Scan Types Distribution */}
-            <Card>
+            <Card variant="clinical">
               <h2 className="mb-6 flex items-center gap-2 text-xl font-bold text-(--ui-foreground)">
-                <FaXRay className="text-(--ui-info)" />
+                <ScanLineIcon className="text-(--ui-info)" />
                 {t("scanTypesTitle")}
               </h2>
 
@@ -387,9 +376,9 @@ export default function Page() {
           </div>
 
           {/* Recent Activity */}
-          <Card>
+          <Card variant="utility">
             <h2 className="mb-6 flex items-center gap-2 text-xl font-bold text-(--ui-foreground)">
-              <FaClock className="text-(--ui-info)" />
+              <ClockIcon className="text-(--ui-info)" />
               {t("recentActivityTitle")}
             </h2>
 
@@ -412,11 +401,11 @@ export default function Page() {
                       }`}
                     >
                       {activity.status === "completed" ? (
-                        <FaCheckCircle className="text-(--ui-success)" />
+                        <CircleCheckIcon className="text-(--ui-success)" />
                       ) : activity.status === "pending" ? (
-                        <FaClock className="text-(--ui-warning)" />
+                        <ClockIcon className="text-(--ui-warning)" />
                       ) : (
-                        <FaEye className="text-(--ui-info)" />
+                        <EyeIcon className="text-(--ui-info)" />
                       )}
                     </div>
                     <div>

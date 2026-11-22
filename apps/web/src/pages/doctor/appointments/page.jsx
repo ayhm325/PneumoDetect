@@ -1,21 +1,9 @@
 "use client";
 
+import { CalendarDaysIcon, CircleCheckIcon, CircleXIcon, HourglassIcon, ListFilterIcon, MapPinIcon, PhoneIcon, PlusIcon, SearchIcon, Trash2Icon, VideoIcon } from "lucide-react";
 import DoctorLayout from "../DoctorLayout";
 import { useToast } from "@/components/ui/ToastProvider";
 import { useCallback, useEffect, useState } from "react";
-import {
-  FaCalendarAlt,
-  FaCheckCircle,
-  FaTimesCircle,
-  FaHourglassHalf,
-  FaPlus,
-  FaFilter,
-  FaSearch,
-  FaPhone,
-  FaVideo,
-  FaMapMarkerAlt,
-  FaTrash,
-} from "react-icons/fa";
 import { useLocale, useTranslations } from "@/lib/compat/intl";
 import { apiRequest } from "@/lib/apiClient";
 import { Button, Card, GlideSelect, ProfileMediaCard, StatCard } from "@/components/ui";
@@ -241,7 +229,7 @@ export default function DoctorAppointmentsPage() {
       extra = "";
     if (status === "confirmed" || status === "completed") {
       label = t("statuses.confirmed");
-      color = "bg-(--ui-success) text-white border-(--ui-success-border)";
+      color = "bg-(--ui-success) text-[var(--pd-on-accent)] border-(--ui-success-border)";
       extra = "shadow-lg font-bold px-4 py-1 text-base";
     } else if (status === "pending" || status === "scheduled") {
       label = t("statuses.pending");
@@ -266,10 +254,10 @@ export default function DoctorAppointmentsPage() {
 
   const getStatusIcon = (status) => {
     if (status === "confirmed" || status === "completed")
-      return <FaCheckCircle className="text-(--ui-success)" />;
+      return <CircleCheckIcon className="text-(--ui-success)" />;
     if (status === "pending" || status === "scheduled")
-      return <FaHourglassHalf className="text-(--ui-warning)" />;
-    return <FaTimesCircle className="text-(--ui-danger)" />;
+      return <HourglassIcon className="text-(--ui-warning)" />;
+    return <CircleXIcon className="text-(--ui-danger)" />;
   };
 
   if (loading) {
@@ -307,7 +295,7 @@ export default function DoctorAppointmentsPage() {
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <h1 className="text-3xl font-bold text-(--ui-foreground) flex items-center gap-3">
-                <FaCalendarAlt className="text-(--ui-info)" />
+                <CalendarDaysIcon className="text-(--ui-info)" />
                 {t("title")}
               </h1>
               <p className="mt-2 text-(--ui-muted-foreground)">
@@ -321,46 +309,46 @@ export default function DoctorAppointmentsPage() {
               size="sm"
               className="flex items-center gap-2 px-4"
             >
-              <FaPlus />
+              <PlusIcon />
               {t("addButton")}
             </Button>
           </div>
 
           {/* Stats Cards */}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <StatCard
+            <StatCard shape="orbital"
               label={t("stats.total")}
               value={stats.total}
-              icon={<FaCalendarAlt />}
+              icon={<CalendarDaysIcon />}
               tone="info"
             />
-            <StatCard
+            <StatCard shape="editorial"
               label={t("stats.confirmed")}
               value={stats.confirmed}
-              icon={<FaCheckCircle />}
+              icon={<CircleCheckIcon />}
               tone="success"
             />
-            <StatCard
+            <StatCard shape="layered"
               label={t("stats.pending")}
               value={stats.pending}
-              icon={<FaHourglassHalf />}
+              icon={<HourglassIcon />}
               tone="warning"
             />
-            <StatCard
+            <StatCard shape="slanted"
               label={t("stats.cancelled")}
               value={stats.cancelled}
-              icon={<FaTimesCircle />}
+              icon={<CircleXIcon />}
               tone="danger"
             />
           </div>
 
           {/* Filters and Search */}
-          <Card>
+          <Card variant="feature">
             <div className="flex flex-wrap items-center gap-4">
               {/* Search */}
               <div className="flex-1 min-w-62.5">
                 <div className="relative">
-                  <FaSearch className="absolute right-3 top-1/2 -translate-y-1/2 text-(--ui-muted-foreground)" />
+                  <SearchIcon className="absolute right-3 top-1/2 -translate-y-1/2 text-(--ui-muted-foreground)" />
                   <input
                     type="text"
                     placeholder={t("searchPlaceholder")}
@@ -373,7 +361,7 @@ export default function DoctorAppointmentsPage() {
 
               {/* Status Filter */}
               <div className="flex items-center gap-2">
-                <FaFilter className="text-(--ui-muted-foreground)" />
+                <ListFilterIcon className="text-(--ui-muted-foreground)" />
                 <GlideSelect
                   value={filter}
                   onChange={(val) => setFilter(val)}
@@ -391,8 +379,8 @@ export default function DoctorAppointmentsPage() {
           {/* Appointments List */}
           <div className="space-y-4">
             {filteredAppointments.length === 0 ? (
-              <Card className="p-12 text-center">
-                <FaCalendarAlt className="mx-auto mb-4 text-5xl text-(--ui-muted-foreground)" />
+              <Card variant="clinical" className="p-12 text-center">
+                <CalendarDaysIcon className="mx-auto mb-4 text-5xl text-(--ui-muted-foreground)" />
                 <p className="text-lg text-(--ui-muted-foreground)">
                   {t("emptyState")}
                 </p>
@@ -435,7 +423,7 @@ export default function DoctorAppointmentsPage() {
                             size="sm"
                             className="flex items-center gap-2 px-4"
                           >
-                            <FaCheckCircle />
+                            <CircleCheckIcon />
                             {t("actions.confirm")}
                           </Button>
                         )}
@@ -448,7 +436,7 @@ export default function DoctorAppointmentsPage() {
                             size="sm"
                             className="flex items-center gap-2 px-4"
                           >
-                            <FaTimesCircle />
+                            <CircleXIcon />
                             {t("actions.cancel")}
                           </Button>
                         )}
@@ -460,7 +448,7 @@ export default function DoctorAppointmentsPage() {
                           size="sm"
                           className="flex items-center gap-2 px-4"
                         >
-                          <FaTrash />
+                          <Trash2Icon />
                           {t("actions.delete")}
                         </Button>
                       </>
@@ -469,15 +457,15 @@ export default function DoctorAppointmentsPage() {
                     <div className="flex flex-wrap gap-4 text-xs text-(--ui-muted-foreground) mb-2">
                       <div className="flex items-center gap-1.5">
                         {apt.type === "online" ? (
-                          <FaVideo className="text-(--ui-success)" />
+                          <VideoIcon className="text-(--ui-success)" />
                         ) : (
-                          <FaMapMarkerAlt className="text-(--ui-danger)" />
+                          <MapPinIcon className="text-(--ui-danger)" />
                         )}
                         <span>{apt.location}</span>
                       </div>
                       {apt.phone && (
                         <div className="flex items-center gap-1.5">
-                          <FaPhone className="text-(--ui-info)" />
+                          <PhoneIcon className="text-(--ui-info)" />
                           <span dir="ltr">
                             {apt.phone.toLocaleString("en-US")}
                           </span>
@@ -510,7 +498,7 @@ export default function DoctorAppointmentsPage() {
 
       {showAddModal && (
         <div className="fixed inset-0 bg-(--color-neutral)/50 flex items-center justify-center z-50 p-4">
-          <Card className="w-full max-w-md text-(--ui-foreground)">
+          <Card variant="utility" className="w-full max-w-md text-(--ui-foreground)">
             <form onSubmit={createAppointment}>
               <h3 className="text-lg font-bold mb-4">{t("addButton")}</h3>
 

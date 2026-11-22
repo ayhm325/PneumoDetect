@@ -1,3 +1,4 @@
+import { CheckIcon, ChevronDownIcon } from "lucide-react";
 import React, {
   useCallback,
   useEffect,
@@ -9,7 +10,6 @@ import React, {
   type CSSProperties,
   type ReactNode,
 } from "react";
-import { FaChevronDown, FaCheck } from "react-icons/fa";
 
 export interface GlideSelectOption {
   value: string;
@@ -498,7 +498,7 @@ export const GlideSelect: React.FC<GlideSelectProps> = ({
             transitionTimingFunction: "cubic-bezier(.22,1,.36,1)",
           }}
         >
-          <FaChevronDown className="w-3 h-3" aria-hidden="true" />
+          <ChevronDownIcon className="w-3 h-3" aria-hidden="true" />
         </span>
       </button>
 
@@ -602,7 +602,7 @@ export const GlideSelect: React.FC<GlideSelectProps> = ({
                         transitionTimingFunction: "cubic-bezier(.22,1,.36,1)",
                       }}
                     >
-                      <FaCheck className="w-3 h-3" aria-hidden="true" />
+                      <CheckIcon className="w-3 h-3" aria-hidden="true" />
                     </span>
                   </span>
                 </button>

@@ -1,5 +1,7 @@
 export { Button, IconButton, buttonClasses } from "./Button";
 export type { ButtonProps, ButtonSize, ButtonVariant, IconButtonProps } from "./Button";
+export { Surface } from "./Surface";
+export type { SurfaceProps, SurfaceShape, SurfaceTone } from "./Surface";
 export { SpecularButton } from "./SpecularButton";
 export type { SpecularButtonProps } from "./SpecularButton";
 export { GlideSelect } from "./GlideSelect";

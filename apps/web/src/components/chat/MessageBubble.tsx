@@ -1,5 +1,5 @@
+import { FileTextIcon, RotateCwIcon } from "lucide-react";
 import React from "react";
-import { FaFileAlt, FaFilePdf, FaRedo } from "react-icons/fa";
 import Image from "@/lib/compat/Image";
 import MessageStatusIcon from "./MessageStatusIcon";
 import {
@@ -31,10 +31,13 @@ export function MessageBubble({
   return (
     <div className={`flex ${isMine ? "justify-end" : "justify-start"}`}>
       <div
-        className={`max-w-[78%] rounded-2xl px-4 py-2.5 shadow-2xs sm:max-w-[68%] ${
+        style={{
+          borderRadius: isMine ? "var(--shape-bubble-out)" : "var(--shape-bubble-in)",
+        }}
+        className={`max-w-[78%] border px-4 py-2.5 sm:max-w-[68%] ${
           isMine
-            ? "rounded-ee-xs bg-[var(--color-primary)] text-white"
-            : "rounded-es-xs border border-[var(--ui-border)] bg-[var(--ui-surface-elevated)] text-[var(--ui-foreground)]"
+            ? "border-[color-mix(in_srgb,var(--pd-acid)_30%,transparent)] bg-[var(--pd-surface-raised)] text-[var(--pd-text-primary)]"
+            : "border-[var(--pd-line)] bg-[var(--pd-canvas-raised)] text-[var(--pd-text-primary)]"
         }`}
       >
         {hasFile && message.fileUrl && (
@@ -44,14 +47,14 @@ export function MessageBubble({
                 href={message.fileUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block overflow-hidden rounded-xl border border-white/15"
+                className="block overflow-hidden rounded-[var(--shape-control)] border border-[var(--pd-line)]"
               >
                 <Image
                   src={message.fileUrl}
                   alt={message.fileName || "Attachment"}
                   width={320}
                   height={220}
-                  className="max-h-56 w-auto rounded-xl object-cover"
+                  className="max-h-56 w-auto object-contain"
                   unoptimized
                 />
               </a>
@@ -60,11 +63,13 @@ export function MessageBubble({
                 href={message.fileUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium underline-offset-2 hover:underline ${
-                  isMine ? "bg-white/15 text-white" : "bg-[var(--ui-surface-2)] text-[var(--ui-foreground)]"
-                }`}
+                className="inline-flex items-center gap-2 rounded-[var(--shape-control)] border border-[var(--pd-line)] bg-[var(--pd-surface)] px-3 py-2 text-xs font-medium text-[var(--pd-text-primary)] underline-offset-2 hover:underline"
               >
-                {isPdf ? <FaFilePdf className="text-rose-400" /> : <FaFileAlt />}
+                <FileTextIcon
+                  size={15}
+                  strokeWidth={1.7}
+                  className={isPdf ? "text-[var(--pd-coral)]" : "text-[var(--pd-orchid)]"}
+                />
                 <span className="max-w-[200px] truncate">{message.fileName || "Attachment"}</span>
               </a>
             )}
@@ -72,25 +77,21 @@ export function MessageBubble({
         )}
 
         {message.text ? (
-          <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">
+          <p className="whitespace-pre-wrap break-words text-sm leading-relaxed text-[var(--pd-text-primary)]">
             {message.text}
           </p>
         ) : null}
 
-        <div
-          className={`mt-1.5 flex items-center justify-end gap-1.5 text-[11px] ${
-            isMine ? "text-white/80" : "text-[var(--ui-muted)]"
-          }`}
-        >
+        <div className="pd-tabular mt-1.5 flex items-center justify-end gap-1.5 text-[11px] text-[var(--pd-text-muted)]">
           <span>{timeLabel}</span>
           {isMine && <MessageStatusIcon status={effectiveStatus} />}
           {effectiveStatus === "failed" && onRetry && (
             <button
               type="button"
               onClick={() => onRetry(message)}
-              className="ms-1 inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-semibold underline hover:opacity-90"
+              className="ms-1 inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-semibold text-[var(--pd-coral)] underline hover:opacity-90"
             >
-              <FaRedo className="h-2.5 w-2.5" />
+              <RotateCwIcon size={11} strokeWidth={1.7} />
               {retryLabel}
             </button>
           )}

@@ -221,7 +221,7 @@ export default function AnalysisPage() {
   // ----------------------- واجهة المستخدم -----------------------
   return (
     <div className="min-h-[85vh] py-14 bg-(--ui-surface) text-(--ui-foreground)">
-      <div className="max-w-7xl mx-auto p-8 card-glass rounded-3xl">
+      <div className="max-w-7xl mx-auto p-8 pd-panel pd-shape-asymmetric">
         {/* عنوان الصفحة */}
         <header className="flex items-start justify-between gap-6 mb-8">
           <div>
@@ -271,7 +271,7 @@ export default function AnalysisPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* معاينة الصورة والتحميل */}
           <div>
-            <div className="rounded-3xl overflow-hidden card-glass transition-transform duration-300 hover:scale-[1.01]">
+            <div className="rounded-3xl overflow-hidden pd-panel pd-shape-layered transition-transform duration-300 hover:scale-[1.01]">
               <div className="p-4">
                 {previewUrl ? (
                   <div className="relative w-full pb-[75%] transition-transform duration-300 hover:scale-105">
@@ -341,7 +341,7 @@ export default function AnalysisPage() {
             {analysisResult && (analysisResult.heatmap_url || analysisResult.heatmapUrl) && (
               <div className="mb-2">
                 <h3 className="text-md font-semibold mb-2">{t("analysis.results.heatmap")}</h3>
-                <div className="rounded-3xl overflow-hidden card-glass shadow-sm p-4">
+                <div className="rounded-3xl overflow-hidden pd-panel pd-shape-organic shadow-sm p-4">
                   <button
                     type="button"
                     onClick={() => setShowModal(true)}
@@ -368,7 +368,7 @@ export default function AnalysisPage() {
             {analysisResult && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* تشخيص */}
-                <div className={`p-6 rounded-3xl border shadow-sm transition-all ${
+                <div className={`p-6 pd-shape-asymmetric border shadow-sm transition-all ${
                   (analysisResult?.needsReview ?? analysisResult?.needs_review)
                     ? "bg-(--ui-warning-bg) border-(--ui-warning-border) text-(--ui-foreground)"
                     : "bg-(--ui-surface-elevated) border-(--ui-border) text-(--ui-foreground)"
@@ -377,7 +377,7 @@ export default function AnalysisPage() {
                     <h2 className="text-xl font-bold mb-2 text-(--ui-foreground)">{t("analysis.results.diagnosis")}</h2>
                     <div className="flex flex-wrap items-center gap-2">
                       {(analysisResult?.isMock ?? analysisResult?.is_mock) && (
-                        <span className="inline-flex items-center rounded-full border border-amber-500/40 bg-amber-500/15 px-3 py-1 text-xs font-bold text-amber-700 dark:text-amber-300">
+                        <span className="inline-flex items-center rounded-full border border-[color-mix(in_srgb,var(--pd-marigold)_40%,transparent)] bg-[var(--pd-marigold-soft)] px-3 py-1 text-xs font-medium text-[var(--pd-marigold)]">
                           SIMULATED MOCK (DEV ONLY)
                         </span>
                       )}
@@ -402,7 +402,7 @@ export default function AnalysisPage() {
                 </div>
 
                 {/* شريط الثقة والتفسير */}
-                <div className="p-6 rounded-3xl shadow-xl card-glass hover:scale-102 transition-transform duration-300">
+                <div className="p-6 rounded-3xl shadow-xl pd-panel pd-shape-asymmetric hover:scale-102 transition-transform duration-300">
                   <h2 className="text-2xl font-semibold mb-3 text-(--ui-foreground)">
                     {t("analysis.results.confidence")}
                   </h2>
@@ -424,7 +424,7 @@ export default function AnalysisPage() {
             {analysisResult && !(analysisResult.heatmap_url || analysisResult.heatmapUrl) && (
               <div className="mt-2">
                 <h1 className="text-md font-semibold mb-2">{t("analysis.results.heatmap")}</h1>
-                <div className="w-full h-72 rounded-3xl border border-dashed border-(--ui-border) flex items-center justify-center bg-(--ui-surface-2)/40">
+                <div className="w-full h-72 pd-shape-asymmetric border border-dashed border-(--ui-border) flex items-center justify-center bg-(--ui-surface-2)/40">
                   <span className="text-(--ui-muted-foreground) text-lg">{t("analysis.results.noHeatmap")}</span>
                 </div>
               </div>

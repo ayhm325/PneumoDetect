@@ -1,19 +1,10 @@
 "use client";
+import { CircleCheckIcon, HouseIcon, MailIcon, ShieldIcon, TriangleAlertIcon } from "lucide-react";
 import { useState } from "react";
-import { FaEnvelope, FaShield, FaHouse } from "react-icons/fa6";
 import Link from "@/lib/compat/Link";
 import { useLocale, useTranslations } from "@/lib/compat/intl";
 import { useLocaleContext } from "@/contexts/LocaleContext";
-import {
-  glassContainer,
-  iconBubble,
-  inputBase,
-  btnPrimary,
-  backHomeBtn,
-  authText,
-  authIcon,
-} from "./authStyles";
-import AnimatedBackground from "./ui/AnimatedBackground";
+import { Button } from "@/components/ui";
 
 export default function ForgotPasswordForm() {
   const locale = useLocale();
@@ -25,7 +16,6 @@ export default function ForgotPasswordForm() {
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Add withLocale helper for localized routing
   const withLocale = (path) => {
     const base = path.startsWith("/") ? path : `/${path}`;
     if (base.startsWith("/en") || base.startsWith("/ar")) return base;
@@ -54,7 +44,7 @@ export default function ForgotPasswordForm() {
       setError(
         locale === "ar"
           ? "خدمة استعادة كلمة المرور عبر البريد الإلكتروني غير مفعلة حالياً. يرجى مراجعة إدارة النظام."
-          : "Automated password recovery via email is currently not configured. Please contact system administration."
+          : "Automated password recovery via email is currently not configured. Please contact system administration.",
       );
       setLoading(false);
     }, 500);
@@ -62,65 +52,59 @@ export default function ForgotPasswordForm() {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center p-4 relative"
+      className="relative flex min-h-[calc(100vh-8rem)] items-center justify-center bg-[var(--pd-canvas)] p-4"
       dir={dir}
       lang={locale}
     >
-      <AnimatedBackground className="fixed inset-0" />
-
-      <div className="relative z-10 w-full max-w-md flex items-center justify-center min-h-[80vh] mx-auto">
+      <div className="relative z-10 mx-auto w-full max-w-md">
         <form
           onSubmit={handleSubmit}
-          className={glassContainer}
+          className="pd-panel pd-panel--feature p-7 sm:p-9 shadow-[var(--pd-shadow-float)]"
           aria-live="polite"
         >
-          <div className="mb-8 flex flex-col items-center gap-4">
-            <div className="inline-block p-4 rounded-full" aria-hidden>
-              <FaShield className={`text-4xl ${authIcon}`} />
+          <div className="mb-7 flex flex-col items-center gap-3.5 text-center">
+            <div className="pd-orb pd-orb--lg pd-orb--orchid" aria-hidden>
+              <ShieldIcon size={24} strokeWidth={1.7} />
             </div>
-            <div className="text-center">
-              <h2 className={`text-3xl font-bold ${authText} mb-1`}>
+            <div>
+              <h2 className="text-[length:var(--text-2xl)] font-semibold tracking-[var(--tracking-heading)] text-[var(--pd-text-primary)]">
                 {t("title")}
               </h2>
-              <p className={`${authText} text-base`}>{t("subtitle")}</p>
+              <p className="mt-1 text-sm text-[var(--pd-text-secondary)]">{t("subtitle")}</p>
             </div>
 
-            <div className="flex items-center gap-2 mt-2">
+            <div className="mt-1 flex items-center gap-2">
               <Link
                 href={withLocale("/")}
-                className={backHomeBtn}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[var(--pd-line)] bg-[var(--pd-canvas-raised)] text-[var(--pd-text-secondary)] transition-colors hover:border-[var(--pd-line-strong)] hover:text-[var(--pd-text-primary)]"
                 title={t("ui.backHomeTitle")}
                 aria-label={t("ui.backHomeTitle")}
               >
-                <FaHouse className={`text-xl ${authIcon}`} />
+                <HouseIcon size={16} strokeWidth={1.7} />
               </Link>
               <button
                 type="button"
                 onClick={toggleLocale}
-                className={`${backHomeBtn} ${authIcon}`}
+                className="inline-flex h-9 items-center justify-center rounded-full border border-[var(--pd-line)] bg-[var(--pd-canvas-raised)] px-3 text-xs font-medium uppercase text-[var(--pd-text-secondary)] transition-colors hover:border-[var(--pd-line-strong)] hover:text-[var(--pd-text-primary)]"
                 aria-label={t("ui.switchLanguageShort")}
               >
-                <span className={`uppercase text-sm font-semibold ${authIcon}`}>
-                  {locale === "ar" ? "EN" : "AR"}
-                </span>
+                {locale === "ar" ? "EN" : "AR"}
               </button>
             </div>
           </div>
 
           {success && (
-            <div
-              className={`ui-future-chip p-3 flex items-start gap-3 mt-2 ${authText} border border-[var(--ui-success-border)] rounded-xl bg-[var(--ui-success-bg)]`}
-            >
-              <span className="text-xl">✅</span>
+            <div className="mt-2 flex items-start gap-3 rounded-[var(--shape-leaf)] border border-[color-mix(in_srgb,var(--pd-success)_36%,transparent)] bg-[var(--pd-moss-soft)] p-3.5 text-[var(--pd-success)]">
+              <CircleCheckIcon size={18} strokeWidth={1.7} className="mt-0.5 shrink-0" />
               <div>
-                <p className="font-semibold">{t("successMessage")}</p>
+                <p className="text-sm font-medium">{t("successMessage")}</p>
                 <button
                   type="button"
                   onClick={() => {
                     setSuccess(false);
                     setForm({ email: "" });
                   }}
-                  className="text-sm font-medium hover:underline"
+                  className="mt-1 text-xs font-medium underline"
                 >
                   {t("tryAnother")}
                 </button>
@@ -131,14 +115,10 @@ export default function ForgotPasswordForm() {
           {!success && (
             <>
               <div>
-                <label
-                  className={`block text-sm font-semibold ${authText} mb-3`}
-                >
-                  {t("emailLabel")}
-                </label>
+                <label className="pd-label">{t("emailLabel")}</label>
                 <div className="relative">
-                  <span className={iconBubble}>
-                    <FaEnvelope className={`text-lg ${authIcon}`} />
+                  <span className="pointer-events-none absolute start-3.5 top-1/2 -translate-y-1/2 text-[var(--pd-text-muted)]">
+                    <MailIcon size={16} strokeWidth={1.7} />
                   </span>
                   <input
                     type="email"
@@ -148,53 +128,40 @@ export default function ForgotPasswordForm() {
                     onChange={handleChange}
                     required
                     disabled={loading}
-                    className={inputBase}
+                    className="pd-field ps-10"
                   />
                 </div>
               </div>
 
               {error && (
                 <div
-                  className={`ui-future-chip p-3 flex items-center gap-3 mt-4 ${authText} border border-[var(--ui-danger-border)] rounded-xl bg-[var(--ui-danger-bg)]`}
+                  className="mt-4 flex items-start gap-2.5 rounded-[var(--shape-leaf)] border border-[color-mix(in_srgb,var(--pd-coral)_38%,transparent)] bg-[var(--pd-coral-soft)] p-3.5 text-xs font-medium text-[var(--pd-coral)]"
                   role="alert"
                 >
-                  <span className="text-xl">⚠️</span>
-                  <span className="font-medium">{error}</span>
+                  <TriangleAlertIcon size={16} strokeWidth={1.7} className="mt-0.5 shrink-0" />
+                  <span>{error}</span>
                 </div>
               )}
 
-              <button
+              <Button
                 type="submit"
-                disabled={loading}
-                className={`${btnPrimary} mt-6`}
+                fullWidth
+                isLoading={loading}
+                loadingText={t("loading")}
+                className="mt-6"
               >
-                {loading ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <span
-                      className={`inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin ${authIcon}`}
-                    />
-                    {t("loading")}
-                  </span>
-                ) : (
-                  <span className="text-white">{t("submit")}</span>
-                )}
-              </button>
+                {t("submit")}
+              </Button>
             </>
           )}
 
-          <div className="flex flex-col gap-3 text-center text-sm mt-6">
-            <Link
-              href={withLocale("/login")}
-              className={`${authIcon} font-semibold hover:text-[var(--color-primary-900)]`}
-            >
+          <div className="mt-6 flex flex-col gap-2.5 text-center text-sm">
+            <Link href={withLocale("/login")} className="font-medium text-[var(--pd-acid)] hover:underline">
               {t("backToLogin")}
             </Link>
-            <div className={`${authIcon}`}>
+            <div className="text-[var(--pd-text-muted)]">
               {t("noAccount")}{" "}
-              <Link
-                href={withLocale("/signup")}
-                className={`${authIcon} font-semibold hover:text-[var(--color-primary-900)]`}
-              >
+              <Link href={withLocale("/signup")} className="font-medium text-[var(--pd-orchid)] hover:underline">
                 {t("signup")}
               </Link>
             </div>

@@ -245,7 +245,7 @@ export default function UploadXRayPageContent() {
         }
       >
         <div className="grid gap-6 lg:grid-cols-3">
-          <Card className="space-y-4 lg:col-span-2">
+          <Card variant="feature" className="space-y-4 lg:col-span-2">
             <div className="space-y-2">
               <label className="text-sm font-medium text-[var(--ui-foreground)]">
                 {t("patientNameLabel")}
@@ -312,7 +312,7 @@ export default function UploadXRayPageContent() {
               accept="image/png,image/jpeg,image/webp"
               multiple
               label={t("selectFiles")}
-              className="ui-future-panel rounded-2xl border border-dashed border-[var(--ui-border-strong)] p-8 text-center"
+              className="ui-future-panel pd-shape-organic border border-dashed border-[var(--ui-border-strong)] p-8 text-center"
             >
               <div className="space-y-2">
                 <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full ui-future-chip">📁</div>
@@ -368,7 +368,7 @@ export default function UploadXRayPageContent() {
             ) : null}
           </Card>
 
-          <Card className="space-y-3">
+          <Card variant="clinical" className="space-y-3">
             <h2 className="text-base font-semibold text-[var(--ui-foreground)]">{t("selectedFilesLabel")}</h2>
             {files.length === 0 ? (
               <Alert variant="info">{t("selectFiles")}</Alert>
@@ -397,7 +397,7 @@ export default function UploadXRayPageContent() {
           </Card>
         </div>
 
-        <Card className="space-y-4">
+        <Card variant="utility" className="space-y-4">
           <h2 className="text-xl font-bold text-[var(--ui-foreground)]">{t("recentUploadsTitle")}</h2>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">

@@ -1,5 +1,6 @@
 "use client";
 
+import { BriefcaseMedicalIcon, CheckIcon, UserIcon, XIcon } from "lucide-react";
 import { useState } from "react";
 import { useTranslations } from "@/lib/compat/intl";
 import {
@@ -7,7 +8,6 @@ import {
   approveDoctorChangeRequest,
   rejectDoctorChangeRequest,
 } from "./doctor-change-requests";
-import { FaCheck, FaTimes, FaUserMd, FaUser } from "react-icons/fa";
 
 export default function DoctorChangeRequestsPage() {
   const [refresh, setRefresh] = useState(0);
@@ -42,21 +42,21 @@ export default function DoctorChangeRequestsPage() {
   return (
     <>
       <div className="px-4 py-6 md:px-8">
-        <div className="card-glass p-6 md:p-8">
+        <div className="pd-panel pd-shape-asymmetric p-6 md:p-8">
           <h1 className="text-xl md:text-2xl font-bold text-foreground mb-6">
             {t("title")}
           </h1>
 
           {requests.length === 0 ? (
-            <div className="rounded-2xl border border-(--ui-border) bg-(--ui-surface) p-8 text-center">
-              <FaUserMd
+            <div className="pd-shape-organic border border-(--ui-border) bg-(--ui-surface) p-8 text-center">
+              <BriefcaseMedicalIcon
                 size={48}
                 className="mx-auto mb-4 text-(--ui-muted-2)"
               />
               <p className="text-(--ui-muted-2) text-lg">{t("noRequests")}</p>
             </div>
           ) : (
-            <div className="overflow-x-auto max-w-3xl rounded-2xl border border-(--ui-border)">
+            <div className="overflow-x-auto max-w-3xl pd-shape-organic border border-(--ui-border)">
               <table className="w-full bg-(--ui-surface)">
                 <thead>
                   <tr className="bg-(--ui-surface-2) text-(--ui-muted-2)">
@@ -120,14 +120,14 @@ export default function DoctorChangeRequestsPage() {
                           <div className="flex gap-2">
                             <button
                               onClick={() => handleApprove(req.id)}
-                              className="rounded-xl border border-(--ui-success-border) bg-(--ui-success) px-3 py-2 text-xs font-semibold text-white hover:opacity-90 disabled:opacity-50"
+                              className="rounded-xl border border-(--ui-success-border) bg-(--ui-success) px-3 py-2 text-xs font-semibold text-[var(--pd-on-accent)] hover:opacity-90 disabled:opacity-50"
                               disabled={actionLoading === req.id}
                             >
                               {t("approve")}
                             </button>
                             <button
                               onClick={() => handleReject(req.id)}
-                              className="rounded-xl border border-(--ui-danger-border) bg-(--ui-danger) px-3 py-2 text-xs font-semibold text-white hover:opacity-90 disabled:opacity-50"
+                              className="rounded-xl border border-(--ui-danger-border) bg-(--ui-danger) px-3 py-2 text-xs font-semibold text-[var(--pd-on-accent)] hover:opacity-90 disabled:opacity-50"
                               disabled={actionLoading === req.id}
                             >
                               {t("reject")}

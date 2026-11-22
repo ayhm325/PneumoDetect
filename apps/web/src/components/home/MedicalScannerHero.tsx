@@ -1,6 +1,6 @@
+import { CpuIcon } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { FaMicrochip, FaShieldAlt, FaWaveSquare } from "react-icons/fa";
 
 export function MedicalScannerHero() {
   const { i18n } = useTranslation();
@@ -26,11 +26,10 @@ export function MedicalScannerHero() {
 
     let animationFrameId: number;
     let isVisible = true;
-    let scanY = 0;
+    let scanY = 110;
     let scanDirection = 1;
     let pulsePhase = 0;
 
-    // Handle high DPI displays cleanly
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const width = 480;
     const height = 480;
@@ -38,7 +37,6 @@ export function MedicalScannerHero() {
     canvas.height = height * dpr;
     ctx.scale(dpr, dpr);
 
-    // Pause rendering when tab or element is not visible
     const observer = new IntersectionObserver(
       ([entry]) => {
         isVisible = entry.isIntersecting;
@@ -55,41 +53,41 @@ export function MedicalScannerHero() {
 
       ctx.clearRect(0, 0, width, height);
 
-      // 1. Draw subtle clinical radial background glow
       const cx = width / 2;
       const cy = height / 2;
+
+      // 1. Forest & Copper radial glow
       const bgGrad = ctx.createRadialGradient(cx, cy, 30, cx, cy, 220);
-      bgGrad.addColorStop(0, "rgba(53, 106, 230, 0.14)");
-      bgGrad.addColorStop(0.5, "rgba(19, 168, 158, 0.08)");
-      bgGrad.addColorStop(1, "rgba(15, 23, 42, 0)");
+      bgGrad.addColorStop(0, "rgba(208, 146, 114, 0.14)");
+      bgGrad.addColorStop(0.54, "rgba(168, 179, 152, 0.08)");
+      bgGrad.addColorStop(1, "rgba(17, 23, 19, 0)");
       ctx.fillStyle = bgGrad;
       ctx.beginPath();
       ctx.arc(cx, cy, 220, 0, Math.PI * 2);
       ctx.fill();
 
-      // 2. Draw circular spatial coordinate rings
+      // 2. Spatial coordinate rings in warm sand
       ctx.lineWidth = 1;
       for (let r = 80; r <= 200; r += 60) {
-        ctx.strokeStyle = `rgba(53, 106, 230, ${0.12 - (r / 200) * 0.06})`;
+        ctx.strokeStyle = `rgba(224, 213, 194, ${0.14 - (r / 200) * 0.07})`;
         ctx.beginPath();
         ctx.arc(cx, cy, r, 0, Math.PI * 2);
         ctx.stroke();
       }
 
-      // 3. Draw stylized bilateral lung anatomical contours with soft luminous gradients
-      pulsePhase += 0.03;
-      const breathingScale = isReducedMotion ? 1 : 1 + Math.sin(pulsePhase) * 0.02;
+      // 3. Bilateral lung contours
+      pulsePhase += 0.025;
+      const breathingScale = isReducedMotion ? 1 : 1 + Math.sin(pulsePhase) * 0.018;
 
       ctx.save();
       ctx.translate(cx, cy);
       ctx.scale(breathingScale, breathingScale);
       ctx.translate(-cx, -cy);
 
-      // Left Lung
       const leftLungGrad = ctx.createLinearGradient(120, 100, 210, 360);
-      leftLungGrad.addColorStop(0, "rgba(56, 189, 248, 0.35)");
-      leftLungGrad.addColorStop(0.6, "rgba(19, 168, 158, 0.28)");
-      leftLungGrad.addColorStop(1, "rgba(53, 106, 230, 0.15)");
+      leftLungGrad.addColorStop(0, "rgba(208, 146, 114, 0.24)");
+      leftLungGrad.addColorStop(0.58, "rgba(168, 179, 152, 0.20)");
+      leftLungGrad.addColorStop(1, "rgba(200, 171, 120, 0.12)");
 
       ctx.beginPath();
       ctx.moveTo(190, 120);
@@ -100,15 +98,14 @@ export function MedicalScannerHero() {
       ctx.closePath();
       ctx.fillStyle = leftLungGrad;
       ctx.fill();
-      ctx.strokeStyle = "rgba(56, 189, 248, 0.6)";
+      ctx.strokeStyle = "rgba(208, 146, 114, 0.58)";
       ctx.lineWidth = 1.5;
       ctx.stroke();
 
-      // Right Lung
       const rightLungGrad = ctx.createLinearGradient(270, 100, 360, 360);
-      rightLungGrad.addColorStop(0, "rgba(56, 189, 248, 0.35)");
-      rightLungGrad.addColorStop(0.6, "rgba(19, 168, 158, 0.28)");
-      rightLungGrad.addColorStop(1, "rgba(53, 106, 230, 0.15)");
+      rightLungGrad.addColorStop(0, "rgba(208, 146, 114, 0.24)");
+      rightLungGrad.addColorStop(0.58, "rgba(168, 179, 152, 0.20)");
+      rightLungGrad.addColorStop(1, "rgba(200, 171, 120, 0.12)");
 
       ctx.beginPath();
       ctx.moveTo(290, 120);
@@ -119,13 +116,13 @@ export function MedicalScannerHero() {
       ctx.closePath();
       ctx.fillStyle = rightLungGrad;
       ctx.fill();
-      ctx.strokeStyle = "rgba(56, 189, 248, 0.6)";
+      ctx.strokeStyle = "rgba(208, 146, 114, 0.58)";
       ctx.lineWidth = 1.5;
       ctx.stroke();
 
-      // Trachea / Bronchial Tree Stem
-      ctx.strokeStyle = "rgba(148, 163, 184, 0.5)";
-      ctx.lineWidth = 2.5;
+      // Bronchial tree stem
+      ctx.strokeStyle = "rgba(224, 213, 194, 0.34)";
+      ctx.lineWidth = 2.2;
       ctx.beginPath();
       ctx.moveTo(240, 90);
       ctx.lineTo(240, 190);
@@ -134,42 +131,41 @@ export function MedicalScannerHero() {
       ctx.lineTo(270, 230);
       ctx.stroke();
 
-      // Detection Nodal Points with pulsing rings
       const nodes = [
-        { x: 170, y: 240, label: "Zone L-Mid" },
-        { x: 310, y: 250, label: "Zone R-Mid" },
-        { x: 185, y: 310, label: "Zone L-Base" },
-        { x: 295, y: 300, label: "Zone R-Base" },
+        { x: 170, y: 240, color: "#D09272" },
+        { x: 310, y: 250, color: "#A8B398" },
+        { x: 185, y: 310, color: "#C8AB78" },
+        { x: 295, y: 300, color: "#D09272" },
       ];
 
       nodes.forEach((node, idx) => {
         const nodePulse = Math.sin(pulsePhase * 2 + idx) * 0.5 + 0.5;
         ctx.beginPath();
         ctx.arc(node.x, node.y, 4, 0, Math.PI * 2);
-        ctx.fillStyle = "#38bdf8";
+        ctx.fillStyle = node.color;
         ctx.fill();
 
         ctx.beginPath();
         ctx.arc(node.x, node.y, 7 + nodePulse * 5, 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(56, 189, 248, ${0.4 - nodePulse * 0.3})`;
+        ctx.strokeStyle = `rgba(208, 146, 114, ${0.42 - nodePulse * 0.3})`;
         ctx.lineWidth = 1;
         ctx.stroke();
       });
 
       ctx.restore();
 
-      // 4. Draw Animated Medical Laser Scanning Line
+      // 4. Burnished Copper scanning beam
       if (!isReducedMotion && scanActive) {
-        scanY += scanDirection * 1.8;
+        scanY += scanDirection * 1.65;
         if (scanY > 370) scanDirection = -1;
         if (scanY < 90) scanDirection = 1;
 
-        const scanGrad = ctx.createLinearGradient(100, scanY, 380, scanY);
-        scanGrad.addColorStop(0, "rgba(56, 189, 248, 0)");
-        scanGrad.addColorStop(0.3, "rgba(56, 189, 248, 0.7)");
-        scanGrad.addColorStop(0.5, "rgba(255, 255, 255, 0.95)");
-        scanGrad.addColorStop(0.7, "rgba(19, 168, 158, 0.7)");
-        scanGrad.addColorStop(1, "rgba(19, 168, 158, 0)");
+        const scanGrad = ctx.createLinearGradient(110, scanY, 370, scanY);
+        scanGrad.addColorStop(0, "rgba(208, 146, 114, 0)");
+        scanGrad.addColorStop(0.28, "rgba(208, 146, 114, 0.72)");
+        scanGrad.addColorStop(0.5, "rgba(224, 213, 194, 0.92)");
+        scanGrad.addColorStop(0.72, "rgba(168, 179, 152, 0.72)");
+        scanGrad.addColorStop(1, "rgba(168, 179, 152, 0)");
 
         ctx.strokeStyle = scanGrad;
         ctx.lineWidth = 2;
@@ -178,17 +174,11 @@ export function MedicalScannerHero() {
         ctx.lineTo(370, scanY);
         ctx.stroke();
 
-        // Soft laser trailing glow
-        const glowGrad = ctx.createLinearGradient(
-          0,
-          scanY - scanDirection * 20,
-          0,
-          scanY,
-        );
-        glowGrad.addColorStop(0, "rgba(56, 189, 248, 0)");
-        glowGrad.addColorStop(1, "rgba(56, 189, 248, 0.12)");
+        const glowGrad = ctx.createLinearGradient(0, scanY - scanDirection * 22, 0, scanY);
+        glowGrad.addColorStop(0, "rgba(208, 146, 114, 0)");
+        glowGrad.addColorStop(1, "rgba(208, 146, 114, 0.14)");
         ctx.fillStyle = glowGrad;
-        ctx.fillRect(110, Math.min(scanY, scanY - scanDirection * 20), 260, 20);
+        ctx.fillRect(110, Math.min(scanY, scanY - scanDirection * 22), 260, 22);
       }
 
       animationFrameId = requestAnimationFrame(render);
@@ -205,19 +195,14 @@ export function MedicalScannerHero() {
   return (
     <div
       ref={containerRef}
-      className="relative flex items-center justify-center overflow-hidden rounded-3xl border border-[var(--ui-border)] bg-[var(--ui-surface-elevated)] p-4 sm:p-6 shadow-[var(--shadow-lift)]"
+      className="pd-shape-arch relative flex items-center justify-center overflow-hidden border border-[var(--pd-border)] bg-[var(--pd-surface-inset)] p-4 sm:p-6 shadow-[var(--pd-shadow-deep)]"
     >
-      {/* Background Spatial Grid Pattern */}
-      <div
-        className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgba(53,106,230,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(53,106,230,0.06)_1px,transparent_1px)] bg-[size:28px_28px]"
-        aria-hidden="true"
-      />
+      <div className="pd-grid-bg pointer-events-none absolute inset-0" aria-hidden="true" />
 
-      {/* Interactive Medical Canvas */}
       <canvas
         ref={canvasRef}
         style={{ width: "100%", maxWidth: 440, height: "auto", aspectRatio: "1/1" }}
-        className="relative z-10 transition-transform duration-300"
+        className="relative z-10"
         aria-label={
           isAr
             ? "تصور بصري ذكي لفحص الرئتين وتحليل الأشعة"
@@ -225,30 +210,21 @@ export function MedicalScannerHero() {
         }
       />
 
-      {/* Floating Spatial Clinical Telemetry Badges */}
-      <div className="absolute top-4 start-4 z-20 flex items-center gap-2 rounded-xl border border-white/15 bg-slate-900/85 px-3 py-1.5 text-xs font-semibold text-white shadow-md backdrop-blur-md">
-        <FaMicrochip className="h-3.5 w-3.5 text-sky-400" />
+      <div className="absolute top-5 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-full border border-[var(--pd-border-strong)] bg-[var(--pd-bg)]/90 px-3.5 py-1.5 text-xs font-medium text-[var(--pd-text-primary)] backdrop-blur-md">
+        <CpuIcon size={14} strokeWidth={1.7} className="text-[var(--pd-copper)]" />
         <span>DenseNet121 + Grad-CAM</span>
       </div>
 
-      <div className="absolute bottom-4 start-4 z-20 flex items-center gap-2 rounded-xl border border-white/15 bg-slate-900/85 px-3 py-1.5 text-xs font-semibold text-white shadow-md backdrop-blur-md">
-        <span className="relative flex h-2 w-2">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-          <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-        </span>
+      <div className="absolute bottom-4 start-4 z-20 flex items-center gap-2 rounded-full border border-[var(--pd-border-strong)] bg-[var(--pd-bg)]/90 px-3.5 py-1.5 text-xs font-medium text-[var(--pd-text-primary)] backdrop-blur-md">
+        <span className="pd-breathe inline-block h-2 w-2 rounded-full bg-[var(--pd-sage)]" />
         <span>{isAr ? "نظام الفرز السريري نشط" : "Clinical Screening Active"}</span>
       </div>
 
-      <div className="absolute top-4 end-4 z-20 hidden sm:flex items-center gap-2 rounded-xl border border-white/15 bg-slate-900/85 px-3 py-1.5 text-xs font-semibold text-sky-200 shadow-md backdrop-blur-md">
-        <FaWaveSquare className="h-3.5 w-3.5 text-teal-300" />
-        <span>{isAr ? "مجال رئوي ثنائي" : "Bilateral Fields"}</span>
-      </div>
-
-      <div className="absolute bottom-4 end-4 z-20 flex items-center gap-2">
+      <div className="absolute bottom-4 end-4 z-20">
         <button
           type="button"
           onClick={() => setScanActive((v) => !v)}
-          className="rounded-lg border border-white/15 bg-slate-900/85 px-2.5 py-1 text-[11px] font-medium text-slate-300 hover:text-white backdrop-blur-md transition"
+          className="rounded-full border border-[var(--pd-border-strong)] bg-[var(--pd-bg)]/90 px-3 py-1 text-[11px] font-medium text-[var(--pd-text-secondary)] backdrop-blur-md transition-colors hover:border-[var(--pd-copper)] hover:text-[var(--pd-copper)]"
         >
           {scanActive
             ? isAr ? "إيقاف المسح" : "Pause Scan"

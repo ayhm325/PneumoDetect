@@ -4,20 +4,10 @@ export const headers = () => {
   return [["Cache-Control", "no-store"]];
 };
 
+import { ArrowDownIcon, ArrowUpIcon, BriefcaseMedicalIcon, ChartLineIcon, CircleCheckIcon, ClockIcon, ScanLineIcon, UserRoundIcon, UsersIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useRouter } from "@/lib/compat/navigation";
 import { useToast } from "@/components/ui/ToastProvider";
-import {
-  FaUsers,
-  FaUserMd,
-  FaUserInjured,
-  FaXRay,
-  FaArrowUp,
-  FaArrowDown,
-  FaChartLine,
-  FaCheckCircle,
-  FaClock,
-} from "react-icons/fa";
 import { Button } from "@/components/ui";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { useLocale, useTranslations } from "@/lib/compat/intl";
@@ -71,7 +61,7 @@ export default function AdminDashboardPage() {
       value: statsData.totalUsers,
       change: "",
       changePercent: "",
-      icon: FaUsers,
+      icon: UsersIcon,
       trend: "up",
     },
     {
@@ -79,7 +69,7 @@ export default function AdminDashboardPage() {
       value: statsData.doctors,
       change: "",
       changePercent: "",
-      icon: FaUserMd,
+      icon: BriefcaseMedicalIcon,
       trend: "up",
     },
     {
@@ -87,7 +77,7 @@ export default function AdminDashboardPage() {
       value: statsData.patients,
       change: "",
       changePercent: "",
-      icon: FaUserInjured,
+      icon: UserRoundIcon,
       trend: "up",
     },
     {
@@ -95,7 +85,7 @@ export default function AdminDashboardPage() {
       value: statsData.todayScans,
       change: "",
       changePercent: "",
-      icon: FaXRay,
+      icon: ScanLineIcon,
       trend: "down",
     },
     {
@@ -103,7 +93,7 @@ export default function AdminDashboardPage() {
       value: statsData.totalScans,
       change: "",
       changePercent: "",
-      icon: FaXRay,
+      icon: ScanLineIcon,
       trend: "up",
     },
   ];
@@ -112,19 +102,19 @@ export default function AdminDashboardPage() {
     {
       title: t("quickActions.users.title"),
       description: t("quickActions.users.desc"),
-      Icon: FaUsers,
+      Icon: UsersIcon,
       action: () => router.push(`${basePrefix}/admin/users`),
     },
     {
       title: t("quickActions.doctors.title"),
       description: t("quickActions.doctors.desc"),
-      Icon: FaUserMd,
+      Icon: BriefcaseMedicalIcon,
       action: () => router.push(`${basePrefix}/admin/doctors`),
     },
     {
       title: t("quickActions.patients.title"),
       description: t("quickActions.patients.desc"),
-      Icon: FaUserInjured,
+      Icon: UserRoundIcon,
       action: () => router.push(`${basePrefix}/admin/patients`),
     },
   ];
@@ -148,25 +138,25 @@ export default function AdminDashboardPage() {
       label: t("systemStatus.serverUptime"),
       value: systemStatusData.serverUptime,
       status: "success",
-      icon: FaCheckCircle,
+      icon: CircleCheckIcon,
     },
     {
       label: t("systemStatus.responseTime"),
       value: systemStatusData.responseTime,
       status: "success",
-      icon: FaClock,
+      icon: ClockIcon,
     },
     {
       label: t("systemStatus.memoryUsage"),
       value: systemStatusData.memoryUsage,
       status: "success",
-      icon: FaCheckCircle,
+      icon: CircleCheckIcon,
     },
     {
       label: t("systemStatus.dbSize"),
       value: systemStatusData.dbSize,
       status: "success",
-      icon: FaCheckCircle,
+      icon: CircleCheckIcon,
     },
   ];
 
@@ -252,60 +242,63 @@ export default function AdminDashboardPage() {
         {/* Header */}
         <PageHeader title={t("title")} description={formattedDate} />
 
-        {/* Stats Row - always in one line, scrollable on small screens */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 mb-8 w-full">
-          {stats.map((stat, index) => (
-            <div
-              key={index}
-              className="card-glass rounded-xl shadow-(--shadow-soft) p-6 border border-(--ui-border) hover:shadow-(--shadow-lift) transition-shadow w-full"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-3 rounded-lg brand-gradient shadow-(--shadow-soft)">
-                  <stat.icon className="text-2xl text-white" />
-                </div>
-                {stat.changePercent ? (
-                  <div
-                    className={`flex items-center gap-1 text-sm ${stat.trend === "up" ? "text-(--ui-success)" : "text-(--ui-danger)"}`}
-                  >
-                    {stat.trend === "up" ? <FaArrowUp /> : <FaArrowDown />}
-                    <span>{stat.changePercent}</span>
+        {/* Stats Row */}
+        <div className="mb-10 grid w-full grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+          {stats.map((stat, index) => {
+            const shapes = ["pd-shape-asymmetric", "pd-shape-layered", "pd-shape-organic", "pd-shape-asymmetric", "pd-shape-layered"];
+            return (
+              <div
+                key={index}
+                className={`pd-panel pd-panel--deep pd-panel--interactive w-full p-5 ${shapes[index % shapes.length]}`}
+              >
+                <div className="mb-4 flex items-center justify-between">
+                  <div className="pd-orb pd-shape-orbital pd-orb--copper">
+                    <stat.icon size={19} strokeWidth={1.7} />
                   </div>
-                ) : null}
+                  {stat.changePercent ? (
+                    <div
+                      className={`pd-tabular flex items-center gap-1 text-xs font-medium ${stat.trend === "up" ? "text-[var(--pd-sage)]" : "text-[var(--pd-clay)]"}`}
+                    >
+                      {stat.trend === "up" ? <ArrowUpIcon size={13} /> : <ArrowDownIcon size={13} />}
+                      <span>{stat.changePercent}</span>
+                    </div>
+                  ) : null}
+                </div>
+                <h3 className="mb-1.5 text-xs font-medium uppercase tracking-wider text-[var(--pd-text-muted)]">
+                  {stat.title}
+                </h3>
+                <p className="pd-metric-value">{stat.value}</p>
               </div>
-              <h3 className="text-(--ui-muted-2) text-sm font-medium mb-2">
-                {stat.title}
-              </h3>
-              <p className="text-3xl font-bold text-foreground">{stat.value}</p>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
-        {/* Quick Actions */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-foreground mb-6">
+        {/* Quick Actions — Frameless Editorial */}
+        <div className="mb-10">
+          <h2 className="mb-5 text-xl font-semibold text-[var(--pd-text-primary)]">
             {t("quickActionsTitle")}
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 gap-7 md:grid-cols-2 lg:grid-cols-4">
             {quickActions.map((action, index) => {
               const ActionIcon = action.Icon;
               return (
                 <button
                   key={index}
                   onClick={action.action}
-                  className="card-glass text-foreground rounded-xl shadow-(--shadow-soft) p-6 border border-(--ui-border) hover:shadow-(--shadow-lift) transition-all hover:-translate-y-0.5 group text-start"
+                  className="pd-shape-editorial group text-start transition-transform duration-200 hover:-translate-y-0.5"
                 >
-                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl brand-gradient text-white text-xl shadow-(--shadow-soft) mb-3">
-                    <ActionIcon />
+                  <div className="pd-orb pd-shape-orbital pd-orb--copper mb-3.5">
+                    <ActionIcon size={18} strokeWidth={1.7} />
                   </div>
-                  <h3 className="text-lg font-bold mb-2">{action.title}</h3>
-                  <p className="text-sm text-(--ui-muted-2)">
+                  <h3 className="mb-1.5 text-base font-semibold text-[var(--pd-text-primary)]">
+                    {action.title}
+                  </h3>
+                  <p className="text-sm leading-relaxed text-[var(--pd-text-muted)]">
                     {action.description}
                   </p>
-                  <div className="mt-4 flex items-center gap-2 text-(--ui-muted-2) group-hover:gap-3 transition-all">
-                    <span className="text-sm">{t("more")}</span>
-                    <span className="transition-transform group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5">
-                      {locale === "en" ? "→" : "←"}
-                    </span>
+                  <div className="mt-3.5 flex items-center gap-2 text-xs font-medium text-[var(--pd-copper)] transition-all group-hover:gap-3">
+                    <span>{t("more")}</span>
+                    <span>{locale === "en" ? "→" : "←"}</span>
                   </div>
                 </button>
               );
@@ -313,28 +306,25 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
           {/* System Status */}
-          <div className="card-glass rounded-xl shadow-(--shadow-soft) p-6 border border-(--ui-border)">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-foreground">
+          <div className="pd-panel pd-shape-organic p-6">
+            <div className="mb-5 flex items-center justify-between border-b border-[var(--pd-border)] pb-4">
+              <h2 className="text-lg font-semibold text-[var(--pd-text-primary)]">
                 {t("systemStatusTitle")}
               </h2>
-              <FaChartLine className="text-2xl text-(--ui-info)" />
+              <ChartLineIcon size={20} strokeWidth={1.7} className="text-[var(--pd-copper)]" />
             </div>
-            <div className="space-y-4">
+            <div className="divide-y divide-[var(--pd-border)]">
               {systemStatus.map((item, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between p-4 bg-(--ui-surface-2) rounded-lg border border-(--ui-border)"
-                >
+                <div key={index} className="flex items-center justify-between py-3.5">
                   <div className="flex items-center gap-3">
                     <item.icon className={getStatusColor(item.status)} />
-                    <span className="text-foreground font-medium">
+                    <span className="text-sm font-medium text-[var(--pd-text-secondary)]">
                       {item.label}
                     </span>
                   </div>
-                  <span className={`font-bold ${getStatusColor(item.status)}`}>
+                  <span className={`pd-tabular text-sm font-semibold ${getStatusColor(item.status)}`}>
                     {item.value}
                   </span>
                 </div>
@@ -343,7 +333,7 @@ export default function AdminDashboardPage() {
           </div>
 
           {/* Pending Approvals */}
-          <div className="card-glass rounded-xl shadow-(--shadow-soft) p-6 border border-(--ui-border)">
+          <div className="pd-panel pd-shape-layered p-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-foreground">
                 {t("pendingApprovalsTitle")}
@@ -447,7 +437,7 @@ export default function AdminDashboardPage() {
                               showError(err?.message || "Failed to reject");
                             }
                           }}
-                          className="flex-1 bg-(--ui-danger) hover:opacity-90 text-white px-3 py-2 rounded-lg text-sm transition-colors"
+                          className="flex-1 bg-(--ui-danger) hover:opacity-90 text-[var(--pd-on-accent)] px-3 py-2 rounded-lg text-sm transition-colors"
                         >
                           {t("pendingApprovals.reject")}
                         </button>

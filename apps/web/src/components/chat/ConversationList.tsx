@@ -1,6 +1,7 @@
+import { PaperclipIcon, SearchIcon, UserRoundIcon } from "lucide-react";
 import React from "react";
-import { FaPaperclip, FaSearch, FaUserInjured } from "react-icons/fa";
 import type { ChatConversation } from "@/features/chat/chatApi";
+import { getInitials } from "@/lib/format";
 
 export interface ConversationListProps {
   conversations: ChatConversation[];
@@ -13,14 +14,6 @@ export interface ConversationListProps {
   error: string | null;
   onRetry: () => void;
   isAr: boolean;
-}
-
-function getInitials(name?: string | null): string {
-  const raw = String(name || "").trim();
-  if (!raw) return "P";
-  const parts = raw.split(/\s+/).filter(Boolean);
-  if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-  return raw.slice(0, 2).toUpperCase();
 }
 
 function formatShortTime(raw?: string | Date, isAr = false): string {
@@ -67,26 +60,30 @@ export function ConversationList({
   });
 
   return (
-    <aside className="flex h-full flex-col border-e border-[var(--ui-border)] bg-[var(--ui-surface)]">
-      <div className="border-b border-[var(--ui-border)] p-4">
+    <aside className="flex h-full flex-col border-e border-[var(--pd-line)] bg-[var(--pd-canvas-raised)]">
+      <div className="border-b border-[var(--pd-line)] p-4">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-base font-bold text-[var(--ui-foreground)]">
+          <h2 className="text-base font-semibold text-[var(--pd-text-primary)]">
             {isAr ? "المحادثات" : "Conversations"}
           </h2>
-          <span className="rounded-full bg-[var(--ui-surface-2)] px-2.5 py-0.5 text-xs font-semibold text-[var(--ui-muted)]">
+          <span className="pd-tabular rounded-full border border-[var(--pd-line)] bg-[var(--pd-surface)] px-2.5 py-0.5 text-xs font-medium text-[var(--pd-text-muted)]">
             {conversations.length}
           </span>
         </div>
 
         <div className="relative">
-          <FaSearch className="pointer-events-none absolute start-3.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--ui-muted)]" />
+          <SearchIcon
+            size={15}
+            strokeWidth={1.7}
+            className="pointer-events-none absolute start-3.5 top-1/2 -translate-y-1/2 text-[var(--pd-text-muted)]"
+          />
           <input
             type="search"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder={isAr ? "ابحث عن مريض..." : "Search patients..."}
             aria-label={isAr ? "ابحث عن مريض" : "Search patients"}
-            className="w-full rounded-xl border border-[var(--ui-border)] bg-[var(--ui-surface-2)] py-2 pe-3 ps-9 text-sm text-[var(--ui-foreground)] outline-none transition focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-500)]/20"
+            className="pd-field !h-10 rounded-full ps-9 pe-3 text-sm"
           />
         </div>
       </div>
@@ -95,26 +92,19 @@ export function ConversationList({
         {loading && conversations.length === 0 ? (
           <div className="space-y-2 p-2">
             {[1, 2, 3, 4].map((i) => (
-              <div
-                key={i}
-                className="h-16 animate-pulse rounded-xl bg-[var(--ui-surface-2)]"
-              />
+              <div key={i} className="pd-skeleton h-16 rounded-[var(--shape-control)]" />
             ))}
           </div>
         ) : error ? (
           <div className="p-4 text-center">
-            <p className="mb-2 text-sm text-[var(--ui-danger)]">{error}</p>
-            <button
-              type="button"
-              onClick={onRetry}
-              className="rounded-xl bg-[var(--color-primary-500)] px-3 py-1.5 text-xs font-semibold text-white"
-            >
+            <p className="mb-2 text-sm text-[var(--pd-coral)]">{error}</p>
+            <button type="button" onClick={onRetry} className="pd-btn pd-btn--primary pd-btn--sm">
               {isAr ? "إعادة المحاولة" : "Retry"}
             </button>
           </div>
         ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center px-4 py-12 text-center text-[var(--ui-muted)]">
-            <FaUserInjured className="mb-2 h-8 w-8 opacity-40" />
+          <div className="flex flex-col items-center justify-center px-4 py-12 text-center text-[var(--pd-text-muted)]">
+            <UserRoundIcon size={30} strokeWidth={1.5} className="mb-2 opacity-40" />
             <p className="text-sm font-medium">
               {searchQuery
                 ? isAr
@@ -129,8 +119,7 @@ export function ConversationList({
           <ul className="space-y-1">
             {filtered.map((conv) => {
               const peer = conv.patient || conv.doctor;
-              const peerName =
-                peer?.fullName || peer?.email || (isAr ? "مريض" : "Patient");
+              const peerName = peer?.fullName || peer?.email || (isAr ? "مريض" : "Patient");
               const peerUserId = peer?.userId ? String(peer.userId) : "";
               const isOnline = peerUserId ? Boolean(presenceByUserId[peerUserId]) : false;
               const isActive = conv.id === activeChatId;
@@ -142,19 +131,23 @@ export function ConversationList({
                   <button
                     type="button"
                     onClick={() => onSelectChat(conv.id)}
-                    className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-start transition ${
+                    className={`flex w-full items-center gap-3 rounded-[var(--shape-control)] px-3 py-2.5 text-start transition-colors ${
                       isActive
-                        ? "bg-[var(--color-primary-500)]/12 ring-1 ring-[var(--color-primary-500)]/40"
-                        : "hover:bg-[var(--ui-surface-2)]"
+                        ? "border-s-3 border-[var(--pd-acid)] bg-[var(--pd-acid-soft)]"
+                        : "border-s-3 border-transparent hover:bg-[var(--pd-surface)]"
                     }`}
                   >
                     <div className="relative shrink-0">
-                      <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--color-primary-500)]/15 text-sm font-bold text-[var(--color-primary-500)]">
+                      <div
+                        className={`pd-orb text-xs font-semibold ${
+                          isActive ? "pd-orb--acid" : "pd-orb--orchid"
+                        }`}
+                      >
                         {getInitials(peerName)}
                       </div>
                       <span
-                        className={`absolute bottom-0 end-0 h-3 w-3 rounded-full ring-2 ring-[var(--ui-surface)] ${
-                          isOnline ? "bg-emerald-500" : "bg-slate-400"
+                        className={`absolute bottom-0 end-0 h-2.5 w-2.5 rounded-full ring-2 ring-[var(--pd-canvas-raised)] ${
+                          isOnline ? "bg-[var(--pd-success)]" : "bg-[var(--pd-text-subtle)]"
                         }`}
                         title={isOnline ? (isAr ? "متصل" : "Online") : isAr ? "غير متصل" : "Offline"}
                       />
@@ -162,21 +155,21 @@ export function ConversationList({
 
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="truncate text-sm font-bold text-[var(--ui-foreground)]">
+                        <span className="truncate text-sm font-semibold text-[var(--pd-text-primary)]">
                           {peerName}
                         </span>
                         {lastTime && (
-                          <span className="shrink-0 text-[11px] text-[var(--ui-muted)]">
+                          <span className="pd-tabular shrink-0 text-[11px] text-[var(--pd-text-muted)]">
                             {lastTime}
                           </span>
                         )}
                       </div>
 
                       <div className="mt-0.5 flex items-center justify-between gap-2">
-                        <span className="flex min-w-0 items-center gap-1 truncate text-xs text-[var(--ui-muted)]">
+                        <span className="flex min-w-0 items-center gap-1 truncate text-xs text-[var(--pd-text-muted)]">
                           {lastMsg?.fileUrl && !lastMsg?.text && (
                             <>
-                              <FaPaperclip className="h-3 w-3 shrink-0" />
+                              <PaperclipIcon size={12} strokeWidth={1.7} className="shrink-0" />
                               <span className="truncate">
                                 {lastMsg.fileName || (isAr ? "مرفق" : "Attachment")}
                               </span>
@@ -192,7 +185,7 @@ export function ConversationList({
                         </span>
 
                         {conv.unreadCount > 0 && (
-                          <span className="inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-[var(--color-primary-500)] px-1.5 text-[11px] font-bold text-white">
+                          <span className="pd-tabular inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-[var(--pd-acid)] px-1.5 text-[11px] font-semibold text-[var(--pd-on-accent)]">
                             {conv.unreadCount > 99 ? "99+" : conv.unreadCount}
                           </span>
                         )}

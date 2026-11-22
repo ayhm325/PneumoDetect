@@ -52,46 +52,35 @@ export function DataTable<T>({
   };
 
   return (
-    <div
-      className={`overflow-hidden rounded-2xl border border-[var(--ui-border)] bg-[var(--ui-surface-elevated)] shadow-[var(--shadow-card)] transition-all ${className}`}
-    >
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-[var(--ui-border)] text-start text-sm">
-          <thead className="bg-[var(--ui-surface-2)]/80 text-xs font-bold uppercase tracking-wider text-[var(--ui-muted-foreground)]">
+    <div className={`pd-panel overflow-hidden ${className}`}>
+      <div className="pd-scroll-x">
+        <table className="pd-table">
+          <thead>
             <tr>
               {columns.map((col) => (
-                <th
-                  key={col.key}
-                  className={`h-11 px-4 py-3 whitespace-nowrap ${getAlignClass(col.align)} ${col.className || ""}`}
-                >
+                <th key={col.key} className={`${getAlignClass(col.align)} ${col.className || ""}`}>
                   {col.header}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-[var(--ui-border)]">
+          <tbody>
             {isLoading
               ? Array.from({ length: skeletonRowCount }).map((_, rIdx) => (
-                  <tr key={`skeleton-row-${rIdx}`} className="h-14">
+                  <tr key={`skeleton-row-${rIdx}`}>
                     {columns.map((col, cIdx) => (
-                      <td key={`skeleton-col-${cIdx}`} className="px-4 py-3.5">
-                        <Skeleton
-                          variant="text"
-                          className={cIdx === 0 ? "h-4 w-3/4" : "h-4 w-1/2"}
-                        />
+                      <td key={`skeleton-col-${cIdx}`}>
+                        <Skeleton variant="text" className={cIdx === 0 ? "h-4 w-3/4" : "h-4 w-1/2"} />
                       </td>
                     ))}
                   </tr>
                 ))
               : data.map((row, idx) => (
-                  <tr
-                    key={rowKey(row, idx)}
-                    className="transition-colors duration-150 hover:bg-[var(--ui-surface-2)]/60 focus-within:bg-[var(--ui-surface-2)]/60"
-                  >
+                  <tr key={rowKey(row, idx)}>
                     {columns.map((col) => (
                       <td
                         key={col.key}
-                        className={`whitespace-nowrap px-4 py-3.5 text-[var(--ui-foreground)] leading-normal ${getAlignClass(col.align)} ${col.className || ""}`}
+                        className={`whitespace-nowrap text-[var(--pd-text-primary)] ${getAlignClass(col.align)} ${col.className || ""}`}
                       >
                         {col.render
                           ? col.render(row)

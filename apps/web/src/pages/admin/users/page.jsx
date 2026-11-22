@@ -1,4 +1,5 @@
 "use client";
+import { BriefcaseMedicalIcon, CalendarDaysIcon, CircleCheckIcon, CircleXIcon, ClockIcon, EyeIcon, EyeOffIcon, MailIcon, PhoneIcon, PlusIcon, SaveIcon, SearchIcon, UserCogIcon, UserRoundIcon, UsersIcon, XIcon } from "lucide-react";
 import { useState, useMemo, useEffect, useCallback } from "react";
 // Page is rendered inside the route-level AdminLayout; avoid double-wrapping
 import { useToast, ToastContainer } from "@/components/ui/ToastProvider";
@@ -6,24 +7,6 @@ import { Button, GlideSelect } from "@/components/ui";
 import { apiRequest } from "@/lib/apiClient";
 import useLocale from "@/lib/compat/intl";
 import { useTranslations } from "@/lib/compat/intl";
-import {
-  FaUsers,
-  FaUserShield,
-  FaUserMd,
-  FaUserInjured,
-  FaSearch,
-  FaPlus,
-  FaEye,
-  FaEyeSlash,
-  FaTimes,
-  FaSave,
-  FaEnvelope,
-  FaPhone,
-  FaCalendarAlt,
-  FaCheckCircle,
-  FaTimesCircle,
-  FaClock,
-} from "react-icons/fa";
 
 export default function UsersPage() {
   const { showSuccess, showError, showWarning, showInfo } = useToast();
@@ -137,22 +120,22 @@ export default function UsersPage() {
     {
       title: t("stats.totalUsers"),
       value: users.length,
-      icon: FaUsers,
+      icon: UsersIcon,
     },
     {
       title: t("stats.admins"),
       value: users.filter((u) => u.role === "admin").length,
-      icon: FaUserShield,
+      icon: UserCogIcon,
     },
     {
       title: t("stats.doctors"),
       value: users.filter((u) => u.role === "doctor").length,
-      icon: FaUserMd,
+      icon: BriefcaseMedicalIcon,
     },
     {
       title: t("stats.patients"),
       value: users.filter((u) => u.role === "patient").length,
-      icon: FaUserInjured,
+      icon: UserRoundIcon,
     },
   ];
 
@@ -282,7 +265,7 @@ export default function UsersPage() {
           </div>
           <div className="flex gap-3">
             <Button onClick={() => setShowAddModal(true)}>
-              <FaPlus />
+              <PlusIcon />
               <span>{t("addButton")}</span>
             </Button>
           </div>
@@ -292,11 +275,11 @@ export default function UsersPage() {
           {stats.map((stat, index) => (
             <div
               key={index}
-              className="card-glass rounded-xl shadow-(--shadow-soft) p-6 border border-(--ui-border)"
+              className="pd-panel pd-shape-asymmetric shadow-(--shadow-soft) p-6 border border-(--ui-border)"
             >
               <div className="flex items-center gap-4">
-                <div className="p-3 rounded-lg brand-gradient shadow-(--shadow-soft)">
-                  <stat.icon className="text-2xl text-white" />
+                <div className="p-3 pd-shape-orbital brand-gradient shadow-(--shadow-soft)">
+                  <stat.icon className="text-2xl text-[var(--pd-on-accent)]" />
                 </div>
                 <div>
                   <p className="text-(--ui-muted-2) text-sm">{stat.title}</p>
@@ -310,10 +293,10 @@ export default function UsersPage() {
         </div>
 
         {/* Filters */}
-        <div className="card-glass rounded-xl shadow-(--shadow-soft) p-6 mb-8 border border-(--ui-border)">
+        <div className="pd-panel pd-shape-layered shadow-(--shadow-soft) p-6 mb-8 border border-(--ui-border)">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="relative">
-              <FaSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 text-(--ui-muted-2)" />
+              <SearchIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 text-(--ui-muted-2)" />
               <input
                 type="text"
                 placeholder={t("searchPlaceholder")}
@@ -349,7 +332,7 @@ export default function UsersPage() {
         </div>
 
         {/* Users Table */}
-        <div className="card-glass rounded-xl shadow-(--shadow-soft) border border-(--ui-border) overflow-hidden">
+        <div className="pd-panel pd-shape-organic shadow-(--shadow-soft) border border-(--ui-border) overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-(--ui-surface-2) border-b border-(--ui-border)">
@@ -423,7 +406,7 @@ export default function UsersPage() {
                           className="p-2 text-(--ui-info) hover:bg-(--ui-info-bg) rounded-lg transition-colors"
                           title={t("actions.viewDetails")}
                         >
-                          <FaEye />
+                          <EyeIcon />
                         </button>
                         {/* Toggle Active/Banned */}
                         <button
@@ -436,9 +419,9 @@ export default function UsersPage() {
                           }
                         >
                           {user.isActive ? (
-                            <FaTimesCircle />
+                            <CircleXIcon />
                           ) : (
-                            <FaCheckCircle />
+                            <CircleCheckIcon />
                           )}
                         </button>
                       </div>
@@ -453,7 +436,7 @@ export default function UsersPage() {
         {/* Add Admin Modal */}
         {showAddModal && (
           <div className="fixed inset-0 bg-(--color-neutral)/50 flex items-center justify-center z-50 p-4">
-            <div className="card-glass rounded-xl shadow-(--shadow-lift) max-w-md w-full p-6">
+            <div className="pd-panel pd-shape-asymmetric shadow-(--shadow-lift) max-w-md w-full p-6">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-bold text-foreground">
                   {t("modal.addTitle")}
@@ -462,7 +445,7 @@ export default function UsersPage() {
                   onClick={() => setShowAddModal(false)}
                   className="p-2 hover:bg-(--ui-surface-2) rounded-lg"
                 >
-                  <FaTimes className="text-(--ui-muted-2)" />
+                  <XIcon className="text-(--ui-muted-2)" />
                 </button>
               </div>
               <div className="space-y-4">
@@ -522,7 +505,7 @@ export default function UsersPage() {
                           : t("actions.showPassword")
                       }
                     >
-                      {showPassword ? <FaEyeSlash /> : <FaEye />}
+                      {showPassword ? <EyeOffIcon /> : <EyeIcon />}
                     </button>
                   </div>
                 </div>
@@ -534,7 +517,7 @@ export default function UsersPage() {
                   isLoading={submitting}
                   fullWidth
                 >
-                  <FaSave />
+                  <SaveIcon />
                   <span>{t("modal.add")}</span>
                 </Button>
                 <Button
@@ -553,7 +536,7 @@ export default function UsersPage() {
         {/* Details Modal */}
         {showDetailsModal && selectedUser && (
           <div className="fixed inset-0 bg-(--color-neutral)/50 flex items-center justify-center z-50 p-4">
-            <div className="card-glass rounded-xl shadow-(--shadow-lift) max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
+            <div className="pd-panel pd-shape-layered shadow-(--shadow-lift) max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-bold text-foreground">
                   {t("modal.detailsTitle")}
@@ -562,7 +545,7 @@ export default function UsersPage() {
                   onClick={() => setShowDetailsModal(false)}
                   className="p-2 hover:bg-(--ui-surface-2) rounded-lg"
                 >
-                  <FaTimes className="text-(--ui-muted-2)" />
+                  <XIcon className="text-(--ui-muted-2)" />
                 </button>
               </div>
 
@@ -590,7 +573,7 @@ export default function UsersPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="p-4 bg-(--ui-surface-2) border border-(--ui-border) rounded-lg">
                   <div className="flex items-center gap-2 text-(--ui-muted-2) mb-1">
-                    <FaEnvelope />
+                    <MailIcon />
                     <span className="text-sm">{t("details.email")}</span>
                   </div>
                   <p className="font-medium text-foreground">
@@ -600,7 +583,7 @@ export default function UsersPage() {
 
                 <div className="p-4 bg-(--ui-surface-2) border border-(--ui-border) rounded-lg">
                   <div className="flex items-center gap-2 text-(--ui-muted-2) mb-1">
-                    <FaPhone />
+                    <PhoneIcon />
                     <span className="text-sm">{t("details.phone")}</span>
                   </div>
                   <p className="font-medium text-foreground">
@@ -610,7 +593,7 @@ export default function UsersPage() {
 
                 <div className="p-4 bg-(--ui-surface-2) border border-(--ui-border) rounded-lg">
                   <div className="flex items-center gap-2 text-(--ui-muted-2) mb-1">
-                    <FaCalendarAlt />
+                    <CalendarDaysIcon />
                     <span className="text-sm">{t("details.joinDate")}</span>
                   </div>
                   <p className="font-medium text-foreground">
@@ -620,7 +603,7 @@ export default function UsersPage() {
 
                 <div className="p-4 bg-(--ui-surface-2) border border-(--ui-border) rounded-lg">
                   <div className="flex items-center gap-2 text-(--ui-muted-2) mb-1">
-                    <FaClock />
+                    <ClockIcon />
                     <span className="text-sm">{t("details.lastLogin")}</span>
                   </div>
                   <p className="font-medium text-foreground">
@@ -678,7 +661,7 @@ export default function UsersPage() {
         {/* Delete Confirmation Modal */}
         {showDeleteModal && selectedUser && (
           <div className="fixed inset-0 bg-(--color-neutral)/50 flex items-center justify-center z-50 p-4">
-            <div className="card-glass rounded-xl shadow-(--shadow-lift) max-w-md w-full p-6">
+            <div className="pd-panel pd-shape-organic shadow-(--shadow-lift) max-w-md w-full p-6">
               <div className="text-center mb-6">
                 <div className="text-6xl mb-4">⚠️</div>
                 <h3 className="text-xl font-bold text-foreground mb-2">
@@ -699,7 +682,7 @@ export default function UsersPage() {
               <div className="flex gap-3">
                 <button
                   onClick={handleToggleUser}
-                  className={`flex-1 ${selectedUser.isActive ? "bg-(--ui-danger) text-white hover:opacity-90" : "bg-(--ui-success) text-white hover:opacity-90"} px-4 py-3 rounded-lg transition-colors font-medium`}
+                  className={`flex-1 ${selectedUser.isActive ? "bg-(--ui-danger) text-[var(--pd-on-accent)] hover:opacity-90" : "bg-(--ui-success) text-[var(--pd-on-accent)] hover:opacity-90"} px-4 py-3 rounded-lg transition-colors font-medium`}
                 >
                   {selectedUser.isActive
                     ? t("modal.confirmDisable")

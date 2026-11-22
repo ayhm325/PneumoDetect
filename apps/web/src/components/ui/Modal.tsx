@@ -1,8 +1,8 @@
+import { XIcon } from "lucide-react";
 import React, { useEffect, useRef } from "react";
 import clsx from "clsx";
-import { AnimatePresence, motion } from "framer-motion";
-import { FaTimes } from "react-icons/fa";
-import { backdropVariants, dialogVariants } from "@/lib/motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { backdropVariants, dialogVariants, reducedMotionVariants } from "@/lib/motion";
 
 export type ModalSize = "sm" | "md" | "lg" | "xl" | "full";
 
@@ -36,24 +36,26 @@ export function Modal({
   showCloseButton = true,
 }: ModalProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
+  const reduceMotion = useReducedMotion();
 
   useEffect(() => {
     if (!isOpen) return;
-
-    // Body scroll lock
+    const prevFocus = document.activeElement as HTMLElement | null;
     const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
+    // Move focus into the dialog for keyboard accessibility
+    dialogRef.current?.focus({ preventScroll: true });
+
     function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        onClose();
-      }
+      if (event.key === "Escape") onClose();
     }
 
     document.addEventListener("keydown", handleKeyDown);
     return () => {
       document.body.style.overflow = originalOverflow;
       document.removeEventListener("keydown", handleKeyDown);
+      prevFocus?.focus?.({ preventScroll: true });
     };
   }, [isOpen, onClose]);
 
@@ -61,43 +63,43 @@ export function Modal({
     <AnimatePresence>
       {isOpen && (
         <div
-          className="fixed inset-0 z-[var(--z-modal,210)] flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
+          className="fixed inset-0 z-[var(--z-modal,210)] flex items-center justify-center overflow-y-auto p-3 sm:p-4"
           role="dialog"
           aria-modal="true"
           aria-labelledby={title ? "modal-title" : undefined}
           aria-describedby={description ? "modal-description" : undefined}
         >
-          {/* Backdrop */}
           <motion.div
             variants={backdropVariants}
             initial="initial"
             animate="animate"
             exit="exit"
-            className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm"
+            className="fixed inset-0 bg-[var(--pd-scrim)] backdrop-blur-sm"
             onClick={onClose}
             aria-hidden="true"
           />
 
-          {/* Modal Container */}
           <motion.div
             ref={dialogRef}
-            variants={dialogVariants}
+            tabIndex={-1}
+            variants={reduceMotion ? reducedMotionVariants : dialogVariants}
             initial="initial"
             animate="animate"
             exit="exit"
             className={clsx(
-              "relative z-10 my-8 w-full overflow-hidden rounded-[22px] border border-[var(--ui-border)] bg-[var(--ui-surface-elevated)] p-6 sm:p-7 shadow-[var(--shadow-lift)] text-[var(--ui-foreground)]",
+              "pd-panel pd-panel--feature relative z-10 my-8 w-full overflow-hidden p-6 sm:p-7 outline-none",
+              "shadow-[var(--pd-shadow-float)]",
               sizeClasses[size],
               className,
             )}
           >
             {(title || showCloseButton) && (
-              <div className="mb-4 flex items-start justify-between gap-4">
-                <div className="space-y-1 pr-6">
+              <div className="mb-5 flex items-start justify-between gap-4 border-b border-[var(--pd-line)] pb-4">
+                <div className="min-w-0 space-y-1">
                   {title && (
                     <h3
                       id="modal-title"
-                      className="text-lg sm:text-xl font-bold leading-tight text-[var(--ui-foreground)]"
+                      className="text-[length:var(--text-xl)] font-semibold leading-snug tracking-[var(--tracking-heading)] text-[var(--pd-text-primary)]"
                     >
                       {title}
                     </h3>
@@ -105,7 +107,7 @@ export function Modal({
                   {description && (
                     <p
                       id="modal-description"
-                      className="text-sm text-[var(--ui-muted-foreground)] leading-normal"
+                      className="text-sm leading-relaxed text-[var(--pd-text-muted)]"
                     >
                       {description}
                     </p>
@@ -116,14 +118,14 @@ export function Modal({
                     type="button"
                     onClick={onClose}
                     aria-label="Close dialog"
-                    className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-[var(--ui-border)] text-[var(--ui-muted)] hover:bg-[var(--ui-surface-2)] hover:text-[var(--ui-foreground)] transition focus-visible:outline-2 focus-visible:outline-sky-400"
+                    className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[var(--pd-line)] bg-[var(--pd-canvas-raised)] text-[var(--pd-text-muted)] transition-colors hover:border-[var(--pd-line-strong)] hover:text-[var(--pd-text-primary)]"
                   >
-                    <FaTimes className="h-3.5 w-3.5" />
+                    <XIcon className="h-4 w-4" strokeWidth={1.7} />
                   </button>
                 )}
               </div>
             )}
-            <div className="max-h-[calc(85vh-6rem)] overflow-y-auto pr-1">
+            <div className="max-h-[calc(85vh-7rem)] overflow-y-auto pe-1">
               {children}
             </div>
           </motion.div>

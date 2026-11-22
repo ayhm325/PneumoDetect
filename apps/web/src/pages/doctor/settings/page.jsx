@@ -1,18 +1,9 @@
 "use client";
 
+import { BriefcaseMedicalIcon, EyeIcon, EyeOffIcon, LockIcon, MailIcon, PhoneIcon, SaveIcon, UserIcon } from "lucide-react";
 import DoctorLayout from "../DoctorLayout";
 import { useToast } from "@/components/ui/ToastProvider";
 import { useState, useEffect } from "react";
-import {
-  FaUser,
-  FaLock,
-  FaEnvelope,
-  FaPhone,
-  FaSave,
-  FaUserMd,
-  FaEye,
-  FaEyeSlash,
-} from "react-icons/fa";
 import { useTranslations } from "@/lib/compat/intl";
 import useLocale from "@/lib/compat/intl";
 import { apiRequest } from "@/lib/apiClient";
@@ -181,16 +172,16 @@ export default function DoctorSettingsPage() {
           {/* Header */}
           <div>
             <h1 className="text-3xl font-bold text-(--ui-foreground) flex items-center gap-3">
-              <FaUserMd className="text-(--ui-info)" />
+              <BriefcaseMedicalIcon className="text-(--ui-info)" />
               {t("title")}
             </h1>
             <p className="mt-2 text-(--ui-muted-foreground)">{t("subtitle")}</p>
           </div>
 
           {/* Profile Settings */}
-          <Card size="lg">
+          <Card variant="feature" size="lg">
             <div className="mb-6 flex items-center gap-3">
-              <FaUserMd className="text-2xl text-(--ui-info)" />
+              <BriefcaseMedicalIcon className="text-2xl text-(--ui-info)" />
               <h2 className="text-2xl font-bold text-(--ui-foreground)">
                 {t("profile.header")}
               </h2>
@@ -199,7 +190,7 @@ export default function DoctorSettingsPage() {
             <div className="grid gap-6 md:grid-cols-2">
               <div>
                 <label className="mb-2 block text-sm font-medium text-(--ui-muted-foreground)">
-                  <FaUser className="inline ml-2" /> {t("profile.name")}
+                  <UserIcon className="inline ml-2" /> {t("profile.name")}
                 </label>
                 <input
                   type="text"
@@ -213,7 +204,7 @@ export default function DoctorSettingsPage() {
 
               <div>
                 <label className="mb-2 block text-sm font-medium text-(--ui-muted-foreground)">
-                  <FaEnvelope className="inline ml-2" /> {t("profile.email")}
+                  <MailIcon className="inline ml-2" /> {t("profile.email")}
                 </label>
                 <input
                   type="email"
@@ -227,7 +218,7 @@ export default function DoctorSettingsPage() {
 
               <div>
                 <label className="mb-2 block text-sm font-medium text-(--ui-muted-foreground)">
-                  <FaPhone className="inline ml-2" /> {t("profile.phone")}
+                  <PhoneIcon className="inline ml-2" /> {t("profile.phone")}
                 </label>
                 <input
                   type="tel"
@@ -276,15 +267,15 @@ export default function DoctorSettingsPage() {
               size="sm"
               className="mt-6 flex items-center gap-2 px-6"
             >
-              <FaSave />
+              <SaveIcon />
               {t("profile.save")}
             </Button>
           </Card>
 
           {/* Security Settings */}
-          <Card size="lg">
+          <Card variant="clinical" size="lg">
             <div className="mb-6 flex items-center gap-3">
-              <FaLock className="text-2xl text-(--ui-info)" />
+              <LockIcon className="text-2xl text-(--ui-info)" />
               <h2 className="text-2xl font-bold text-(--ui-foreground)">
                 {t("change_password")}
               </h2>
@@ -318,7 +309,7 @@ export default function DoctorSettingsPage() {
                     }
                     className="absolute left-3 top-1/2 -translate-y-1/2 text-(--ui-muted-foreground) hover:text-(--ui-foreground)"
                   >
-                    {showPassword.current ? <FaEyeSlash /> : <FaEye />}
+                    {showPassword.current ? <EyeOffIcon /> : <EyeIcon />}
                   </button>
                 </div>
               </div>
@@ -347,7 +338,7 @@ export default function DoctorSettingsPage() {
                     }
                     className="absolute left-3 top-1/2 -translate-y-1/2 text-(--ui-muted-foreground) hover:text-(--ui-foreground)"
                   >
-                    {showPassword.new ? <FaEyeSlash /> : <FaEye />}
+                    {showPassword.new ? <EyeOffIcon /> : <EyeIcon />}
                   </button>
                 </div>
                 <p className="mt-1 text-sm text-(--ui-muted-foreground)">
@@ -382,7 +373,7 @@ export default function DoctorSettingsPage() {
                     }
                     className="absolute left-3 top-1/2 -translate-y-1/2 text-(--ui-muted-foreground) hover:text-(--ui-foreground)"
                   >
-                    {showPassword.confirm ? <FaEyeSlash /> : <FaEye />}
+                    {showPassword.confirm ? <EyeOffIcon /> : <EyeIcon />}
                   </button>
                 </div>
               </div>
@@ -396,7 +387,7 @@ export default function DoctorSettingsPage() {
               size="sm"
               className="mt-6 flex items-center gap-2 px-6"
             >
-              <FaLock />
+              <LockIcon />
               {t("change_password")}
             </Button>
           </Card>

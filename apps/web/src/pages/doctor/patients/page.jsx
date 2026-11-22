@@ -1,28 +1,10 @@
 "use client";
 
+import { CalendarDaysIcon, CircleCheckIcon, ClockIcon, EyeIcon, FileTextIcon, HistoryIcon, HospitalIcon, ListFilterIcon, MailIcon, MessagesSquareIcon, PhoneIcon, SearchIcon, TriangleAlertIcon, UserIcon, UserPlusIcon, UsersIcon, XIcon } from "lucide-react";
 import DoctorLayout from "../DoctorLayout";
 import { useToast } from "@/components/ui/ToastProvider";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "@/lib/compat/navigation";
-import {
-  FaUsers,
-  FaUser,
-  FaSearch,
-  FaFilter,
-  FaEye,
-  FaComments,
-  FaFileAlt,
-  FaPhone,
-  FaEnvelope,
-  FaCalendarAlt,
-  FaCheckCircle,
-  FaExclamationTriangle,
-  FaClock,
-  FaUserPlus,
-  FaTimes,
-  FaHistory,
-  FaHospital,
-} from "react-icons/fa";
 import { useLocale, useTranslations } from "@/lib/compat/intl";
 import { formatDate } from "@/lib/date";
 import { apiRequest } from "@/lib/apiClient";
@@ -187,19 +169,19 @@ export default function DoctorPatientsPage({ locale }) {
         label: t("statuses.stable"),
         color:
           "bg-(--ui-success) text-(--ui-success-foreground) border-(--ui-success-border)",
-        icon: FaCheckCircle,
+        icon: CircleCheckIcon,
       },
       critical: {
         label: t("statuses.critical"),
         color:
           "bg-(--ui-danger) text-(--ui-danger-foreground) border-(--ui-danger-border)",
-        icon: FaExclamationTriangle,
+        icon: TriangleAlertIcon,
       },
       recovering: {
         label: t("statuses.recovering"),
         color:
           "bg-(--ui-warning) text-(--ui-warning-foreground) border-(--ui-warning-border)",
-        icon: FaClock,
+        icon: ClockIcon,
       },
     };
     return config[status] || config.stable;
@@ -229,7 +211,7 @@ export default function DoctorPatientsPage({ locale }) {
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <h1 className="text-3xl font-bold text-(--ui-foreground) flex items-center gap-3">
-                <FaUsers className="text-(--ui-info)" />
+                <UsersIcon className="text-(--ui-info)" />
                 {t("title")}
               </h1>
               <p className="mt-2 text-(--ui-muted-foreground)">
@@ -242,39 +224,39 @@ export default function DoctorPatientsPage({ locale }) {
 
           {/* Stats Cards */}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <StatCard
+            <StatCard shape="orbital"
               label={t("stats.total")}
               value={stats.total}
-              icon={<FaUsers />}
+              icon={<UsersIcon />}
               tone="info"
             />
-            <StatCard
+            <StatCard shape="editorial"
               label={t("stats.stable")}
               value={stats.stable}
-              icon={<FaCheckCircle />}
+              icon={<CircleCheckIcon />}
               tone="success"
             />
-            <StatCard
+            <StatCard shape="layered"
               label={t("stats.critical")}
               value={stats.critical}
-              icon={<FaExclamationTriangle />}
+              icon={<TriangleAlertIcon />}
               tone="danger"
             />
-            <StatCard
+            <StatCard shape="slanted"
               label={t("stats.recovering")}
               value={stats.recovering}
-              icon={<FaClock />}
+              icon={<ClockIcon />}
               tone="warning"
             />
           </div>
 
           {/* Filters */}
-          <Card>
+          <Card variant="feature">
             <div className="flex flex-wrap items-center gap-4">
               {/* Search */}
               <div className="flex-1 min-w-62.5">
                 <div className="relative">
-                  <FaSearch className="absolute right-3 top-1/2 -translate-y-1/2 text-(--ui-muted-foreground)" />
+                  <SearchIcon className="absolute right-3 top-1/2 -translate-y-1/2 text-(--ui-muted-foreground)" />
                   <input
                     type="text"
                     placeholder={t("searchPlaceholder")}
@@ -287,7 +269,7 @@ export default function DoctorPatientsPage({ locale }) {
 
               {/* Status Filter */}
               <div className="flex items-center gap-2">
-                <FaFilter className="text-(--ui-muted-foreground)" />
+                <ListFilterIcon className="text-(--ui-muted-foreground)" />
                 <GlideSelect
                   value={filterStatus}
                   onChange={(val) => setFilterStatus(val)}
@@ -308,7 +290,7 @@ export default function DoctorPatientsPage({ locale }) {
               <ProfileMediaCard
                 key={patient.id}
                 isAvatar
-                mediaNode={<FaUser className="text-xl" />}
+                mediaNode={<UserIcon className="text-xl" />}
                 title={patient.name}
                 subtitle={`${patient.age} ${t("ageSuffix")}${
                   patient.gender ? ` • ${getGenderLabel(patient.gender)}` : ""
@@ -321,7 +303,7 @@ export default function DoctorPatientsPage({ locale }) {
                       size="sm"
                       className="flex items-center justify-center gap-2"
                     >
-                      <FaEye />
+                      <EyeIcon />
                       {t("actions.view")}
                     </Button>
                     <Button
@@ -332,7 +314,7 @@ export default function DoctorPatientsPage({ locale }) {
                       className="px-3.5"
                       title={t("actions.results")}
                     >
-                      <FaFileAlt />
+                      <FileTextIcon />
                     </Button>
                     <Button
                       onClick={() => handleStartChat(patient)}
@@ -341,7 +323,7 @@ export default function DoctorPatientsPage({ locale }) {
                       className="px-3.5"
                       title={t("actions.chat")}
                     >
-                      <FaComments />
+                      <MessagesSquareIcon />
                     </Button>
                   </>
                 }
@@ -349,19 +331,19 @@ export default function DoctorPatientsPage({ locale }) {
                 {/* Patient Info */}
                 <div className="mb-3 space-y-1.5">
                   <div className="flex items-center gap-2 text-xs">
-                    <FaPhone className="text-(--ui-muted-foreground)" />
+                    <PhoneIcon className="text-(--ui-muted-foreground)" />
                     <span className="text-(--ui-foreground)">
                       {patient.phone}
                     </span>
                   </div>
                   <div className="flex items-center gap-2 text-xs">
-                    <FaEnvelope className="text-(--ui-muted-foreground)" />
+                    <MailIcon className="text-(--ui-muted-foreground)" />
                     <span className="text-(--ui-foreground) truncate">
                       {patient.email}
                     </span>
                   </div>
                   <div className="flex items-center gap-2 text-xs">
-                    <FaCalendarAlt className="text-(--ui-muted-foreground)" />
+                    <CalendarDaysIcon className="text-(--ui-muted-foreground)" />
                     <span className="text-(--ui-muted-foreground)">
                       {t("labels.lastVisit")}
                     </span>
@@ -407,8 +389,8 @@ export default function DoctorPatientsPage({ locale }) {
           </div>
 
           {filteredPatients.length === 0 && (
-            <Card className="p-12 text-center">
-              <FaUsers className="mx-auto mb-4 text-5xl text-(--ui-muted-foreground) opacity-50" />
+            <Card variant="clinical" className="p-12 text-center">
+              <UsersIcon className="mx-auto mb-4 text-5xl text-(--ui-muted-foreground) opacity-50" />
               <p className="text-lg text-(--ui-muted-foreground)">
                 {t("emptyState")}
               </p>
@@ -443,7 +425,7 @@ export default function DoctorPatientsPage({ locale }) {
                 onClick={() => setViewModalOpen(false)}
                 className="rounded-lg p-2 text-(--ui-muted-foreground) transition-all hover:bg-(--ui-surface-2)"
               >
-                <FaTimes className="text-xl" />
+                <XIcon className="text-xl" />
               </button>
             </div>
 
@@ -453,7 +435,7 @@ export default function DoctorPatientsPage({ locale }) {
                 {/* Contact Info */}
                 <div className="rounded-lg bg-(--ui-surface-2) border border-(--ui-border) p-4">
                   <h3 className="mb-3 font-bold text-(--ui-foreground) flex items-center gap-2">
-                    <FaPhone className="text-(--ui-info)" />
+                    <PhoneIcon className="text-(--ui-info)" />
                     {t("sections.contact")}
                   </h3>
                   <div className="space-y-2 text-sm">
@@ -479,7 +461,7 @@ export default function DoctorPatientsPage({ locale }) {
                 {/* Medical Info */}
                 <div className="rounded-lg bg-(--ui-surface-2) border border-(--ui-border) p-4">
                   <h3 className="mb-3 font-bold text-(--ui-foreground) flex items-center gap-2">
-                    <FaHospital className="text-(--ui-danger)" />
+                    <HospitalIcon className="text-(--ui-danger)" />
                     {t("sections.medical")}
                   </h3>
                   <div className="space-y-2 text-sm">
@@ -508,7 +490,7 @@ export default function DoctorPatientsPage({ locale }) {
                 ) && (
                   <div className="md:col-span-2 rounded-lg bg-(--ui-surface-2) border border-(--ui-border) p-4">
                     <h3 className="mb-2 font-bold text-(--ui-foreground) flex items-center gap-2">
-                      <FaFileAlt />
+                      <FileTextIcon />
                       {t("sections.diagnosis")}
                     </h3>
                     <p className="text-(--ui-foreground)">
@@ -520,7 +502,7 @@ export default function DoctorPatientsPage({ locale }) {
                 {/* Appointments */}
                 <div className="rounded-lg bg-(--ui-surface-2) border border-(--ui-border) p-4">
                   <h3 className="mb-3 font-bold text-(--ui-foreground) flex items-center gap-2">
-                    <FaCalendarAlt className="text-(--ui-success)" />
+                    <CalendarDaysIcon className="text-(--ui-success)" />
                     {t("sections.appointments")}
                   </h3>
                   <div className="space-y-2 text-sm">
@@ -554,7 +536,7 @@ export default function DoctorPatientsPage({ locale }) {
                 {/* Stats */}
                 <div className="rounded-lg bg-(--ui-surface-2) border border-(--ui-border) p-4">
                   <h3 className="mb-3 font-bold text-(--ui-foreground) flex items-center gap-2">
-                    <FaHistory className="text-(--ui-info)" />
+                    <HistoryIcon className="text-(--ui-info)" />
                     {t("sections.stats")}
                   </h3>
                   <div className="space-y-2 text-sm">

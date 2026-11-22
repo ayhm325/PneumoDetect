@@ -46,13 +46,13 @@ function DoctorDetailsCard({ doctor, onApprove, onReject, onClose }) {
       {statusKey === "pending" && (
         <div className="flex gap-3 mt-6">
           <button
-            className="flex-1 px-6 py-2 rounded-full bg-(--ui-success) text-white border border-(--ui-success-border) font-bold"
+            className="flex-1 px-6 py-2 rounded-full bg-(--ui-success) text-[var(--pd-on-accent)] border border-(--ui-success-border) font-bold"
             onClick={() => onApprove?.(doctor)}
           >
             {t("approve")}
           </button>
           <button
-            className="flex-1 px-6 py-2 rounded-full bg-(--ui-danger) text-white border border-(--ui-danger-border) font-bold"
+            className="flex-1 px-6 py-2 rounded-full bg-(--ui-danger) text-[var(--pd-on-accent)] border border-(--ui-danger-border) font-bold"
             onClick={() => onReject?.(doctor)}
           >
             {t("reject")}

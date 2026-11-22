@@ -1,1 +1,32 @@
-import React from "react";import clsx from "clsx";type AlertVariant = "error" | "success" | "info";type AlertProps = {  children: React.ReactNode;  variant?: AlertVariant;  className?: string;};const variantClasses: Record<AlertVariant, string> = {  error: "border-[var(--ui-danger-border)] bg-[var(--ui-danger-bg)] text-[var(--ui-foreground)]",  success: "border-[var(--ui-success-border)] bg-[var(--ui-success-bg)] text-[var(--ui-foreground)]",  info: "border-[var(--ui-info-border)] bg-[var(--ui-info-bg)] text-[var(--ui-foreground)]",};export function Alert({ children, variant = "error", className }: AlertProps) {  return (    <div      role="alert"      className={clsx("ui-future-chip rounded-xl border px-3 py-2 text-sm", variantClasses[variant], className)}    >      {children}    </div>  );}
+import React from "react";
+import clsx from "clsx";
+
+type AlertVariant = "error" | "success" | "info" | "warning";
+
+type AlertProps = {
+  children: React.ReactNode;
+  variant?: AlertVariant;
+  className?: string;
+};
+
+const variantClasses: Record<AlertVariant, string> = {
+  error: "border-[color-mix(in_srgb,var(--pd-coral)_36%,transparent)] bg-[var(--pd-coral-soft)] text-[var(--pd-text-primary)]",
+  success: "border-[color-mix(in_srgb,var(--pd-success)_36%,transparent)] bg-[var(--pd-moss-soft)] text-[var(--pd-text-primary)]",
+  info: "border-[color-mix(in_srgb,var(--pd-orchid)_34%,transparent)] bg-[var(--pd-orchid-soft)] text-[var(--pd-text-primary)]",
+  warning: "border-[color-mix(in_srgb,var(--pd-marigold)_36%,transparent)] bg-[var(--pd-marigold-soft)] text-[var(--pd-text-primary)]",
+};
+
+export function Alert({ children, variant = "error", className }: AlertProps) {
+  return (
+    <div
+      role="alert"
+      className={clsx(
+        "rounded-[var(--shape-leaf)] border px-4 py-3 text-sm leading-relaxed",
+        variantClasses[variant],
+        className,
+      )}
+    >
+      {children}
+    </div>
+  );
+}

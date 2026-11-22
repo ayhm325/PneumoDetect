@@ -1,4 +1,5 @@
 "use client";
+import { ArrowRightIcon, BriefcaseMedicalIcon, CalendarDaysIcon, ChartLineIcon, CircleCheckIcon, ClipboardListIcon, ClockIcon, HourglassIcon, MessagesSquareIcon, ScanLineIcon, TriangleAlertIcon, UsersIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useToast } from "@/components/ui/ToastProvider";
 import { useRouter } from "@/lib/compat/navigation";
@@ -8,22 +9,8 @@ import { formatTime } from "@/lib/date";
 import { formatActivityDescription } from "@/lib/activityFormat";
 import useSocket from "@/components/chat/useSocket.client";
 import { apiFetch, apiRequest } from "@/lib/apiClient";
-import { Button, Card, StatCard } from "@/components/ui";
+import { Button, StatCard, Surface } from "@/components/ui";
 import { PageHeader } from "@/components/ui/PageHeader";
-import {
-  FaUserMd,
-  FaUsers,
-  FaCalendarAlt,
-  FaXRay,
-  FaComments,
-  FaCheckCircle,
-  FaHourglassHalf,
-  FaExclamationTriangle,
-  FaArrowRight,
-  FaClock,
-  FaChartLine,
-  FaClipboardList,
-} from "react-icons/fa";
 
 export default function DashboardHome({ serverData = {} }) {
   const { showSuccess, showError, showInfo, showWarning } = useToast();
@@ -311,7 +298,7 @@ export default function DashboardHome({ serverData = {} }) {
     {
       title: labels.stats.patients,
       value: effectiveData.counts?.patients ?? 0,
-      icon: FaUsers,
+      icon: UsersIcon,
       color: "bg-(--ui-info)",
       bgLight: "bg-(--ui-info-bg)",
       textColor: "text-(--ui-info)",
@@ -319,7 +306,7 @@ export default function DashboardHome({ serverData = {} }) {
     {
       title: labels.stats.todayAppointments,
       value: effectiveData.counts?.todayAppointments ?? 0,
-      icon: FaCalendarAlt,
+      icon: CalendarDaysIcon,
       color: "bg-(--ui-success)",
       bgLight: "bg-(--ui-success-bg)",
       textColor: "text-(--ui-success)",
@@ -327,7 +314,7 @@ export default function DashboardHome({ serverData = {} }) {
     {
       title: labels.stats.pendingScans,
       value: effectiveData.counts?.pendingScans ?? 0,
-      icon: FaXRay,
+      icon: ScanLineIcon,
       color: "bg-(--ui-warning)",
       bgLight: "bg-(--ui-warning-bg)",
       textColor: "text-(--ui-warning)",
@@ -335,7 +322,7 @@ export default function DashboardHome({ serverData = {} }) {
     {
       title: labels.stats.newMessages,
       value: liveNewMessages,
-      icon: FaComments,
+      icon: MessagesSquareIcon,
       color: "bg-(--ui-info)",
       bgLight: "bg-(--ui-info-bg)",
       textColor: "text-(--ui-info)",
@@ -367,7 +354,7 @@ export default function DashboardHome({ serverData = {} }) {
             locale,
           ),
           time: formatDateTime(r.time),
-          icon: FaClipboardList,
+          icon: ClipboardListIcon,
           color: "text-(--ui-warning)",
         }))
       : [];
@@ -424,25 +411,25 @@ export default function DashboardHome({ serverData = {} }) {
     {
       title: labels.quickActions.viewPatients,
       description: labels.quickActions.viewPatientsDesc,
-      icon: FaUsers,
+      icon: UsersIcon,
       link: `${basePrefix}/doctor/patients`,
     },
     {
       title: labels.quickActions.medicalImages,
       description: labels.quickActions.medicalImagesDesc,
-      icon: FaXRay,
+      icon: ScanLineIcon,
       link: `${basePrefix}/doctor/results`,
     },
     {
       title: labels.quickActions.appointments,
       description: labels.quickActions.appointmentsDesc,
-      icon: FaCalendarAlt,
+      icon: CalendarDaysIcon,
       link: `${basePrefix}/doctor/appointments`,
     },
     {
       title: labels.quickActions.chats,
       description: labels.quickActions.chatsDesc,
-      icon: FaComments,
+      icon: MessagesSquareIcon,
       link: `${basePrefix}/doctor/chat`,
     },
   ];
@@ -462,37 +449,36 @@ export default function DashboardHome({ serverData = {} }) {
             description={`${labels.welcome}${effectiveData.doctorName || effectiveData.doctor?.user?.fullName ? ` ${effectiveData.doctorName || effectiveData.doctor?.user?.fullName}` : ""} · ${formattedDate}`}
           />
 
-          {/* Stats Cards */}
+          {/* Stats — Orbital + Editorial + Layered */}
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {stats.map((stat, index) => {
               const Icon = stat.icon;
               const tone =
-                index === 1
-                  ? "success"
-                  : index === 2
-                    ? "warning"
-                    : "info";
+                index === 1 ? "success" : index === 2 ? "warning" : "info";
+              const shape =
+                index === 0 ? "orbital" : index === 2 ? "layered" : "editorial";
               return (
                 <StatCard
                   key={index}
                   label={stat.title}
                   value={stat.value}
-                  icon={<Icon />}
+                  icon={<Icon size={18} strokeWidth={1.7} />}
                   tone={tone}
+                  shape={shape}
                 />
               );
             })}
           </div>
 
-          {/* Quick Actions */}
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {/* Quick Actions — Frameless Editorial Strip */}
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {quickActions.map((action, index) => {
               const Icon = action.icon;
               return (
-                <Card
+                <Surface
                   key={index}
-                  variant="interactive"
-                  size="sm"
+                  shape="editorial"
+                  interactive
                   onClick={() => handleQuickAction(action.link)}
                   role="button"
                   tabIndex={0}
@@ -502,203 +488,186 @@ export default function DashboardHome({ serverData = {} }) {
                       handleQuickAction(action.link);
                     }
                   }}
-                  className="group cursor-pointer flex flex-col justify-between gap-3"
+                  className="group flex cursor-pointer flex-col justify-between gap-3 pt-5"
                 >
                   <div className="flex w-full items-center justify-between">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-(--ui-info-border) bg-(--ui-info-bg) text-(--color-primary) text-xl">
-                      <Icon />
+                    <div className="pd-orb pd-shape-orbital pd-orb--copper">
+                      <Icon size={18} strokeWidth={1.7} />
                     </div>
-                    <FaArrowRight className="text-sm text-(--ui-muted-foreground) transition-transform group-hover:-translate-x-1 group-hover:text-(--color-primary)" />
+                    <ArrowRightIcon
+                      size={16}
+                      strokeWidth={1.7}
+                      className="text-[var(--pd-text-muted)] transition-transform group-hover:-translate-x-1 group-hover:text-[var(--pd-copper)]"
+                    />
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-(--ui-foreground)">
+                    <h3 className="text-base font-semibold text-[var(--pd-text-primary)]">
                       {action.title}
                     </h3>
-                    <p className="mt-1 text-xs text-(--ui-muted-foreground) leading-relaxed">
+                    <p className="mt-1 text-xs leading-relaxed text-[var(--pd-text-muted)]">
                       {action.description}
                     </p>
                   </div>
-                </Card>
+                </Surface>
               );
             })}
           </div>
 
           {/* Main Content Grid */}
-          <div className="grid gap-6 lg:grid-cols-3">
-            {/* Today's Appointments */}
-            <Card className="lg:col-span-2">
-              <div className="mb-6 flex items-center justify-between">
-                <h2 className="text-xl font-bold text-(--ui-foreground) flex items-center gap-2">
-                  <FaCalendarAlt className="text-(--ui-info)" />
+          <div className="grid gap-8 lg:grid-cols-3">
+            {/* Today's Appointments — Asymmetric Panel + Clinical Timeline */}
+            <Surface shape="asymmetric" className="p-6 lg:col-span-2">
+              <div className="mb-6 flex items-center justify-between border-b border-[var(--pd-border)] pb-4">
+                <h2 className="flex items-center gap-2.5 text-lg font-semibold text-[var(--pd-text-primary)]">
+                  <CalendarDaysIcon size={18} strokeWidth={1.7} className="text-[var(--pd-copper)]" />
                   {labels.todayAppointments.title}
                 </h2>
                 <Link
                   href={`${basePrefix}/doctor/appointments`}
-                  className="text-sm text-(--ui-info) hover:opacity-90 font-medium"
+                  className="pd-btn pd-btn--link text-xs"
                 >
                   {labels.todayAppointments.viewAll}
                 </Link>
               </div>
-              <div className="space-y-3">
-                {todayAppointments.length === 0 ? (
-                  <div className="rounded-lg border border-dashed border-(--ui-border) p-6 text-center text-(--ui-muted-foreground)">
-                    {labels.todayAppointments.empty}
-                  </div>
-                ) : (
-                  todayAppointments.map((apt) => (
-                    <div
-                      key={apt.id}
-                      className="flex items-center justify-between rounded-lg border border-(--ui-border) p-4 transition-all hover:bg-(--ui-surface-2)"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-(--ui-info-bg)">
-                          <FaClock className="text-(--ui-info)" />
+              {todayAppointments.length === 0 ? (
+                <div className="py-8 text-center text-sm text-[var(--pd-text-muted)]">
+                  {labels.todayAppointments.empty}
+                </div>
+              ) : (
+                <ol className="relative space-y-5 border-s border-[var(--pd-border-strong)] ps-5">
+                  {todayAppointments.map((apt) => {
+                    const displayStatus = normalizeStatus(apt.status);
+                    const badgeClass =
+                      displayStatus === "confirmed"
+                        ? "bg-[var(--pd-sage-soft)] text-[var(--pd-sage)]"
+                        : displayStatus === "pending"
+                          ? "bg-[var(--pd-ochre-soft)] text-[var(--pd-ochre)]"
+                          : displayStatus === "cancelled"
+                            ? "bg-[var(--pd-clay-soft)] text-[var(--pd-clay)]"
+                            : "bg-[var(--pd-surface-2)] text-[var(--pd-text-secondary)]";
+                    return (
+                      <li key={apt.id} className="relative flex items-center justify-between gap-4">
+                        <span
+                          aria-hidden="true"
+                          className="absolute -start-[25px] top-2 h-2.5 w-2.5 rounded-full bg-[var(--pd-copper)] ring-4 ring-[var(--pd-surface)]"
+                        />
+                        <div className="flex min-w-0 items-center gap-3.5">
+                          <div className="pd-orb pd-orb--sm pd-shape-orbital pd-orb--copper">
+                            <ClockIcon size={14} strokeWidth={1.7} />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="truncate font-semibold text-[var(--pd-text-primary)]">
+                              {apt.patient}
+                            </p>
+                            <p className="truncate text-xs text-[var(--pd-text-muted)]">
+                              {apt.place ||
+                                apt.location ||
+                                labels.todayAppointments.types[apt.type] ||
+                                apt.type}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-bold text-(--ui-foreground)">
-                            {apt.patient}
+                        <div className="shrink-0 text-end">
+                          <p className="pd-tabular text-sm font-medium text-[var(--pd-text-primary)]">
+                            {apt.time}
                           </p>
-                          <p className="text-sm text-(--ui-muted-foreground)">
-                            {apt.place ||
-                              apt.location ||
-                              labels.todayAppointments.types[apt.type] ||
-                              apt.type}
-                          </p>
+                          <span className={`mt-1 inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${badgeClass}`}>
+                            {labels.todayAppointments.status[displayStatus] || displayStatus}
+                          </span>
                         </div>
-                      </div>
-                      <div className="text-left">
-                        <p className="font-medium text-(--ui-foreground)">
-                          {apt.time}
-                        </p>
-                        {(() => {
-                          const displayStatus = normalizeStatus(apt.status);
-                          const badgeClass =
-                            displayStatus === "confirmed"
-                              ? "bg-(--ui-success-bg) text-(--ui-success)"
-                              : displayStatus === "pending"
-                                ? "bg-(--ui-warning-bg) text-(--ui-warning)"
-                                : displayStatus === "cancelled"
-                                  ? "bg-(--ui-danger-bg) text-(--ui-danger)"
-                                  : "bg-(--ui-surface-2) text-(--ui-foreground)";
-                          return (
-                            <span
-                              className={`inline-block rounded-full px-2 py-1 text-xs font-medium ${badgeClass}`}
-                            >
-                              {labels.todayAppointments.status[displayStatus] ||
-                                displayStatus}
-                            </span>
-                          );
-                        })()}
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </Card>
+                      </li>
+                    );
+                  })}
+                </ol>
+              )}
+            </Surface>
 
-            {/* Pending Scans */}
-            <Card>
-              <div className="mb-6 flex items-center justify-between">
-                <h2 className="text-xl font-bold text-(--ui-foreground) flex items-center gap-2">
-                  <FaXRay className="text-(--ui-warning)" />
+            {/* Pending Scans — Architectural Arch + Open Divide List */}
+            <Surface shape="arch" tone="inset" className="p-6 pt-8">
+              <div className="mb-5 flex items-center justify-between border-b border-[var(--pd-border)] pb-3">
+                <h2 className="flex items-center gap-2 text-lg font-semibold text-[var(--pd-text-primary)]">
+                  <ScanLineIcon size={18} strokeWidth={1.7} className="text-[var(--pd-ochre)]" />
                   {labels.pendingScans.title}
                 </h2>
               </div>
-              <div className="space-y-3">
+              <div className="divide-y divide-[var(--pd-border)]">
                 {pendingScans.map((scan) => (
-                  <div
-                    key={scan.id}
-                    className="rounded-lg border border-(--ui-border) p-4 transition-all hover:bg-(--ui-surface-2)"
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="font-bold text-(--ui-foreground)">
+                  <div key={scan.id} className="py-3.5 first:pt-1">
+                    <div className="mb-1.5 flex items-center justify-between gap-2">
+                      <p className="truncate font-semibold text-[var(--pd-text-primary)]">
                         {scan.patient}
                       </p>
                       <span
-                        className={`rounded-full px-2 py-1 text-xs font-medium ${
-                          scan.clinicalStatus === "critical"
-                            ? "bg-(--ui-danger-bg) text-(--ui-danger)"
-                            : scan.clinicalStatus === "recovering"
-                              ? "bg-(--ui-info-bg) text-(--ui-info) font-semibold text-sm px-3 py-1"
-                              : scan.clinicalStatus === "stable"
-                                ? "bg-(--ui-success-bg) text-(--ui-success)"
-                                : scan.priority === "high"
-                                  ? "bg-(--ui-danger-bg) text-(--ui-danger)"
-                                  : scan.priority === "medium"
-                                    ? "bg-(--ui-warning-bg) text-(--ui-warning)"
-                                    : "bg-(--ui-info-bg) text-(--ui-info)"
+                        className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                          scan.clinicalStatus === "critical" || scan.priority === "high"
+                            ? "bg-[var(--pd-clay-soft)] text-[var(--pd-clay)]"
+                            : scan.clinicalStatus === "stable"
+                              ? "bg-[var(--pd-sage-soft)] text-[var(--pd-sage)]"
+                              : scan.priority === "medium"
+                                ? "bg-[var(--pd-ochre-soft)] text-[var(--pd-ochre)]"
+                                : "bg-[var(--pd-copper-soft)] text-[var(--pd-copper)]"
                         }`}
                       >
                         {scan.clinicalStatus
-                          ? patientT(
-                              `clinicalStatuses.${scan.clinicalStatus}`,
-                            ) || scan.clinicalStatus
-                          : labels.pendingScans.priority[scan.priority] ||
-                            scan.priority}
+                          ? patientT(`clinicalStatuses.${scan.clinicalStatus}`) || scan.clinicalStatus
+                          : labels.pendingScans.priority[scan.priority] || scan.priority}
                       </span>
                     </div>
                     {scan.type ? (
-                      <p className="text-sm text-(--ui-muted-foreground)">
-                        {scan.type}
-                      </p>
+                      <p className="text-xs text-[var(--pd-text-secondary)]">{scan.type}</p>
                     ) : null}
-                    <p className="text-xs text-(--ui-muted-foreground) mt-1">
-                      {scan.date}
-                    </p>
+                    <p className="pd-tabular mt-1 text-xs text-[var(--pd-text-muted)]">{scan.date}</p>
                   </div>
                 ))}
-                <Button
-                  onClick={() => router.push(`${basePrefix}/doctor/results`)}
-                  size="sm"
-                >
+              </div>
+              <div className="mt-4">
+                <Button onClick={() => router.push(`${basePrefix}/doctor/results`)} size="sm" variant="outline">
                   {labels.pendingScans.viewAll}
                 </Button>
               </div>
-            </Card>
+            </Surface>
           </div>
 
-          {/* Recent Activity */}
-          <Card>
-            <div className="mb-6 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-(--ui-foreground) flex items-center gap-2">
-                <FaChartLine className="text-(--ui-info)" />
+          {/* Recent Activity — Frameless Editorial */}
+          <Surface shape="editorial" className="pt-5">
+            <div className="mb-5 flex items-center justify-between">
+              <h2 className="flex items-center gap-2 text-lg font-semibold text-[var(--pd-text-primary)]">
+                <ChartLineIcon size={18} strokeWidth={1.7} className="text-[var(--pd-copper)]" />
                 {labels.recentActivityTitle}
               </h2>
             </div>
             {recentActivity.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-(--ui-border) bg-(--ui-surface-2)/40 px-4 py-8 text-center text-sm text-(--ui-muted-foreground)">
+              <div className="py-6 text-sm text-[var(--pd-text-muted)]">
                 {locale === "ar"
                   ? "لا يوجد نشاط سريري مسجل حتى الآن."
                   : "No clinical activity recorded yet."}
               </div>
             ) : (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 {recentActivity.map((activity) => {
                   const Icon = activity.icon;
                   return (
                     <div
                       key={activity.id}
-                      className="rounded-lg border border-(--ui-border) p-4 transition-all hover:bg-(--ui-surface-2)"
+                      className="flex items-start gap-3 border-s border-[var(--pd-border-strong)] ps-3.5"
                     >
-                      <div className="flex items-start gap-3">
-                        <div className={`mt-1 ${activity.color}`}>
-                          <Icon className="text-xl" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-(--ui-foreground) truncate">
-                            {activity.action}
-                          </p>
-                          <p className="text-xs text-(--ui-muted-foreground) mt-1">
-                            {activity.time}
-                          </p>
-                        </div>
+                      <div className={`mt-0.5 ${activity.color}`}>
+                        <Icon size={16} strokeWidth={1.7} />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium text-[var(--pd-text-primary)]">
+                          {activity.action}
+                        </p>
+                        <p className="pd-tabular mt-1 text-xs text-[var(--pd-text-muted)]">
+                          {activity.time}
+                        </p>
                       </div>
                     </div>
                   );
                 })}
               </div>
             )}
-          </Card>
+          </Surface>
         </div>
       </div>
     </>

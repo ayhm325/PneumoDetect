@@ -31,16 +31,16 @@ class AppErrorBoundary extends React.Component<
   render() {
     if (this.state.error) {
       return (
-        <div className="flex min-h-screen items-center justify-center bg-[var(--ui-surface-2)] p-6">
-          <div className="max-w-lg rounded-2xl border border-red-200 bg-white p-6 shadow-md dark:border-red-900/50 dark:bg-slate-900">
-            <h2 className="text-lg font-bold text-red-600">Something went wrong</h2>
-            <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+        <div className="flex min-h-screen items-center justify-center bg-[var(--pd-canvas)] p-6 text-[var(--pd-text-primary)]">
+          <div className="pd-panel pd-panel--feature max-w-lg border-[color-mix(in_srgb,var(--pd-coral)_36%,transparent)] p-6">
+            <h2 className="text-lg font-semibold text-[var(--pd-coral)]">Something went wrong</h2>
+            <p className="mt-2 text-sm text-[var(--pd-text-secondary)]">
               {this.state.error.message}
             </p>
             <button
               type="button"
               onClick={() => window.location.reload()}
-              className="mt-4 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-bold text-white"
+              className="pd-btn pd-btn--primary pd-btn--sm mt-5"
             >
               Reload
             </button>

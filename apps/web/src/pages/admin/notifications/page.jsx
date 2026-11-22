@@ -1,18 +1,9 @@
 "use client";
 
+import { ArrowLeftRightIcon, BellIcon, BriefcaseMedicalIcon, CircleCheckIcon, ClockIcon, InfoIcon, ListIcon, TriangleAlertIcon } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "@/lib/compat/navigation";
 import { useLocale, useTranslations } from "@/lib/compat/intl";
-import {
-  FaBell,
-  FaClock,
-  FaCheckCircle,
-  FaExclamationTriangle,
-  FaInfoCircle,
-  FaUserMd,
-  FaExchangeAlt,
-  FaListAlt,
-} from "react-icons/fa";
 
 import { formatActivityDescription } from "@/lib/activityFormat";
 import { deserializeLocalizedMessage } from "@/lib/notifications";
@@ -125,21 +116,21 @@ export default function AdminNotificationsPage() {
       {
         title: t("summary.unread"),
         value: unreadCount,
-        icon: FaBell,
+        icon: BellIcon,
         accent: "brand-gradient",
         onClick: null,
       },
       {
         title: t("summary.pendingDoctorApprovals"),
         value: pendingDoctorCount,
-        icon: FaUserMd,
+        icon: BriefcaseMedicalIcon,
         accent: "brand-gradient",
         onClick: () => router.push(`${basePrefix}/admin/doctors`),
       },
       {
         title: t("summary.pendingDoctorChangeRequests"),
         value: pendingChangeRequestCount,
-        icon: FaExchangeAlt,
+        icon: ArrowLeftRightIcon,
         accent: "brand-gradient",
         onClick: () =>
           router.push(`${basePrefix}/admin/doctor-change-requests-page`),
@@ -159,26 +150,26 @@ export default function AdminNotificationsPage() {
     switch (type) {
       case "success":
         return {
-          icon: FaCheckCircle,
+          icon: CircleCheckIcon,
           className:
             "bg-(--ui-success-bg) text-(--ui-success) border-(--ui-success-border)",
         };
       case "warning":
         return {
-          icon: FaExclamationTriangle,
+          icon: TriangleAlertIcon,
           className:
             "bg-(--ui-warning-bg) text-(--ui-warning) border-(--ui-warning-border)",
         };
       case "alert":
         return {
-          icon: FaExclamationTriangle,
+          icon: TriangleAlertIcon,
           className:
             "bg-(--ui-danger-bg) text-(--ui-danger) border-(--ui-danger-border)",
         };
       case "info":
       default:
         return {
-          icon: FaInfoCircle,
+          icon: InfoIcon,
           className:
             "bg-(--ui-info-bg) text-(--ui-info) border-(--ui-info-border)",
         };
@@ -205,10 +196,10 @@ export default function AdminNotificationsPage() {
           <p className="text-(--ui-muted-2) mt-2">{t("subtitle")}</p>
         </div>
 
-        <div className="relative p-3 card-glass rounded-full border border-(--ui-border) shadow-(--shadow-soft)">
-          <FaBell className="text-xl text-(--ui-muted-2)" />
+        <div className="relative p-3 pd-panel pd-shape-asymmetric rounded-full border border-(--ui-border) shadow-(--shadow-soft)">
+          <BellIcon className="text-xl text-(--ui-muted-2)" />
           {badgeCount > 0 && (
-            <span className="absolute -top-1 -right-1 bg-(--ui-danger) text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
+            <span className="absolute -top-1 -right-1 bg-(--ui-danger) text-[var(--pd-on-accent)] text-xs w-5 h-5 flex items-center justify-center rounded-full">
               {badgeCount}
             </span>
           )}
@@ -228,15 +219,15 @@ export default function AdminNotificationsPage() {
             type="button"
             onClick={card.onClick || undefined}
             disabled={!card.onClick}
-            className="card-glass rounded-xl shadow-(--shadow-soft) p-6 border border-(--ui-border) hover:shadow-(--shadow-lift) transition-shadow w-full text-start disabled:cursor-default"
+            className="pd-panel pd-shape-layered shadow-(--shadow-soft) p-6 border border-(--ui-border) hover:shadow-(--shadow-lift) transition-shadow w-full text-start disabled:cursor-default"
           >
             <div className="flex items-center justify-between mb-4">
               <div
                 className={`p-3 rounded-lg ${card.accent} shadow-(--shadow-soft)`}
               >
-                <card.icon className="text-2xl text-white" />
+                <card.icon className="text-2xl text-[var(--pd-on-accent)]" />
               </div>
-              <FaListAlt className="text-(--ui-muted-2)" />
+              <ListIcon className="text-(--ui-muted-2)" />
             </div>
             <h3 className="text-(--ui-muted-2) text-sm font-medium mb-2">
               {card.title}
@@ -254,7 +245,7 @@ export default function AdminNotificationsPage() {
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        <div className="card-glass rounded-xl shadow-(--shadow-soft) p-6 border border-(--ui-border)">
+        <div className="pd-panel pd-shape-organic shadow-(--shadow-soft) p-6 border border-(--ui-border)">
           <h2 className="text-xl font-bold text-foreground mb-4">
             {t("sections.notifications")}
           </h2>
@@ -300,7 +291,7 @@ export default function AdminNotificationsPage() {
                       </div>
 
                       <div className="shrink-0 text-xs text-(--ui-muted-2) flex items-center gap-2">
-                        <FaClock />
+                        <ClockIcon />
                         <span>{formatDateTime(n.createdAt)}</span>
                       </div>
                     </div>
@@ -311,7 +302,7 @@ export default function AdminNotificationsPage() {
           )}
         </div>
 
-        <div className="card-glass rounded-xl shadow-(--shadow-soft) p-6 border border-(--ui-border)">
+        <div className="pd-panel pd-shape-asymmetric shadow-(--shadow-soft) p-6 border border-(--ui-border)">
           <h2 className="text-xl font-bold text-foreground mb-4">
             {t("sections.recentActivity")}
           </h2>
@@ -335,7 +326,7 @@ export default function AdminNotificationsPage() {
                     {formatActivityDescription(a, locale) || placeholder}
                   </p>
                   <p className="mt-2 text-xs text-(--ui-muted-2) flex items-center gap-2">
-                    <FaClock />
+                    <ClockIcon />
                     <span>{formatDateTime(a.createdAt)}</span>
                   </p>
                 </div>

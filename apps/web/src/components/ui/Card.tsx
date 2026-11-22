@@ -1,5 +1,6 @@
 import React from "react";
 import clsx from "clsx";
+import { Surface, type SurfaceShape } from "./Surface";
 
 export type CardVariant =
   | "default"
@@ -9,75 +10,87 @@ export type CardVariant =
   | "medical"
   | "highlighted"
   | "empty"
-  | "loading";
+  | "loading"
+  | "editorial"
+  | "feature"
+  | "metric"
+  | "media"
+  | "clinical"
+  | "timeline"
+  | "utility";
 
 export type CardSize = "sm" | "md" | "lg" | "none";
 
 export type CardProps = React.HTMLAttributes<HTMLDivElement> & {
   variant?: CardVariant;
   size?: CardSize;
+  shape?: SurfaceShape;
 };
 
-const variantClasses: Record<CardVariant, string> = {
-  default:
-    "border border-[var(--ui-border)] bg-[var(--ui-surface-elevated)] text-[var(--ui-foreground)] shadow-[var(--shadow-card,var(--shadow-soft))] transition-all duration-200",
-  elevated:
-    "border border-[var(--ui-border)] bg-[var(--ui-surface-elevated)] text-[var(--ui-foreground)] shadow-[var(--shadow-lift)] transition-all duration-200",
-  outline:
-    "border border-[var(--ui-border)] bg-transparent text-[var(--ui-foreground)] transition-all duration-200",
-  interactive:
-    "border border-[var(--ui-border)] bg-[var(--ui-surface-elevated)] text-[var(--ui-foreground)] shadow-[var(--shadow-card,var(--shadow-soft))] transition-all duration-200 hover:-translate-y-0.5 hover:border-[var(--ui-border-strong)] hover:shadow-[var(--shadow-lift)]",
-  medical:
-    "border border-[var(--ui-info-border)] bg-[var(--ui-surface-elevated)] text-[var(--ui-foreground)] shadow-[var(--shadow-glow)] transition-all duration-200",
-  highlighted:
-    "border-2 border-[var(--color-primary-500)] bg-[var(--ui-surface-elevated)] text-[var(--ui-foreground)] shadow-[var(--shadow-lift)] transition-all duration-200",
-  empty:
-    "border-2 border-dashed border-[var(--ui-border)] bg-[var(--ui-surface-2)]/40 text-[var(--ui-muted-foreground)] text-center transition-all duration-200",
-  loading:
-    "border border-[var(--ui-border)] bg-[var(--ui-surface-elevated)] text-[var(--ui-foreground)] shadow-[var(--shadow-soft)] animate-pulse",
+const VARIANT_TO_SHAPE: Record<CardVariant, SurfaceShape> = {
+  default: "asymmetric",
+  elevated: "layered",
+  outline: "organic",
+  interactive: "asymmetric",
+  medical: "arch",
+  highlighted: "layered",
+  empty: "organic",
+  loading: "asymmetric",
+  editorial: "editorial",
+  feature: "asymmetric",
+  metric: "slanted",
+  media: "arch",
+  clinical: "layered",
+  timeline: "editorial",
+  utility: "organic",
 };
 
 const sizeClasses: Record<CardSize, string> = {
-  none: "p-0 rounded-[20px]",
-  sm: "rounded-[20px] p-4 sm:p-5",
-  md: "rounded-[22px] p-5 sm:p-6",
-  lg: "rounded-[24px] p-6 sm:p-8",
+  none: "p-0",
+  sm: "p-4 sm:p-5",
+  md: "p-5 sm:p-6",
+  lg: "p-6 sm:p-8",
 };
 
-export function Card({
-  className,
-  variant = "default",
-  size = "md",
-  ...props
-}: CardProps) {
+export function Card({ className, variant = "default", size = "md", shape, ...props }: CardProps) {
+  const resolvedShape = shape ?? VARIANT_TO_SHAPE[variant];
+  const tone =
+    variant === "elevated"
+      ? "elevated"
+      : variant === "medical" || variant === "clinical"
+        ? "sage"
+        : variant === "highlighted"
+          ? "copper"
+          : variant === "timeline" || variant === "utility"
+            ? "inset"
+            : "default";
+
   return (
-    <div
-      className={clsx(variantClasses[variant], sizeClasses[size], className)}
+    <Surface
+      shape={resolvedShape}
+      tone={tone}
+      interactive={variant === "interactive"}
+      className={clsx(
+        resolvedShape === "editorial" ? size !== "none" && "pt-5 pb-2" : sizeClasses[size],
+        variant === "outline" && "!bg-transparent",
+        variant === "empty" && "!bg-transparent border-dashed border-[var(--pd-border-strong)] text-center text-[var(--pd-text-muted)]",
+        variant === "loading" && "pd-skeleton",
+        className,
+      )}
       {...props}
     />
   );
 }
 
-export function CardHeader({
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLDivElement>) {
-  return (
-    <div
-      className={clsx("flex flex-col space-y-1.5 pb-4", className)}
-      {...props}
-    />
-  );
+export function CardHeader({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+  return <div className={clsx("flex flex-col gap-1.5 pb-4", className)} {...props} />;
 }
 
-export function CardTitle({
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLHeadingElement>) {
+export function CardTitle({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) {
   return (
     <h3
       className={clsx(
-        "font-bold text-lg sm:text-xl leading-tight tracking-tight text-[var(--ui-foreground)]",
+        "text-[length:var(--text-lg)] font-semibold leading-snug tracking-[var(--tracking-heading)] text-[var(--pd-text-primary)]",
         className,
       )}
       {...props}
@@ -85,35 +98,18 @@ export function CardTitle({
   );
 }
 
-export function CardDescription({
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLParagraphElement>) {
-  return (
-    <p
-      className={clsx("text-sm text-[var(--ui-muted-foreground)] leading-normal", className)}
-      {...props}
-    />
-  );
+export function CardDescription({ className, ...props }: React.HTMLAttributes<HTMLParagraphElement>) {
+  return <p className={clsx("text-sm leading-relaxed text-[var(--pd-text-muted)]", className)} {...props} />;
 }
 
-export function CardContent({
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLDivElement>) {
+export function CardContent({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return <div className={clsx("pt-0", className)} {...props} />;
 }
 
-export function CardFooter({
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLDivElement>) {
+export function CardFooter({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={clsx(
-        "flex items-center pt-4 border-t border-[var(--ui-border)]",
-        className,
-      )}
+      className={clsx("mt-2 flex items-center gap-3 border-t border-[var(--pd-border)] pt-4", className)}
       {...props}
     />
   );
@@ -149,14 +145,7 @@ export function ProfileMediaCard({
 }: ProfileMediaCardProps) {
   const hasPhoto = Boolean(image);
   return (
-    <div
-      className={clsx(
-        "profile-card",
-        featured && "profile-card--featured",
-        className,
-      )}
-      {...props}
-    >
+    <div className={clsx("profile-card", featured && "profile-card--featured", className)} {...props}>
       {(image || mediaNode) && (
         <div
           className={clsx(
@@ -166,11 +155,7 @@ export function ProfileMediaCard({
           )}
         >
           {image ? (
-            <img
-              src={image}
-              alt={typeof imageAlt === "string" ? imageAlt : ""}
-              className="h-full w-full object-cover"
-            />
+            <img src={image} alt={typeof imageAlt === "string" ? imageAlt : ""} className="h-full w-full object-cover" />
           ) : (
             mediaNode
           )}

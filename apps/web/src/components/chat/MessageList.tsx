@@ -1,5 +1,5 @@
+import { MessagesSquareIcon } from "lucide-react";
 import React, { useEffect, useLayoutEffect, useRef } from "react";
-import { FaComments } from "react-icons/fa";
 import { MessageBubble } from "./MessageBubble";
 import type { ChatMessageItem } from "./chatUtils";
 
@@ -115,7 +115,7 @@ export function MessageList({
         {[1, 2, 3, 4].map((i) => (
           <div
             key={i}
-            className={`h-12 w-56 animate-pulse rounded-2xl bg-[var(--ui-surface-2)] ${
+            className={`pd-skeleton h-12 w-56 rounded-[var(--shape-card)] ${
               i % 2 === 0 ? "self-end" : "self-start"
             }`}
           />
@@ -127,18 +127,18 @@ export function MessageList({
   if (error) {
     return (
       <div className="flex flex-1 items-center justify-center p-6 text-center">
-        <p className="text-sm font-medium text-[var(--ui-danger)]">{error}</p>
+        <p className="text-sm font-medium text-[var(--pd-coral)]">{error}</p>
       </div>
     );
   }
 
   if (messages.length === 0) {
     return (
-      <div className="flex flex-1 flex-col items-center justify-center p-6 text-center text-[var(--ui-muted)]">
-        <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--ui-surface-2)]">
-          <FaComments className="h-6 w-6 opacity-60" />
+      <div className="flex flex-1 flex-col items-center justify-center p-6 text-center text-[var(--pd-text-muted)]">
+        <div className="pd-orb pd-orb--lg pd-orb--orchid mb-3">
+          <MessagesSquareIcon size={22} strokeWidth={1.7} />
         </div>
-        <p className="text-sm font-semibold text-[var(--ui-foreground)]">
+        <p className="text-sm font-semibold text-[var(--pd-text-primary)]">
           {isAr ? "لا توجد رسائل بعد" : "No messages yet"}
         </p>
         <p className="mt-1 text-xs">
@@ -151,7 +151,7 @@ export function MessageList({
   return (
     <div
       ref={containerRef}
-      className="flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto bg-[var(--ui-surface-2)]/40 p-4 sm:p-5"
+      className="flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto bg-[var(--pd-canvas)] p-4 sm:p-5"
     >
       {hasMore && (
         <div className="mb-2 flex justify-center">
@@ -159,7 +159,7 @@ export function MessageList({
             type="button"
             onClick={handleLoadOlderClick}
             disabled={loadingOlder}
-            className="rounded-full border border-[var(--ui-border)] bg-[var(--ui-surface)] px-4 py-1.5 text-xs font-semibold text-[var(--ui-foreground)] shadow-2xs transition hover:bg-[var(--ui-surface-2)] disabled:opacity-50"
+            className="pd-chip"
           >
             {loadingOlder
               ? isAr
@@ -175,7 +175,8 @@ export function MessageList({
       {messages.map((msg, index) => {
         const rawDate = msg.createdAt || msg.time;
         const dateKey = getDateKey(rawDate);
-        const prevDateKey = index > 0 ? getDateKey(messages[index - 1].createdAt || messages[index - 1].time) : "";
+        const prevDateKey =
+          index > 0 ? getDateKey(messages[index - 1].createdAt || messages[index - 1].time) : "";
         const showSeparator = dateKey !== prevDateKey && dateKey !== "unknown";
 
         const key = msg.clientKey ? `ck:${msg.clientKey}` : `id:${msg.id}`;
@@ -185,7 +186,7 @@ export function MessageList({
           <React.Fragment key={key}>
             {showSeparator && (
               <div className="my-2 flex items-center justify-center">
-                <span className="rounded-full border border-[var(--ui-border)] bg-[var(--ui-surface)] px-3 py-0.5 text-[11px] font-medium text-[var(--ui-muted)]">
+                <span className="rounded-full border border-[var(--pd-line)] bg-[var(--pd-surface)] px-3 py-0.5 text-[11px] font-medium text-[var(--pd-text-muted)]">
                   {formatDateSeparator(rawDate, isAr)}
                 </span>
               </div>
@@ -203,10 +204,10 @@ export function MessageList({
 
       {isTyping && (
         <div className="flex justify-start">
-          <div className="inline-flex items-center gap-1 rounded-2xl border border-[var(--ui-border)] bg-[var(--ui-surface)] px-3.5 py-2 text-xs text-[var(--ui-muted)]">
-            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[var(--color-primary-500)] [animation-delay:-0.2s]" />
-            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[var(--color-primary-500)] [animation-delay:-0.1s]" />
-            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[var(--color-primary-500)]" />
+          <div className="inline-flex items-center gap-1.5 rounded-[var(--shape-bubble-in)] border border-[var(--pd-line)] bg-[var(--pd-canvas-raised)] px-3.5 py-2.5">
+            <span className="pd-breathe h-1.5 w-1.5 rounded-full bg-[var(--pd-acid)]" />
+            <span className="pd-breathe h-1.5 w-1.5 rounded-full bg-[var(--pd-orchid)] [animation-delay:0.2s]" />
+            <span className="pd-breathe h-1.5 w-1.5 rounded-full bg-[var(--pd-acid)] [animation-delay:0.4s]" />
           </div>
         </div>
       )}

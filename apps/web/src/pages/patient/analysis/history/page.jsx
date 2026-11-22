@@ -62,7 +62,7 @@ export default function PatientAnalysisHistoryPage() {
           Array.from({ length: 6 }).map((_, i) => (
             <div
               key={i}
-              className="animate-pulse p-4 card-glass rounded-xl shadow-sm"
+              className="animate-pulse p-4 pd-panel pd-shape-asymmetric shadow-sm"
             >
               <div className="h-40 bg-(--ui-surface-2)/60 rounded-lg mb-4"></div>
               <div className="h-4 bg-(--ui-surface-2)/60 rounded w-3/4 mb-2"></div>
@@ -74,7 +74,7 @@ export default function PatientAnalysisHistoryPage() {
             </div>
           ))
         ) : records.length === 0 ? (
-          <div className="col-span-full p-8 card-glass rounded-xl shadow-sm text-center">
+          <div className="col-span-full p-8 pd-panel pd-shape-layered shadow-sm text-center">
             <p className="text-lg font-medium">
               {t("analysisHistory.emptyTitle")}
             </p>

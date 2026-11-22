@@ -1,15 +1,5 @@
+import { BellIcon, CalendarDaysIcon, ChartColumnIcon, FileHeartIcon, HouseIcon, MessagesSquareIcon, ScanLineIcon, SettingsIcon, UserRoundIcon } from "lucide-react";
 import React, { useEffect } from "react";
-import {
-  FaBell,
-  FaCalendarAlt,
-  FaChartBar,
-  FaCog,
-  FaComments,
-  FaFileMedical,
-  FaHome,
-  FaUserInjured,
-  FaXRay,
-} from "react-icons/fa";
 import { useTranslation } from "react-i18next";
 import { UnifiedPortalShell } from "@/components/layouts/UnifiedPortalShell";
 import useSocket from "@/components/chat/useSocket.client";
@@ -36,15 +26,15 @@ export default function DoctorLayout({ children }: { children: React.ReactNode }
   }, [socket]);
 
   const navItems = [
-    { to: "/doctor/dashboard", label: t("dashboard", isAr ? "لوحة التحكم" : "Dashboard"), icon: <FaHome /> },
-    { to: "/doctor/patients", label: t("patients", isAr ? "المرضى" : "Patients"), icon: <FaUserInjured /> },
-    { to: "/doctor/upload-xray", label: t("uploadXray", isAr ? "رفع أشعة" : "Upload X-Ray"), icon: <FaXRay /> },
-    { to: "/doctor/results", label: t("results", isAr ? "النتائج" : "Results"), icon: <FaFileMedical /> },
-    { to: "/doctor/appointments", label: t("appointments", isAr ? "المواعيد" : "Appointments"), icon: <FaCalendarAlt /> },
-    { to: "/doctor/analytics", label: t("analytics", isAr ? "التحليلات" : "Analytics"), icon: <FaChartBar /> },
-    { to: "/doctor/chat", label: t("chat", isAr ? "المحادثة" : "Chat"), icon: <FaComments /> },
-    { to: "/doctor/notifications", label: t("notifications", isAr ? "الإشعارات" : "Notifications"), icon: <FaBell /> },
-    { to: "/doctor/settings", label: t("settings", isAr ? "الإعدادات" : "Settings"), icon: <FaCog /> },
+    { to: "/doctor/dashboard", label: t("dashboard", isAr ? "لوحة التحكم" : "Dashboard"), icon: <HouseIcon /> },
+    { to: "/doctor/patients", label: t("patients", isAr ? "المرضى" : "Patients"), icon: <UserRoundIcon /> },
+    { to: "/doctor/upload-xray", label: t("uploadXray", isAr ? "رفع أشعة" : "Upload X-Ray"), icon: <ScanLineIcon /> },
+    { to: "/doctor/results", label: t("results", isAr ? "النتائج" : "Results"), icon: <FileHeartIcon /> },
+    { to: "/doctor/appointments", label: t("appointments", isAr ? "المواعيد" : "Appointments"), icon: <CalendarDaysIcon /> },
+    { to: "/doctor/analytics", label: t("analytics", isAr ? "التحليلات" : "Analytics"), icon: <ChartColumnIcon /> },
+    { to: "/doctor/chat", label: t("chat", isAr ? "المحادثة" : "Chat"), icon: <MessagesSquareIcon /> },
+    { to: "/doctor/notifications", label: t("notifications", isAr ? "الإشعارات" : "Notifications"), icon: <BellIcon /> },
+    { to: "/doctor/settings", label: t("settings", isAr ? "الإعدادات" : "Settings"), icon: <SettingsIcon /> },
   ];
 
   return (

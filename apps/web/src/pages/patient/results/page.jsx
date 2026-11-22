@@ -1,22 +1,9 @@
 "use client";
 
+import { CircleCheckIcon, DownloadIcon, EyeIcon, FileTextIcon, HourglassIcon, ListFilterIcon, PrinterIcon, ScanLineIcon, SearchIcon, Share2Icon, TriangleAlertIcon, XIcon } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import Image from "@/lib/compat/Image";
 import { useToast } from "@/components/ui/ToastProvider";
-import {
-  FaFileAlt,
-  FaXRay,
-  FaSearch,
-  FaFilter,
-  FaEye,
-  FaTimes,
-  FaCheckCircle,
-  FaHourglassHalf,
-  FaExclamationTriangle,
-  FaDownload,
-  FaShareAlt,
-  FaPrint,
-} from "react-icons/fa";
 import { useLocale, useTranslations } from "@/lib/compat/intl";
 import {
   getReviewStatusLabel,
@@ -253,21 +240,21 @@ export default function PatientResultsPage() {
     {
       title: statsLabels.total,
       value: reports.length,
-      icon: <FaFileAlt />,
+      icon: <FileTextIcon />,
       tone: "info",
     },
     {
       title: statsLabels.ready,
       value: reports.filter((r) => normalizeStatus(r.status) === "ready")
         .length,
-      icon: <FaCheckCircle />,
+      icon: <CircleCheckIcon />,
       tone: "success",
     },
     {
       title: statsLabels.pending,
       value: reports.filter((r) => normalizeStatus(r.status) === "pending")
         .length,
-      icon: <FaHourglassHalf />,
+      icon: <HourglassIcon />,
       tone: "info",
     },
     {
@@ -275,7 +262,7 @@ export default function PatientResultsPage() {
       value: reports.filter(
         (r) => normalizeStatus(r.status) === "requires_review",
       ).length,
-      icon: <FaExclamationTriangle />,
+      icon: <TriangleAlertIcon />,
       tone: "warning",
     },
   ];
@@ -403,7 +390,7 @@ export default function PatientResultsPage() {
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 print:hidden">
         {stats.map((stat, index) => (
-          <StatCard
+          <StatCard shape="orbital"
             key={index}
             label={stat.title}
             value={stat.value}
@@ -414,7 +401,7 @@ export default function PatientResultsPage() {
       </div>
 
       {error && (
-        <Card className="mb-6 border-(--ui-danger-border) bg-(--ui-danger-bg) p-4 text-(--ui-danger) print:hidden">
+        <Card variant="feature" className="mb-6 border-(--ui-danger-border) bg-(--ui-danger-bg) p-4 text-(--ui-danger) print:hidden">
           <div className="flex items-center justify-between gap-4">
             <span>{error}</span>
             <Button size="sm" variant="secondary" onClick={loadReports}>
@@ -425,10 +412,10 @@ export default function PatientResultsPage() {
       )}
 
       {/* Filters */}
-      <Card className="mb-8 print:hidden">
+      <Card variant="clinical" className="mb-8 print:hidden">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="relative">
-            <FaSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 text-(--ui-muted-foreground)" />
+            <SearchIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 text-(--ui-muted-foreground)" />
             <input
               type="text"
               placeholder={labels("searchPlaceholder")}
@@ -438,7 +425,7 @@ export default function PatientResultsPage() {
             />
           </div>
           <div className="flex items-center gap-2">
-            <FaFilter className="text-(--ui-muted-foreground) shrink-0" />
+            <ListFilterIcon className="text-(--ui-muted-foreground) shrink-0" />
             <GlideSelect
               fullWidth
               size="lg"
@@ -460,12 +447,12 @@ export default function PatientResultsPage() {
 
       {/* Reports Grid */}
       {loading ? (
-        <Card className="p-12 text-center text-(--ui-muted-foreground) print:hidden">
+        <Card variant="utility" className="p-12 text-center text-(--ui-muted-foreground) print:hidden">
           {locale === "ar" ? "جاري تحميل النتائج..." : "Loading results..."}
         </Card>
       ) : filteredReports.length === 0 ? (
-        <Card className="p-12 text-center print:hidden">
-          <FaFileAlt className="text-6xl text-(--ui-muted-foreground) mx-auto mb-4" />
+        <Card variant="editorial" className="p-12 text-center print:hidden">
+          <FileTextIcon className="text-6xl text-(--ui-muted-foreground) mx-auto mb-4" />
           <p className="text-(--ui-muted-foreground) text-lg">
             {labels("emptyState")}
           </p>
@@ -477,7 +464,7 @@ export default function PatientResultsPage() {
               key={report.id}
               image={report.images?.[0] || null}
               imageAlt={report.title}
-              mediaNode={<FaXRay className="text-xl" />}
+              mediaNode={<ScanLineIcon className="text-xl" />}
               title={report.title}
               subtitle={`${report.type} • ${report.doctor}`}
               badge={
@@ -505,7 +492,7 @@ export default function PatientResultsPage() {
                     fullWidth={false}
                     className="flex-1 flex items-center justify-center gap-2"
                   >
-                    <FaEye />
+                    <EyeIcon />
                     <span>{labels("actions.view")}</span>
                   </Button>
                   <Button
@@ -517,7 +504,7 @@ export default function PatientResultsPage() {
                     fullWidth={false}
                     title={locale === "ar" ? "تنزيل" : "Download"}
                   >
-                    <FaDownload />
+                    <DownloadIcon />
                   </Button>
                   <Button
                     onClick={() => handleShare(report)}
@@ -526,7 +513,7 @@ export default function PatientResultsPage() {
                     fullWidth={false}
                     title={locale === "ar" ? "مشاركة" : "Share"}
                   >
-                    <FaShareAlt />
+                    <Share2Icon />
                   </Button>
                   <Button
                     onClick={() => handlePrint(report)}
@@ -535,7 +522,7 @@ export default function PatientResultsPage() {
                     fullWidth={false}
                     title={locale === "ar" ? "طباعة" : "Print"}
                   >
-                    <FaPrint />
+                    <PrinterIcon />
                   </Button>
                 </div>
               }
@@ -614,7 +601,7 @@ export default function PatientResultsPage() {
       {/* Image Viewer & Printable Report Modal */}
       {showImageModal && selectedReport && (
         <div className="fixed inset-0 bg-(--color-neutral)/80 flex items-center justify-center z-50 p-4 print:static print:bg-transparent print:p-0">
-          <Card className="max-h-[90vh] w-full max-w-4xl overflow-y-auto p-0 print:max-h-none print:shadow-none print:border-0">
+          <Card variant="feature" className="max-h-[90vh] w-full max-w-4xl overflow-y-auto p-0 print:max-h-none print:shadow-none print:border-0">
             <div className="sticky top-0 bg-(--ui-surface) border-b border-(--ui-border) p-6 flex items-center justify-between z-10">
               <div>
                 <h3 className="text-xl font-bold text-(--ui-foreground)">
@@ -633,7 +620,7 @@ export default function PatientResultsPage() {
                   isLoading={downloadingId === selectedReport.id}
                   onClick={() => handleDownload(selectedReport)}
                 >
-                  <FaDownload />
+                  <DownloadIcon />
                 </Button>
                 <Button
                   size="sm"
@@ -641,7 +628,7 @@ export default function PatientResultsPage() {
                   fullWidth={false}
                   onClick={() => handleShare(selectedReport)}
                 >
-                  <FaShareAlt />
+                  <Share2Icon />
                 </Button>
                 <Button
                   size="sm"
@@ -649,13 +636,13 @@ export default function PatientResultsPage() {
                   fullWidth={false}
                   onClick={() => window.print()}
                 >
-                  <FaPrint />
+                  <PrinterIcon />
                 </Button>
                 <button
                   onClick={() => setShowImageModal(false)}
                   className="p-2 hover:bg-(--ui-surface-2)/60 rounded-lg transition-colors"
                 >
-                  <FaTimes className="text-xl text-(--ui-muted-foreground)" />
+                  <XIcon className="text-xl text-(--ui-muted-foreground)" />
                 </button>
               </div>
             </div>
@@ -718,7 +705,7 @@ export default function PatientResultsPage() {
                         className="relative aspect-square bg-(--ui-surface-2) border border-(--ui-border) rounded-lg overflow-hidden"
                       >
                         <div className="absolute inset-0 flex items-center justify-center">
-                          <FaXRay className="text-6xl text-(--ui-muted-foreground)" />
+                          <ScanLineIcon className="text-6xl text-(--ui-muted-foreground)" />
                         </div>
                         <Image
                           src={img}

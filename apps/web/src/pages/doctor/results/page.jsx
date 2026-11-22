@@ -1,27 +1,10 @@
 "use client";
 
+import { CalendarDaysIcon, CircleCheckIcon, ClockIcon, EyeIcon, FileTextIcon, HourglassIcon, ListFilterIcon, MaximizeIcon, Minimize2Icon, MinimizeIcon, PrinterIcon, ScanLineIcon, SearchIcon, TriangleAlertIcon, UserIcon, XIcon } from "lucide-react";
 import DoctorLayout from "../DoctorLayout";
 import { useToast } from "@/components/ui/ToastProvider";
 import Image from "@/lib/compat/Image";
 import { useEffect, useMemo, useState } from "react";
-import {
-  FaXRay,
-  FaSearch,
-  FaFilter,
-  FaEye,
-  FaCompressArrowsAlt,
-  FaUser,
-  FaCalendarAlt,
-  FaClock,
-  FaCheckCircle,
-  FaHourglassHalf,
-  FaExclamationTriangle,
-  FaFileAlt,
-  FaTimes,
-  FaExpand,
-  FaCompress,
-  FaPrint,
-} from "react-icons/fa";
 import { formatDate } from "@/lib/date";
 import {
   getReviewStatusLabel,
@@ -292,19 +275,19 @@ export default function DoctorResultsPage() {
         label: getReviewStatusLabel("reviewed", locale),
         color:
           "bg-(--ui-success-bg) text-(--ui-success) border-(--ui-success-border)",
-        icon: FaCheckCircle,
+        icon: CircleCheckIcon,
       },
       requires_review: {
         label: getReviewStatusLabel("requires_review", locale),
         color:
           "bg-(--ui-warning-bg) text-(--ui-warning) border-(--ui-warning-border)",
-        icon: FaExclamationTriangle,
+        icon: TriangleAlertIcon,
       },
       pending: {
         label: getReviewStatusLabel("pending_review", locale),
         color:
           "bg-(--ui-info-bg) text-(--ui-info) border-(--ui-info-border)",
-        icon: FaHourglassHalf,
+        icon: HourglassIcon,
       },
     };
     const c = config[status] || config.pending;
@@ -374,7 +357,7 @@ export default function DoctorResultsPage() {
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <h1 className="text-3xl font-bold text-(--ui-foreground) flex items-center gap-3">
-                <FaXRay className="text-(--ui-info)" />
+                <ScanLineIcon className="text-(--ui-info)" />
                 {t("title")}
               </h1>
               <p className="mt-2 text-(--ui-muted-foreground)">
@@ -385,39 +368,39 @@ export default function DoctorResultsPage() {
 
           {/* Stats Cards */}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <StatCard
+            <StatCard shape="orbital"
               label={t("stats.total")}
               value={stats.total}
-              icon={<FaXRay />}
+              icon={<ScanLineIcon />}
               tone="info"
             />
-            <StatCard
+            <StatCard shape="editorial"
               label={t("stats.completed")}
               value={stats.completed}
-              icon={<FaCheckCircle />}
+              icon={<CircleCheckIcon />}
               tone="success"
             />
-            <StatCard
+            <StatCard shape="layered"
               label={t("stats.pending")}
               value={stats.pending}
-              icon={<FaHourglassHalf />}
+              icon={<HourglassIcon />}
               tone="warning"
             />
-            <StatCard
+            <StatCard shape="slanted"
               label={t("stats.today")}
               value={stats.today}
-              icon={<FaCalendarAlt />}
+              icon={<CalendarDaysIcon />}
               tone="primary"
             />
           </div>
 
           {/* Filters */}
-          <Card>
+          <Card variant="feature">
             <div className="flex flex-wrap items-center gap-4">
               {/* Search */}
               <div className="flex-1 min-w-62.5">
                 <div className="relative">
-                  <FaSearch className="absolute right-3 top-1/2 -translate-y-1/2 text-(--ui-muted-foreground)" />
+                  <SearchIcon className="absolute right-3 top-1/2 -translate-y-1/2 text-(--ui-muted-foreground)" />
                   <input
                     type="text"
                     placeholder={t("searchPlaceholder")}
@@ -461,7 +444,7 @@ export default function DoctorResultsPage() {
                     size="sm"
                     className="flex items-center justify-center gap-2"
                   >
-                    <FaEye />
+                    <EyeIcon />
                     {t("actions.view")}
                   </Button>
                 }
@@ -472,11 +455,11 @@ export default function DoctorResultsPage() {
                   </p>
                   <div className="flex items-center gap-3">
                     <span className="inline-flex items-center gap-1">
-                      <FaCalendarAlt className="text-(--ui-info)" />
+                      <CalendarDaysIcon className="text-(--ui-info)" />
                       {formatDate(scan.date, locale, ui("placeholder"))}
                     </span>
                     <span className="inline-flex items-center gap-1">
-                      <FaClock className="text-(--ui-info)" />
+                      <ClockIcon className="text-(--ui-info)" />
                       {scan.time}
                     </span>
                   </div>
@@ -516,8 +499,8 @@ export default function DoctorResultsPage() {
           </div>
 
           {filteredScans.length === 0 && (
-            <Card className="p-12 text-center">
-              <FaXRay className="mx-auto mb-4 text-5xl text-(--ui-muted-foreground) opacity-50" />
+            <Card variant="clinical" className="p-12 text-center">
+              <ScanLineIcon className="mx-auto mb-4 text-5xl text-(--ui-muted-foreground) opacity-50" />
               <p className="text-lg text-(--ui-muted-foreground)">
                 {t("emptyState")}
               </p>
@@ -530,7 +513,7 @@ export default function DoctorResultsPage() {
       {viewerOpen && selectedScan && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-(--color-neutral)/90 p-4">
           <div
-            className={`relative card-glass rounded-xl shadow-(--shadow-lift) overflow-hidden border border-(--ui-border) ${isFullscreen ? "w-full h-full" : "max-w-5xl w-full max-h-[90vh]"}`}
+            className={`relative pd-panel pd-shape-asymmetric shadow-(--shadow-lift) overflow-hidden border border-(--ui-border) ${isFullscreen ? "w-full h-full" : "max-w-5xl w-full max-h-[90vh]"}`}
           >
             {/* Viewer Header */}
             <div className="flex items-center justify-between border-b border-(--ui-border) bg-(--ui-surface) p-4">
@@ -552,7 +535,7 @@ export default function DoctorResultsPage() {
                       : t("viewer.fullscreen")
                   }
                 >
-                  {isFullscreen ? <FaCompress /> : <FaExpand />}
+                  {isFullscreen ? <MinimizeIcon /> : <MaximizeIcon />}
                 </button>
                 {/* Download and Share buttons removed as requested */}
                 <button
@@ -560,7 +543,7 @@ export default function DoctorResultsPage() {
                   className="rounded-lg p-2 text-(--ui-muted-foreground) transition-all hover:bg-(--ui-surface-2)"
                   title={t("actions.close")}
                 >
-                  <FaTimes />
+                  <XIcon />
                 </button>
               </div>
             </div>
@@ -582,7 +565,7 @@ export default function DoctorResultsPage() {
               {/* AI Analysis */}
               <div className="rounded-lg bg-(--ui-info-bg) border border-(--ui-info-border) p-4 mb-4">
                 <h3 className="font-bold text-(--ui-info) mb-2 flex items-center gap-2">
-                  <FaFileAlt />
+                  <FileTextIcon />
                   {t("viewer.aiAnalysis")}
                 </h3>
                 <p className="text-(--ui-foreground)">
@@ -624,7 +607,7 @@ export default function DoctorResultsPage() {
                   <div className="flex items-center gap-2">
                     {selectedScan.reviewedByDoctor && (
                       <span className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium bg-(--ui-success-bg) text-(--ui-success) border-(--ui-success-border)">
-                        <FaCheckCircle />
+                        <CircleCheckIcon />
                         {t("viewer.review.reviewed")}
                       </span>
                     )}

@@ -1,16 +1,7 @@
 "use client";
 
+import { BriefcaseMedicalIcon, CheckIcon, ClockIcon, EarthIcon, LockIcon, SaveIcon, SettingsIcon, UserCogIcon, UsersIcon } from "lucide-react";
 import React, { useState, useEffect } from "react";
-import {
-  FaSave,
-  FaCheck,
-  FaGlobeAmericas,
-  FaUserMd,
-  FaUserShield,
-  FaClock,
-  FaLock,
-} from "react-icons/fa";
-import { FiSettings, FiUsers } from "react-icons/fi";
 import { useTranslations } from "@/lib/compat/intl";
 import useLocale from "@/lib/compat/intl";
 import { useToast } from "@/components/ui/ToastProvider";
@@ -121,10 +112,10 @@ export default function SettingsPage() {
         {/* حاوية المحتوى */}
         <div className="w-full max-w-7xl mx-auto space-y-8">
           {/* رأس الصفحة */}
-          <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 card-glass p-6 rounded-2xl border border-(--ui-border) shadow-(--shadow-soft)">
+          <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 pd-panel pd-shape-asymmetric p-6 pd-shape-organic border border-(--ui-border) shadow-(--shadow-soft)">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl brand-gradient flex items-center justify-center text-white shadow-(--shadow-soft)">
-                <FiSettings size={24} />
+              <div className="w-12 h-12 pd-shape-orbital brand-gradient flex items-center justify-center text-[var(--pd-on-accent)] shadow-(--shadow-soft)">
+                <SettingsIcon size={24} />
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-foreground tracking-tight">
@@ -146,10 +137,10 @@ export default function SettingsPage() {
           {/* شبكة الإعدادات */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* 1. الإعدادات العامة */}
-            <section className="card-glass rounded-2xl shadow-(--shadow-soft) border border-(--ui-border) p-6 hover:shadow-(--shadow-lift) transition-shadow duration-300 flex flex-col gap-5">
+            <section className="pd-panel pd-shape-layered shadow-(--shadow-soft) border border-(--ui-border) p-6 hover:shadow-(--shadow-lift) transition-shadow duration-300 flex flex-col gap-5">
               <div className="flex items-center gap-3 border-b border-(--ui-border) pb-4">
-                <div className="p-2 brand-gradient text-white rounded-lg shadow-(--shadow-soft)">
-                  <FaGlobeAmericas className="w-5 h-5" />
+                <div className="p-2 brand-gradient text-[var(--pd-on-accent)] rounded-lg shadow-(--shadow-soft)">
+                  <EarthIcon className="w-5 h-5" />
                 </div>
                 <h3 className="font-semibold text-foreground">
                   {t("sections.general")}
@@ -191,10 +182,10 @@ export default function SettingsPage() {
             </section>
 
             {/* 2. الوصول والتسجيل */}
-            <section className="card-glass rounded-2xl shadow-(--shadow-soft) border border-(--ui-border) p-6 hover:shadow-(--shadow-lift) transition-shadow duration-300 flex flex-col gap-5">
+            <section className="pd-panel pd-shape-organic shadow-(--shadow-soft) border border-(--ui-border) p-6 hover:shadow-(--shadow-lift) transition-shadow duration-300 flex flex-col gap-5">
               <div className="flex items-center gap-3 border-b border-(--ui-border) pb-4">
-                <div className="p-2 brand-gradient text-white rounded-lg shadow-(--shadow-soft)">
-                  <FiUsers className="w-5 h-5" />
+                <div className="p-2 brand-gradient text-[var(--pd-on-accent)] rounded-lg shadow-(--shadow-soft)">
+                  <UsersIcon className="w-5 h-5" />
                 </div>
                 <h3 className="font-semibold text-foreground">
                   {t("sections.access")}
@@ -216,10 +207,10 @@ export default function SettingsPage() {
             </section>
 
             {/* 3. الإعدادات الطبية */}
-            <section className="card-glass rounded-2xl shadow-(--shadow-soft) border border-(--ui-border) p-6 hover:shadow-(--shadow-lift) transition-shadow duration-300 flex flex-col gap-5">
+            <section className="pd-panel pd-shape-asymmetric shadow-(--shadow-soft) border border-(--ui-border) p-6 hover:shadow-(--shadow-lift) transition-shadow duration-300 flex flex-col gap-5">
               <div className="flex items-center gap-3 border-b border-(--ui-border) pb-4">
-                <div className="p-2 brand-gradient text-white rounded-lg shadow-(--shadow-soft)">
-                  <FaUserMd className="w-5 h-5" />
+                <div className="p-2 brand-gradient text-[var(--pd-on-accent)] rounded-lg shadow-(--shadow-soft)">
+                  <BriefcaseMedicalIcon className="w-5 h-5" />
                 </div>
                 <h3 className="font-semibold text-foreground">
                   {t("sections.medical")}
@@ -274,10 +265,10 @@ export default function SettingsPage() {
             </section>
 
             {/* 4. صلاحيات الأدوار المعتمدة (RBAC) */}
-            <section className="card-glass rounded-2xl shadow-(--shadow-soft) border border-(--ui-border) p-6 hover:shadow-(--shadow-lift) transition-shadow duration-300 flex flex-col gap-5 md:col-span-2 lg:col-span-1">
+            <section className="pd-panel pd-shape-layered shadow-(--shadow-soft) border border-(--ui-border) p-6 hover:shadow-(--shadow-lift) transition-shadow duration-300 flex flex-col gap-5 md:col-span-2 lg:col-span-1">
               <div className="flex items-center gap-3 border-b border-(--ui-border) pb-4">
-                <div className="p-2 brand-gradient text-white rounded-lg shadow-(--shadow-soft)">
-                  <FaUserShield className="w-5 h-5" />
+                <div className="p-2 brand-gradient text-[var(--pd-on-accent)] rounded-lg shadow-(--shadow-soft)">
+                  <UserCogIcon className="w-5 h-5" />
                 </div>
                 <h3 className="font-semibold text-foreground">
                   {t("labels.rolePermissions.label")}
@@ -293,8 +284,8 @@ export default function SettingsPage() {
                     <span className="font-medium capitalize text-sm text-foreground">
                       {role}
                     </span>
-                    <div className="w-5 h-5 rounded-full flex items-center justify-center bg-(--ui-success) text-white border border-(--ui-success-border)">
-                      <FaCheck size={10} />
+                    <div className="w-5 h-5 rounded-full flex items-center justify-center bg-(--ui-success) text-[var(--pd-on-accent)] border border-(--ui-success-border)">
+                      <CheckIcon size={10} />
                     </div>
                   </div>
                 ))}
@@ -302,10 +293,10 @@ export default function SettingsPage() {
             </section>
 
             {/* 5. الأمان */}
-            <section className="card-glass rounded-2xl shadow-(--shadow-soft) border border-(--ui-border) p-6 hover:shadow-(--shadow-lift) transition-shadow duration-300 flex flex-col gap-5 md:col-span-2 lg:col-span-2">
+            <section className="pd-panel pd-shape-organic shadow-(--shadow-soft) border border-(--ui-border) p-6 hover:shadow-(--shadow-lift) transition-shadow duration-300 flex flex-col gap-5 md:col-span-2 lg:col-span-2">
               <div className="flex items-center gap-3 border-b border-(--ui-border) pb-4">
-                <div className="p-2 brand-gradient text-white rounded-lg shadow-(--shadow-soft)">
-                  <FaLock className="w-5 h-5" />
+                <div className="p-2 brand-gradient text-[var(--pd-on-accent)] rounded-lg shadow-(--shadow-soft)">
+                  <LockIcon className="w-5 h-5" />
                 </div>
                 <h3 className="font-semibold text-foreground">
                   {t("sections.security")}
@@ -316,7 +307,7 @@ export default function SettingsPage() {
                 <div className="space-y-5">
                   <div>
                     <label className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
-                      <FaClock size={14} className="text-(--ui-muted-2)" />
+                      <ClockIcon size={14} className="text-(--ui-muted-2)" />
                       {t("labels.sessionDuration.label")}
                     </label>
                     <div className="flex items-center gap-4">
@@ -349,7 +340,7 @@ export default function SettingsPage() {
                 <div className="hidden md:flex justify-center bg-(--ui-surface-2) rounded-xl p-6 border border-(--ui-border)">
                   <div className="text-center space-y-2">
                     <div className="w-16 h-16 bg-(--ui-surface) rounded-full shadow-(--shadow-soft) border border-(--ui-border) flex items-center justify-center mx-auto text-(--ui-info) text-2xl">
-                      <FaLock />
+                      <LockIcon />
                     </div>
                     <p className="text-xs text-(--ui-muted-2) max-w-50 mx-auto">
                       {t("security.hipaaNotice")}
@@ -362,7 +353,7 @@ export default function SettingsPage() {
 
           {/* زر الحفظ الثابت في الأسفل */}
           <div className="fixed bottom-6 left-0 right-0 z-50 flex justify-center pointer-events-none">
-            <div className="card-glass p-2 rounded-2xl shadow-(--shadow-lift) border border-(--ui-border) pointer-events-auto flex items-center gap-4">
+            <div className="pd-panel pd-shape-asymmetric p-2 rounded-2xl shadow-(--shadow-lift) border border-(--ui-border) pointer-events-auto flex items-center gap-4">
               <div className="hidden sm:block text-xs text-(--ui-muted-2) px-2 border-r border-(--ui-border)">
                 {t("ui.unsavedChanges")}
               </div>
@@ -372,7 +363,7 @@ export default function SettingsPage() {
                 disabled={saving || loading}
                 isLoading={saving}
               >
-                <FaSave /> {t("actions.save")}
+                <SaveIcon /> {t("actions.save")}
               </Button>
             </div>
           </div>

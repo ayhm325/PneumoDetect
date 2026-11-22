@@ -1,4 +1,4 @@
-import { FaUserMd, FaUserPlus } from "react-icons/fa";
+import { BriefcaseMedicalIcon, UserPlusIcon } from "lucide-react";
 import Button from "../ui/Button";
 import { Table, THead, TRow, TH, TD } from "../ui/Table";
 import Pagination from "../ui/Pagination";
@@ -56,7 +56,7 @@ export default function DoctorsTable({
                 <TD className="py-2 px-4 text-center font-bold">{i + 1}</TD>
                 <TD className="py-2 px-4 text-center">
                   <span className="inline-flex items-center gap-2 justify-center">
-                    <FaUserMd className="text-(--ui-muted-2)" />
+                    <BriefcaseMedicalIcon className="text-(--ui-muted-2)" />
                     {name}
                   </span>
                 </TD>
@@ -65,12 +65,12 @@ export default function DoctorsTable({
                 <TD className="py-2 px-4 text-center">{email}</TD>
                 <TD className="py-2 px-4 text-center">
                   <span
-                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                       doctor.status === "active"
-                        ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                        ? "bg-[var(--pd-moss-soft)] text-[var(--pd-success)]"
                         : doctor.status === "pending"
-                          ? "bg-amber-500/15 text-amber-600 dark:text-amber-400"
-                          : "bg-red-500/15 text-red-600 dark:text-red-400"
+                          ? "bg-[var(--pd-marigold-soft)] text-[var(--pd-marigold)]"
+                          : "bg-[var(--pd-coral-soft)] text-[var(--pd-coral)]"
                     }`}
                   >
                     {doctor.status === "active"
@@ -94,7 +94,7 @@ export default function DoctorsTable({
                       <>
                         <Button
                           variant="ghost"
-                          className="px-3 py-2 text-emerald-600 font-bold"
+                          className="px-3 py-2 text-[var(--pd-success)] font-semibold"
                           onClick={() => onApprove(doctor)}
                         >
                           {isAr ? "موافقة" : "Approve"}

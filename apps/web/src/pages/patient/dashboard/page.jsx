@@ -9,24 +9,15 @@ export const headers = () => {
   return [["Cache-Control", "no-store"]];
 };
 
+import { ArrowUpIcon, CalendarDaysIcon, FileHeartIcon, FileTextIcon, HeartPulseIcon, MailIcon, MessagesSquareIcon, ScanLineIcon } from "lucide-react";
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter } from "@/lib/compat/navigation";
 import { useToast } from "@/components/ui/ToastProvider";
-import {
-  FaCalendarAlt,
-  FaComments,
-  FaFileAlt,
-  FaFileMedicalAlt,
-  FaEnvelope,
-  FaHeartbeat,
-  FaArrowUp,
-  FaXRay,
-} from "react-icons/fa";
 import { useTranslations, useLocale } from "@/lib/compat/intl";
 import PatientDashboardWrapper from "@/components/PatientDashboardWrapper";
 import useSocket from "@/components/chat/useSocket.client";
 import { apiFetch, apiRequest } from "@/lib/apiClient";
-import { Button, Card, StatCard } from "@/components/ui";
+import { Button, StatCard, Surface } from "@/components/ui";
 import { PageHeader } from "@/components/ui/PageHeader";
 
 export default function PatientDashboardPage() {
@@ -83,24 +74,24 @@ export default function PatientDashboardPage() {
       title: t("dashboard.stats.upcomingAppointments"),
       value: placeholder,
       change: null,
-      icon: FaCalendarAlt,
+      icon: CalendarDaysIcon,
     },
     {
       title: t("dashboard.stats.readyReports"),
       value: placeholder,
       change: null,
-      icon: FaFileAlt,
+      icon: FileTextIcon,
     },
     {
       title: t("dashboard.stats.newMessages"),
       value: placeholder,
       change: null,
-      icon: FaEnvelope,
+      icon: MailIcon,
     },
     {
       title: t("dashboard.stats.vitalSigns"),
       value: placeholder,
-      icon: FaHeartbeat,
+      icon: HeartPulseIcon,
     },
   ]);
 
@@ -118,24 +109,24 @@ export default function PatientDashboardPage() {
             title: t("dashboard.stats.upcomingAppointments"),
             value: data.upcomingAppointments ?? placeholder,
             change: null,
-            icon: FaCalendarAlt,
+            icon: CalendarDaysIcon,
           },
           {
             title: t("dashboard.stats.readyReports"),
             value: data.readyReports ?? placeholder,
             change: null,
-            icon: FaFileAlt,
+            icon: FileTextIcon,
           },
           {
             title: t("dashboard.stats.newMessages"),
             value: data.newMessages ?? placeholder,
             change: null,
-            icon: FaEnvelope,
+            icon: MailIcon,
           },
           {
             title: t("dashboard.stats.vitalSigns"),
             value: formatClinicalStatus(data.clinicalStatus),
-            icon: FaHeartbeat,
+            icon: HeartPulseIcon,
           },
         ]);
       } catch {}
@@ -187,7 +178,7 @@ export default function PatientDashboardPage() {
               title: t("dashboard.stats.newMessages"),
               value: 0,
               change: null,
-              icon: FaEnvelope,
+              icon: MailIcon,
             };
             const raw = current.value;
             const n = typeof raw === "number" ? raw : Number(raw);
@@ -286,25 +277,25 @@ export default function PatientDashboardPage() {
     {
       title: t("dashboard.quickActions.bookAppointment"),
       desc: t("dashboard.quickActions.desc.bookAppointment"),
-      Icon: FaCalendarAlt,
+      Icon: CalendarDaysIcon,
       href: "/patient/appointments",
     },
     {
       title: t("dashboard.quickActions.uploadXray"),
       desc: t("dashboard.quickActions.desc.uploadXray"),
-      Icon: FaXRay,
+      Icon: ScanLineIcon,
       href: "/patient/analysis",
     },
     {
       title: t("dashboard.quickActions.viewReports"),
       desc: t("dashboard.quickActions.desc.viewReports"),
-      Icon: FaFileMedicalAlt,
+      Icon: FileHeartIcon,
       href: "/patient/results",
     },
     {
       title: t("dashboard.quickActions.chatDoctor"),
       desc: t("dashboard.quickActions.desc.chatDoctor"),
-      Icon: FaComments,
+      Icon: MessagesSquareIcon,
       href: "/patient/chat",
     },
   ];
@@ -318,36 +309,37 @@ export default function PatientDashboardPage() {
           description={today}
         />
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+        {/* Stats — orbital + editorial rhythm (no 4 identical boxes) */}
+        <div className="mb-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {stats.map((s, i) => {
             const StatIcon = s.icon;
-            const tone =
-              i === 1 ? "success" : i === 2 ? "warning" : "info";
+            const tone = i === 1 ? "success" : i === 2 ? "warning" : "info";
+            const shape = i === 0 ? "orbital" : i === 3 ? "layered" : "editorial";
             return (
               <StatCard
                 key={i}
                 label={s.title}
                 value={s.value}
-                icon={<StatIcon />}
+                icon={<StatIcon size={18} strokeWidth={1.7} />}
                 tone={tone}
+                shape={shape}
               />
             );
           })}
         </div>
 
-        {/* Recent Analyses & Upcoming Appointments */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <Card>
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="flex items-center gap-2 text-lg font-bold text-(--ui-foreground)">
-                <FaXRay className="text-(--color-primary-500)" />
+        {/* Recent Analyses (asymmetric panel + open list) & Upcoming Appointments (frameless timeline) */}
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
+          <Surface shape="asymmetric" className="p-6 lg:col-span-7">
+            <div className="mb-5 flex items-center justify-between border-b border-[var(--pd-border)] pb-4">
+              <h2 className="flex items-center gap-2.5 text-lg font-semibold text-[var(--pd-text-primary)]">
+                <ScanLineIcon size={18} strokeWidth={1.7} className="text-[var(--pd-copper)]" />
                 <span>{locale === "ar" ? "أحدث تحليلات الأشعة" : "Recent X-Ray Analyses"}</span>
               </h2>
               <button
                 type="button"
                 onClick={() => router.push(`${basePrefix}/patient/analysis/history`)}
-                className="text-xs font-semibold text-(--color-primary-500) hover:underline"
+                className="pd-btn pd-btn--link text-xs"
               >
                 {locale === "ar" ? "عرض السجل" : "View history"}
               </button>
@@ -356,34 +348,31 @@ export default function PatientDashboardPage() {
             {overviewLoading ? (
               <div className="space-y-3">
                 {[1, 2].map((i) => (
-                  <div key={i} className="h-14 animate-pulse rounded-xl bg-(--ui-surface-2)" />
+                  <div key={i} className="pd-skeleton h-14 rounded-xl" />
                 ))}
               </div>
             ) : recentAnalyses.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-(--ui-border) bg-(--ui-surface-2)/40 p-6 text-center">
-                <p className="text-sm font-medium text-(--ui-muted-foreground)">
+              <div className="py-8 text-center">
+                <p className="text-sm font-medium text-[var(--pd-text-muted)]">
                   {locale === "ar" ? "لا توجد تحليلات أشعة مسجلة بعد." : "No X-ray analyses recorded yet."}
                 </p>
                 <Button
                   size="sm"
-                  className="mt-3"
+                  className="mt-4"
                   onClick={() => router.push(`${basePrefix}/patient/analysis`)}
                 >
                   {t("dashboard.quickActions.uploadXray")}
                 </Button>
               </div>
             ) : (
-              <div className="space-y-2.5">
+              <div className="divide-y divide-[var(--pd-border)]">
                 {recentAnalyses.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex items-center justify-between rounded-xl border border-(--ui-border) bg-(--ui-surface-2)/50 px-4 py-3"
-                  >
-                    <div>
-                      <p className="text-sm font-bold text-(--ui-foreground)">
+                  <div key={item.id} className="flex items-center justify-between gap-4 py-3.5">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-[var(--pd-text-primary)]">
                         {item.prediction || (locale === "ar" ? "نتيجة تحليل" : "Analysis Result")}
                       </p>
-                      <p className="text-xs text-(--ui-muted-foreground)">
+                      <p className="pd-tabular text-xs text-[var(--pd-text-muted)]">
                         {item.createdAt
                           ? new Date(item.createdAt).toLocaleDateString(locale === "en" ? "en-US" : "ar-EG")
                           : placeholder}
@@ -391,7 +380,7 @@ export default function PatientDashboardPage() {
                     </div>
                     <Button
                       size="sm"
-                      variant="secondary"
+                      variant="outline"
                       onClick={() => router.push(`${basePrefix}/patient/results`)}
                     >
                       {locale === "ar" ? "التفاصيل" : "Details"}
@@ -400,18 +389,18 @@ export default function PatientDashboardPage() {
                 ))}
               </div>
             )}
-          </Card>
+          </Surface>
 
-          <Card>
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="flex items-center gap-2 text-lg font-bold text-(--ui-foreground)">
-                <FaCalendarAlt className="text-(--color-secondary-500)" />
+          <Surface shape="editorial" className="pt-5 lg:col-span-5">
+            <div className="mb-5 flex items-center justify-between">
+              <h2 className="flex items-center gap-2.5 text-lg font-semibold text-[var(--pd-text-primary)]">
+                <CalendarDaysIcon size={18} strokeWidth={1.7} className="text-[var(--pd-sage)]" />
                 <span>{locale === "ar" ? "المواعيد القادمة" : "Upcoming Appointments"}</span>
               </h2>
               <button
                 type="button"
                 onClick={() => router.push(`${basePrefix}/patient/appointments`)}
-                className="text-xs font-semibold text-(--color-primary-500) hover:underline"
+                className="pd-btn pd-btn--link text-xs"
               >
                 {locale === "ar" ? "كل المواعيد" : "All appointments"}
               </button>
@@ -420,62 +409,66 @@ export default function PatientDashboardPage() {
             {overviewLoading ? (
               <div className="space-y-3">
                 {[1, 2].map((i) => (
-                  <div key={i} className="h-14 animate-pulse rounded-xl bg-(--ui-surface-2)" />
+                  <div key={i} className="pd-skeleton h-14 rounded-xl" />
                 ))}
               </div>
             ) : upcomingAppointments.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-(--ui-border) bg-(--ui-surface-2)/40 p-6 text-center">
-                <p className="text-sm font-medium text-(--ui-muted-foreground)">
+              <div className="py-6">
+                <p className="text-sm text-[var(--pd-text-muted)]">
                   {locale === "ar" ? "لا توجد مواعيد محجوزة حالياً." : "No appointments scheduled yet."}
                 </p>
                 <Button
                   size="sm"
-                  className="mt-3"
+                  variant="outline"
+                  className="mt-4"
                   onClick={() => router.push(`${basePrefix}/patient/appointments`)}
                 >
                   {t("dashboard.quickActions.bookAppointment")}
                 </Button>
               </div>
             ) : (
-              <div className="space-y-2.5">
+              <ol className="relative space-y-5 border-s border-[var(--pd-border-strong)] ps-5">
                 {upcomingAppointments.map((appt) => (
-                  <div
-                    key={appt.id}
-                    className="flex items-center justify-between rounded-xl border border-(--ui-border) bg-(--ui-surface-2)/50 px-4 py-3"
-                  >
-                    <div>
-                      <p className="text-sm font-bold text-(--ui-foreground)">
+                  <li key={appt.id} className="relative flex items-start justify-between gap-3">
+                    <span
+                      aria-hidden="true"
+                      className="absolute -start-[25px] top-1.5 h-2.5 w-2.5 rounded-full bg-[var(--pd-copper)] ring-4 ring-[var(--pd-bg)]"
+                    />
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-[var(--pd-text-primary)]">
                         {appt.doctorName || appt.doctor?.user?.fullName || (locale === "ar" ? "موعد طبي" : "Medical Visit")}
                       </p>
-                      <p className="text-xs text-(--ui-muted-foreground)">
+                      <p className="pd-tabular text-xs text-[var(--pd-text-muted)]">
                         {appt.scheduledAt
                           ? new Date(appt.scheduledAt).toLocaleString(locale === "en" ? "en-US" : "ar-EG")
                           : placeholder}
                       </p>
                     </div>
-                    <span className="rounded-full bg-(--ui-info-bg) px-2.5 py-1 text-xs font-semibold text-(--ui-info)">
+                    <span className="shrink-0 rounded-full border border-[var(--pd-copper-border)] bg-[var(--pd-copper-soft)] px-2.5 py-0.5 text-xs font-medium text-[var(--pd-copper)]">
                       {appt.status || "scheduled"}
                     </span>
-                  </div>
+                  </li>
                 ))}
-              </div>
+              </ol>
             )}
-          </Card>
+          </Surface>
         </div>
 
-        {/* Quick Actions */}
-        <div>
-          <h2 className="mb-4 text-xl font-bold text-(--ui-foreground)">
+        {/* Quick Actions — 1 sculpted focal action + 3 frameless editorial links */}
+        <div className="pt-2">
+          <h2 className="mb-5 text-lg font-semibold text-[var(--pd-text-primary)]">
             {t("dashboard.quickActions.title")}
           </h2>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {quickActions.map((a, i) => {
               const ActionIcon = a.Icon;
+              const isPrimaryAction = i === 1;
               return (
-                <Card
+                <Surface
                   key={i}
-                  variant="interactive"
-                  size="sm"
+                  shape={isPrimaryAction ? "layered" : "editorial"}
+                  tone={isPrimaryAction ? "copper" : "default"}
+                  interactive
                   onClick={() => router.push(`${basePrefix}${a.href}`)}
                   role="button"
                   tabIndex={0}
@@ -485,20 +478,22 @@ export default function PatientDashboardPage() {
                       router.push(`${basePrefix}${a.href}`);
                     }
                   }}
-                  className="group cursor-pointer flex flex-col justify-between gap-3"
+                  className={`group flex cursor-pointer flex-col justify-between gap-3 ${
+                    isPrimaryAction ? "p-5" : "pt-5"
+                  }`}
                 >
-                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-(--ui-info-border) bg-(--ui-info-bg) text-(--color-primary) text-xl">
-                    <ActionIcon />
+                  <div className={`pd-orb pd-shape-orbital ${isPrimaryAction ? "pd-orb--solid" : "pd-orb--copper"}`}>
+                    <ActionIcon size={18} strokeWidth={1.7} />
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-(--ui-foreground)">
+                    <h3 className="text-base font-semibold text-[var(--pd-text-primary)]">
                       {a.title}
                     </h3>
-                    <p className="mt-1 text-xs text-(--ui-muted-foreground) leading-relaxed">
+                    <p className="mt-1 text-xs leading-relaxed text-[var(--pd-text-muted)]">
                       {a.desc}
                     </p>
                   </div>
-                </Card>
+                </Surface>
               );
             })}
           </div>

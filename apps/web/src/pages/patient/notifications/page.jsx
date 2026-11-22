@@ -1,8 +1,8 @@
 "use client";
+import { BellIcon, CheckCheckIcon, CheckIcon, Trash2Icon } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/ToastProvider";
 import { useTranslations } from "@/lib/compat/intl";
-import { FaBell, FaTrash, FaCheck, FaCheckDouble } from "react-icons/fa";
 import { useLocale } from "@/lib/compat/intl";
 import { apiRequest } from "@/lib/apiClient";
 
@@ -244,7 +244,7 @@ export default function PatientNotificationsPage() {
                 : labels.allRead(totalCount)}
             </p>
           </div>
-          <FaBell size={32} className="text-(--ui-success)" />
+          <BellIcon size={32} className="text-(--ui-success)" />
         </div>
 
         {/* Filter Tabs */}
@@ -288,7 +288,7 @@ export default function PatientNotificationsPage() {
             disabled={unreadCount === 0}
             className="inline-flex items-center gap-2 px-4 py-2 bg-(--ui-success) hover:bg-(--ui-success)/90 disabled:opacity-50 text-(--ui-success-foreground) rounded-lg transition"
           >
-            <FaCheckDouble size={14} />
+            <CheckCheckIcon size={14} />
             {labels.markAllRead}
           </button>
           <button
@@ -296,7 +296,7 @@ export default function PatientNotificationsPage() {
             disabled={totalCount === 0}
             className="inline-flex items-center gap-2 px-4 py-2 bg-(--ui-danger) hover:bg-(--ui-danger)/90 disabled:opacity-50 text-(--ui-danger-foreground) rounded-lg transition"
           >
-            <FaTrash size={14} />
+            <Trash2Icon size={14} />
             {labels.deleteAll}
           </button>
         </div>
@@ -304,8 +304,8 @@ export default function PatientNotificationsPage() {
         {/* Notifications List */}
         <div className="space-y-4">
           {filteredNotifications.length === 0 ? (
-            <div className="card-glass border border-(--ui-border) rounded-xl p-12 text-center">
-              <FaBell
+            <div className="pd-panel pd-shape-asymmetric border border-(--ui-border) rounded-xl p-12 text-center">
+              <BellIcon
                 size={48}
                 className="mx-auto mb-4 text-(--ui-muted-foreground)"
               />
@@ -321,7 +321,7 @@ export default function PatientNotificationsPage() {
             filteredNotifications.map((notif) => (
               <div
                 key={notif.id}
-                className={`card-glass border border-(--ui-border) rounded-xl p-6 border-l-4 transition hover:shadow-lg ${
+                className={`pd-panel pd-shape-layered border border-(--ui-border) rounded-xl p-6 border-l-4 transition hover:shadow-lg ${
                   notif.isRead
                     ? "border-l-(--ui-border)"
                     : "border-l-(--ui-success)"
@@ -359,7 +359,7 @@ export default function PatientNotificationsPage() {
                         title={labels.markAsRead}
                         className="p-2 text-(--ui-success) hover:bg-(--ui-success-bg) rounded-lg transition"
                       >
-                        <FaCheck size={18} />
+                        <CheckIcon size={18} />
                       </button>
                     ) : (
                       <button
@@ -367,7 +367,7 @@ export default function PatientNotificationsPage() {
                         title={labels.markAsUnread}
                         className="p-2 text-(--ui-muted-foreground) hover:bg-(--ui-surface-2)/60 rounded-lg transition"
                       >
-                        <FaCheck size={18} />
+                        <CheckIcon size={18} />
                       </button>
                     )}
                     <button
@@ -375,7 +375,7 @@ export default function PatientNotificationsPage() {
                       title={labels.deleteNotification}
                       className="p-2 text-(--ui-danger) hover:bg-(--ui-danger-bg) rounded-lg transition"
                     >
-                      <FaTrash size={18} />
+                      <Trash2Icon size={18} />
                     </button>
                   </div>
                 </div>
