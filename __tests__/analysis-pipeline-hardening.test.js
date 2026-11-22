@@ -5,6 +5,7 @@ import { jest } from "@jest/globals";
 import jwt from "jsonwebtoken";
 import request from "supertest";
 import { createApp } from "../apps/api/src/bootstrap/createApp";
+import { prisma } from "../apps/api/src/db/prisma";
 import { createAnalysisService, getUploadSigningSecret } from "../apps/api/src/services/analysis/analysisService";
 import { isMockEnabled } from "../apps/api/src/ai/inference/index.js";
 
@@ -86,6 +87,7 @@ describe("Active AI X-Ray Analysis Pipeline (apps/api/src)", () => {
         heatmap_url: "/static/heatmaps/gradcam_test.png",
         inference_time_ms: 42,
       }),
+      runInTransaction: async (fn) => fn({}),
       analysisResultRepository: {
         save: saveAnalysis,
         findHistoryByUserId: jest.fn(),
@@ -179,6 +181,7 @@ describe("Active AI X-Ray Analysis Pipeline (apps/api/src)", () => {
         model_version: "mock-simulator-dev-only",
         is_mock: true,
       }),
+      runInTransaction: async (fn) => fn({}),
       analysisResultRepository: { save: saveAnalysis, findHistoryByUserId: jest.fn(), deleteByUserAndId: jest.fn() },
       patientRepository: {
         findByUserId: jest.fn().mockResolvedValue({ id: "pat-1", userId: "u-1", doctorId: "doc-1", fullName: "P1" }),
@@ -200,6 +203,10 @@ describe("Active AI X-Ray Analysis Pipeline (apps/api/src)", () => {
   });
 
   test("Signed /uploads middleware rejects expired or tampered HMAC signatures", async () => {
+    jest.spyOn(prisma.analysisResult, "findFirst").mockResolvedValue(null);
+    jest.spyOn(prisma.medicalRecord, "findFirst").mockResolvedValue(null);
+    jest.spyOn(prisma.message, "findFirst").mockResolvedValue(null);
+
     const app = createApp();
     const token = jwt.sign({ id: "u-1", role: "patient", isActive: true }, SECRET, { expiresIn: "1h" });
 
@@ -233,6 +240,7 @@ describe("Active AI X-Ray Analysis Pipeline (apps/api/src)", () => {
       .get("/static/heatmaps/unowned.png")
       .set("Authorization", `Bearer ${token}`);
     expect(unownedHeatmapRes.status).toBe(403);
+    jest.restoreAllMocks();
   });
 
   test("analysisService persists uploadNotes and links MedicalRecord inside transaction", async () => {
