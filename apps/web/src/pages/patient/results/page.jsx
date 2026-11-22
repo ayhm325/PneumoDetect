@@ -423,13 +423,13 @@ export default function PatientResultsPage() {
       <Card variant="clinical" className="mb-8 print:hidden">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="relative">
-            <SearchIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 text-(--ui-muted-foreground)" />
+            <SearchIcon className="absolute right-3 top-1/2 -translate-y-1/2 opacity-60" size={16} />
             <input
               type="text"
               placeholder={labels("searchPlaceholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pr-10 pl-4 py-3 border border-(--ui-border) rounded-lg bg-(--ui-surface) text-(--ui-foreground) focus:outline-none focus-visible:ring-2 focus-visible:ring-(--ui-ring)"
+              className="pd-field w-full pr-10 pl-4"
             />
           </div>
           <div className="flex items-center gap-2">

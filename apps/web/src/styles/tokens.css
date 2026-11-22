@@ -300,4 +300,6 @@
   --ui-success-foreground: #1e2821;
   --ui-warning-foreground: #1e2821;
   --ui-danger-foreground: #faf2e6;
+  --pd-orchid: var(--pd-olive);
+  --pd-orchid-soft: rgba(91, 113, 86, 0.14);
 }

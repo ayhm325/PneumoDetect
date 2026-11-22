@@ -534,8 +534,16 @@
     gap: 0.25rem;
     padding: 0.25rem;
     border-radius: 999px;
-    background: var(--pd-surface-inset);
+    background: #202923;
     border: 1px solid var(--pd-border);
+    color: #efe2ce;
+  }
+  .pd-segmented .pd-chip:not(.pd-chip--active) {
+    color: rgba(239, 226, 206, 0.85);
+  }
+  .pd-segmented .pd-chip:not(.pd-chip--active):hover {
+    background: rgba(239, 226, 206, 0.1);
+    color: #faf0e1;
   }
 
   /* ---------- Buttons ---------- */
@@ -583,11 +591,11 @@
   .pd-btn--secondary {
     background: var(--pd-neutral-raised);
     border-color: var(--pd-line-strong);
-    color: var(--pd-cream);
+    color: var(--pd-text-primary);
   }
   .pd-btn--secondary:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--pd-neutral-raised) 82%, var(--pd-cream));
-    color: var(--pd-cream);
+    background: color-mix(in srgb, var(--pd-neutral-raised) 82%, var(--pd-text-primary));
+    color: var(--pd-text-primary);
   }
 
   .pd-btn--outline,

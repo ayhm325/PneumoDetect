@@ -155,11 +155,11 @@ export function AuthSplitCard({ initialMode = "login" }: AuthSplitCardProps) {
 
   return (
     <div className="flex min-h-[calc(100vh-8rem)] items-center justify-center bg-[var(--pd-canvas)] px-4 py-8">
-      <div className="pd-card pd-card--cream relative w-full max-w-5xl overflow-hidden !p-0 shadow-[var(--pd-shadow-float)] md:min-h-[640px]">
+      <div className="relative w-full max-w-5xl overflow-hidden rounded-[24px] border border-[var(--pd-line)] bg-[var(--pd-cream)] text-[#181f1a] shadow-[var(--pd-shadow-float)] md:min-h-[640px] [--pd-text-primary:#181f1a] [--pd-text-secondary:#2b382d] [--pd-text-muted:#465448]">
         {/* Sliding editorial panel on desktop */}
         <div
           aria-hidden="true"
-          className={`pd-card pd-card--olive pointer-events-none absolute inset-y-0 start-0 hidden w-1/2 overflow-hidden !rounded-none !border-0 !border-e !border-[var(--pd-line)] !p-0 transition-transform duration-700 ease-out md:block ${
+          className={`pointer-events-none absolute inset-y-0 start-0 hidden w-1/2 overflow-hidden border-e border-[var(--pd-line)] bg-[var(--pd-olive)] text-[#faf0e1] transition-transform duration-700 ease-out md:block ${
             isRegister
               ? isAr
                 ? "-translate-x-full"
@@ -401,17 +401,17 @@ export function AuthSplitCard({ initialMode = "login" }: AuthSplitCardProps) {
           {/* Slot 2: Login Form when login, Editorial invite when register */}
           <div className="flex flex-col justify-center p-6 sm:p-10">
             {isRegister ? (
-              <div className="hidden flex-col items-start justify-center md:flex">
+              <div className="hidden flex-col items-start justify-center text-[#faf0e1] md:flex">
                 <div className="flex items-center gap-2.5">
                   <span className="pd-orb pd-orb--sm pd-orb--acid">
                     <StethoscopeIcon size={16} strokeWidth={1.7} />
                   </span>
-                  <span className="pd-eyebrow">PneumoDetect</span>
+                  <span className="pd-eyebrow text-[#faf0e1]">PneumoDetect</span>
                 </div>
-                <h2 className="mt-6 text-[length:var(--text-3xl)] font-semibold leading-tight tracking-[var(--tracking-heading)] text-[var(--pd-text-primary)]">
+                <h2 className="mt-6 text-[length:var(--text-3xl)] font-medium leading-tight tracking-[var(--tracking-heading)] text-[#faf0e1]">
                   {isAr ? "مرحباً بعودتك" : "Welcome back"}
                 </h2>
-                <p className="mt-3 max-w-sm text-sm leading-relaxed text-[var(--pd-text-secondary)]">
+                <p className="mt-3 max-w-sm text-sm leading-relaxed text-[#faf0e1]/90">
                   {isAr
                     ? "سجّل دخولك لمتابعة أحدث نتائج الأشعة والمواعيد الطبية."
                     : "Login to review your latest X-ray analyses and appointments."}
@@ -419,7 +419,7 @@ export function AuthSplitCard({ initialMode = "login" }: AuthSplitCardProps) {
                 <button
                   type="button"
                   onClick={() => setIsRegister(false)}
-                  className="pd-btn pd-btn--outline mt-7"
+                  className="pd-feature__action mt-7"
                 >
                   {isAr ? "تسجيل الدخول" : "Login"}
                 </button>
