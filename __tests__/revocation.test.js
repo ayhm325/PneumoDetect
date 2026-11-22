@@ -3,8 +3,8 @@ import {
   clearRevokedForTest,
   isTokenRevoked,
   addRevokedToken,
-} from "../lib/auth/revocation.server.js";
-import { sessionService } from "../src/services/auth";
+} from "../apps/api/src/legacy-lib/auth/revocation.server.js";
+import { sessionService } from "../apps/api/src/services/auth";
 
 const SECRET = process.env.JWT_SECRET || "your-secret-key";
 

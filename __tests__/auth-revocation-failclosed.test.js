@@ -1,9 +1,9 @@
 import { jest } from "@jest/globals";
 import jwt from "jsonwebtoken";
-import { clearRevokedForTest, addRevokedToken } from "../lib/auth/revocation.server.js";
-import { authenticateToken, authenticateRequest } from "../src/lib/auth/authRequestService";
-import { AppError } from "../src/lib/errors/appError";
-import * as revocationServer from "../lib/auth/revocation.server.js";
+import { clearRevokedForTest, addRevokedToken } from "../apps/api/src/legacy-lib/auth/revocation.server.js";
+import { authenticateToken, authenticateRequest } from "../apps/api/src/lib/auth/authRequestService";
+import { AppError } from "../apps/api/src/lib/errors/appError";
+import * as revocationServer from "../apps/api/src/legacy-lib/auth/revocation.server.js";
 
 const SECRET = process.env.JWT_SECRET || "jest-test-secret-32-chars-minimum!!";
 

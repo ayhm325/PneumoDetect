@@ -1,6 +1,6 @@
 import { jest } from "@jest/globals";
-import { createAnalysisService } from "../src/services/analysis/analysisService";
-import { AppError } from "../src/lib/errors/appError";
+import { createAnalysisService } from "../apps/api/src/services/analysis/analysisService";
+import { AppError } from "../apps/api/src/lib/errors/appError";
 
 describe("Analysis Service - AI Prediction, Upload Validation & Persistence Consistency", () => {
   const dummyPng = Buffer.from([
@@ -14,9 +14,11 @@ describe("Analysis Service - AI Prediction, Upload Validation & Persistence Cons
 
   const mockRepos = () => ({
     runInference: jest.fn(),
+    runInTransaction: async (fn) => fn({}),
     analysisResultRepository: {
       save: jest.fn().mockResolvedValue({ id: "res-1", prediction: "NORMAL" }),
       findHistoryByUserId: jest.fn(),
+      findHistoryByUploadedUserId: jest.fn(),
       deleteByUserAndId: jest.fn(),
     },
     patientRepository: {
@@ -77,7 +79,8 @@ describe("Analysis Service - AI Prediction, Upload Validation & Persistence Cons
       expect.objectContaining({
         aiResult: "NEGATIVE",
         confidenceScore: 0.95,
-      })
+      }),
+      expect.anything(),
     );
   });
 
