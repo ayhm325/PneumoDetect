@@ -8,6 +8,7 @@ import { FaBed, FaEye, FaEyeSlash, FaStethoscope } from "react-icons/fa";
 import { LoginRequestSchema, type LoginRequest } from "@pneumodetect/contracts";
 import { useAuth } from "@/stores/authStore";
 import { apiRequest, ApiClientError } from "@/lib/apiClient";
+import { Button } from "@/components/ui";
 
 interface AuthSplitCardProps {
   initialMode?: "login" | "register";
@@ -384,19 +385,14 @@ export function AuthSplitCard({ initialMode = "login" }: AuthSplitCardProps) {
                   </div>
                 </div>
 
-                <button
+                <Button
                   type="submit"
-                  disabled={regSubmitting}
-                  className="w-full rounded-xl bg-[var(--color-primary-500)] py-2.5 text-sm font-bold text-white shadow-xs transition hover:bg-[var(--color-primary-900)] disabled:opacity-60"
+                  fullWidth
+                  isLoading={regSubmitting}
+                  loadingText={isAr ? "جاري إنشاء الحساب..." : "Creating account..."}
                 >
-                  {regSubmitting
-                    ? isAr
-                      ? "جاري إنشاء الحساب..."
-                      : "Creating account..."
-                    : isAr
-                      ? "إنشاء الحساب"
-                      : "Sign Up"}
-                </button>
+                  {isAr ? "إنشاء الحساب" : "Sign Up"}
+                </Button>
 
                 <p className="text-center text-xs text-[var(--ui-muted)] md:hidden">
                   {isAr ? "لديك حساب بالفعل؟" : "Already have an account?"}{" "}
@@ -505,19 +501,14 @@ export function AuthSplitCard({ initialMode = "login" }: AuthSplitCardProps) {
                   </Link>
                 </div>
 
-                <button
+                <Button
                   type="submit"
-                  disabled={isSubmitting}
-                  className="w-full rounded-xl bg-[var(--color-primary-500)] py-2.5 text-sm font-bold text-white shadow-xs transition hover:bg-[var(--color-primary-900)] disabled:opacity-60"
+                  fullWidth
+                  isLoading={isSubmitting}
+                  loadingText={isAr ? "جاري الدخول..." : "Signing in..."}
                 >
-                  {isSubmitting
-                    ? isAr
-                      ? "جاري الدخول..."
-                      : "Signing in..."
-                    : isAr
-                      ? "دخول"
-                      : "Login"}
-                </button>
+                  {isAr ? "دخول" : "Login"}
+                </Button>
 
                 <p className="text-center text-xs text-[var(--ui-muted)] md:hidden">
                   {isAr ? "ليس لديك حساب؟" : "Don't have an account?"}{" "}

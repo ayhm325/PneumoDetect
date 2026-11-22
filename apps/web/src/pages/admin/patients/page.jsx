@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import useSWR from "swr";
 import { useToast } from "@/components/ui/ToastProvider";
+import { Button } from "@/components/ui";
 import useLocale from "@/lib/compat/intl";
 import { useTranslations } from "@/lib/compat/intl";
 import {
@@ -471,21 +472,19 @@ export default function PatientsPage() {
               </p>
             </div>
             <div className="flex items-center gap-4">
-              <button
+              <Button
                 onClick={() => {
                   setShowPassword(false);
                   setFormData({ ...emptyForm });
                   setShowAddModal(true);
                 }}
-                className="group flex items-center gap-3 px-6 py-3 btn-gradient text-white rounded-2xl shadow-(--shadow-lift) transition-all duration-300 hover:-translate-y-1"
+                size="lg"
               >
-                <div className="bg-(--color-neutral)/20 p-2 rounded-xl group-hover:rotate-90 transition-transform duration-500">
-                  <FaPlus size={18} />
-                </div>
-                <span className="font-semibold hidden sm:block">
+                <FaPlus size={16} />
+                <span className="hidden sm:inline">
                   {tPatients("addButton")}
                 </span>
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -906,27 +905,29 @@ export default function PatientsPage() {
                 </div>
 
                 <div className="px-8 py-6 bg-(--ui-surface) border-t border-(--ui-border) flex gap-4">
-                  <button
+                  <Button
                     onClick={
                       showAddModal ? handleAddPatient : handleEditPatient
                     }
-                    className="flex-1 btn-gradient text-white py-3.5 rounded-2xl font-bold shadow-(--shadow-lift) transition-all active:scale-95 flex items-center justify-center gap-2"
+                    fullWidth
+                    size="lg"
                   >
                     <FaFloppyDisk />{" "}
                     {showAddModal
                       ? tPatients("buttons.save")
                       : tPatients("buttons.saveChanges")}
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="lg"
                     onClick={() => {
                       setShowPassword(false);
                       setShowAddModal(false);
                       setShowEditModal(false);
                     }}
-                    className="px-8 py-3.5 bg-(--ui-surface-2) text-foreground border border-(--ui-border) rounded-2xl font-bold hover:bg-(--ui-surface) transition-all active:scale-95"
                   >
                     {tPatients("buttons.cancel")}
-                  </button>
+                  </Button>
                 </div>
               </div>
             )}

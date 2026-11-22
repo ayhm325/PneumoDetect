@@ -1,4 +1,5 @@
-export { Button } from "./Button";
+export { Button, IconButton, buttonClasses } from "./Button";
+export type { ButtonProps, ButtonSize, ButtonVariant, IconButtonProps } from "./Button";
 export { Input } from "./Input";
 export { Card } from "./Card";
 export { Alert } from "./Alert";
@@ -12,3 +13,6 @@ export { PageHeader } from "./PageHeader";
 export { DataTable } from "./DataTable";
 export { SearchInput } from "./SearchInput";
 export { LoadingState, ErrorState, EmptyState } from "./StateViews";
+export { default as StatusBadge } from "./StatusBadge";
+export { default as Pagination } from "./Pagination";
+export { Table, THead, TRow, TH, TD } from "./Table";

@@ -6,6 +6,7 @@ import { useSearchParams } from "@/lib/compat/navigation";
 import DoctorDetailsCard from "@/components/admin/DoctorDetailsCard";
 import DoctorsTable from "@/components/admin/DoctorsTable";
 import { useToast } from "@/components/ui/ToastProvider";
+import { Button } from "@/components/ui";
 import { FaMagnifyingGlass, FaPlus, FaX, FaFloppyDisk, FaEye, FaEyeSlash } from "react-icons/fa6";
 
 function DoctorsPage() {
@@ -338,13 +339,10 @@ function DoctorsPage() {
             </p>
           </div>
           <div className="flex gap-3">
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="flex items-center gap-2 btn-gradient px-4 py-2 rounded-lg transition-colors"
-            >
+            <Button onClick={() => setShowAddModal(true)}>
               <FaPlus />
               <span>{tDoctors("addButton")}</span>
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -526,19 +524,17 @@ function DoctorsPage() {
                 </div>
               </div>
               <div className="flex gap-3 mt-6">
-                <button
-                  onClick={handleAddDoctor}
-                  className="flex-1 flex items-center justify-center gap-2 btn-gradient px-4 py-3 rounded-lg transition-colors"
-                >
+                <Button onClick={handleAddDoctor} fullWidth>
                   <FaFloppyDisk />
                   <span>{tDoctors("buttons.save")}</span>
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="secondary"
+                  fullWidth
                   onClick={() => setShowAddModal(false)}
-                  className="flex-1 bg-(--ui-surface-2) hover:bg-(--ui-surface) text-foreground px-4 py-3 rounded-lg transition-colors border border-(--ui-border)"
                 >
                   {tDoctors("buttons.cancel")}
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -642,19 +638,17 @@ function DoctorsPage() {
                 </div>
               </div>
               <div className="flex gap-3 mt-6">
-                <button
-                  onClick={handleEditDoctor}
-                  className="flex-1 flex items-center justify-center gap-2 btn-gradient px-4 py-3 rounded-lg transition-colors"
-                >
+                <Button onClick={handleEditDoctor} fullWidth>
                   <FaFloppyDisk />
                   <span>{tDoctors("buttons.saveChanges")}</span>
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="secondary"
+                  fullWidth
                   onClick={() => setShowEditModal(false)}
-                  className="flex-1 bg-(--ui-surface-2) hover:bg-(--ui-surface) text-foreground px-4 py-3 rounded-lg transition-colors border border-(--ui-border)"
                 >
                   {tDoctors("buttons.cancel")}
-                </button>
+                </Button>
               </div>
             </div>
           </div>

@@ -4,14 +4,13 @@ import { useTranslation } from "react-i18next";
 import {
   FaBars,
   FaChevronDown,
-  FaMoon,
   FaSignOutAlt,
-  FaSun,
   FaTimes,
 } from "react-icons/fa";
 import { applyDocumentDirection } from "@/i18n/config";
 import { useTheme } from "@/lib/compat/theme";
 import { useAuth } from "@/stores/authStore";
+import { PortalTopbar } from "./PortalTopbar";
 
 export interface PortalSubmenuItem {
   to: string;
@@ -315,48 +314,16 @@ export function UnifiedPortalShell({
 
       {/* Main Content Area */}
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-white/10 bg-[var(--ui-topbar-bg)] px-4 text-white shadow-xs sm:px-6">
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => setMobileOpen(true)}
-              aria-label="Open navigation menu"
-              className="rounded-lg p-2 text-white/90 transition hover:bg-white/10 md:hidden"
-            >
-              <FaBars />
-            </button>
-            <h2 className="text-sm font-semibold tracking-wide text-white sm:text-base">
-              {portalTitle}
-            </h2>
-          </div>
-
-          <div className="flex items-center gap-2 sm:gap-3">
-            <button
-              type="button"
-              onClick={toggleTheme}
-              aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-              className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/15 bg-white/10 text-white transition hover:bg-white/20"
-            >
-              {isDark ? <FaSun className="text-amber-300" /> : <FaMoon />}
-            </button>
-
-            <button
-              type="button"
-              onClick={handleToggleLocale}
-              className="rounded-lg border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-white/20"
-            >
-              {isAr ? "EN" : "AR"}
-            </button>
-
-            {user && (
-              <div className="hidden items-center gap-2 rounded-lg border border-white/15 bg-white/10 px-3 py-1.5 sm:flex">
-                <span className="max-w-[160px] truncate text-xs font-semibold text-white">
-                  {user.fullName || user.email}
-                </span>
-              </div>
-            )}
-          </div>
-        </header>
+        <PortalTopbar
+          portalTitle={portalTitle}
+          portalBadge={portalBadge}
+          isAr={isAr}
+          isDark={isDark}
+          user={user}
+          onOpenMobileMenu={() => setMobileOpen(true)}
+          onToggleTheme={toggleTheme}
+          onToggleLocale={handleToggleLocale}
+        />
 
         <main className="flex-1 p-4 sm:p-5 lg:p-8">
           <div className="mx-auto max-w-7xl">{children}</div>

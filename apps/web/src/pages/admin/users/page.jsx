@@ -2,6 +2,7 @@
 import { useState, useMemo, useEffect } from "react";
 // Page is rendered inside the route-level AdminLayout; avoid double-wrapping
 import { useToast, ToastContainer } from "@/components/ui/ToastProvider";
+import { Button } from "@/components/ui";
 import useLocale from "@/lib/compat/intl";
 import { useTranslations } from "@/lib/compat/intl";
 import {
@@ -316,13 +317,10 @@ export default function UsersPage() {
             <p className="text-(--ui-muted-2) mt-2">{t("subtitle")}</p>
           </div>
           <div className="flex gap-3">
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="flex items-center gap-2 btn-gradient px-4 py-2 rounded-lg transition-colors"
-            >
+            <Button onClick={() => setShowAddModal(true)}>
               <FaPlus />
               <span>{t("addButton")}</span>
-            </button>
+            </Button>
           </div>
         </div>
         {/* Stats */}
@@ -562,19 +560,17 @@ export default function UsersPage() {
                 </div>
               </div>
               <div className="flex gap-3 mt-6">
-                <button
-                  onClick={handleAddUser}
-                  className="flex-1 flex items-center justify-center gap-2 btn-gradient px-4 py-3 rounded-lg transition-colors"
-                >
+                <Button onClick={handleAddUser} fullWidth>
                   <FaSave />
                   <span>{t("modal.add")}</span>
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="secondary"
+                  fullWidth
                   onClick={() => setShowAddModal(false)}
-                  className="flex-1 bg-(--ui-surface-2) hover:bg-(--ui-surface) text-foreground px-4 py-3 rounded-lg transition-colors border border-(--ui-border)"
                 >
                   {t("modal.cancel")}
-                </button>
+                </Button>
               </div>
             </div>
           </div>

@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import Image from "@/lib/compat/Image";
 import AnalysisDetailsModal from "@/components/analysis/AnalysisDetailsModal";
+import { Button } from "@/components/ui";
 import { useTranslations } from "@/lib/compat/intl";
 
 // شريط الثقة مع تدرج ولون متغير حسب النسبة
@@ -254,20 +255,20 @@ export default function AnalysisPage() {
             onChange={handleImageChange}
             className="hidden"
           />
-          <button
-            type="button"
+          <Button
+            size="lg"
             onClick={() => fileInputRef.current?.click()}
-            className="inline-flex items-center gap-3 px-5 py-3 rounded-xl btn-gradient text-lg font-semibold shadow-xl hover:scale-105 transition-transform"
           >
             📁 {t("analysis.controls.chooseImage")}
-          </button>
+          </Button>
           {previewUrl && (
-            <button
+            <Button
+              variant="danger"
+              size="md"
               onClick={handleRemoveImage}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-(--ui-danger) text-(--ui-danger-foreground) hover:opacity-90 shadow-lg text-lg"
             >
               ✖ {t("analysis.controls.remove")}
-            </button>
+            </Button>
           )}
         </div>
 
@@ -301,17 +302,17 @@ export default function AnalysisPage() {
               </div>
             </div>
 
-            <button
+            <Button
               onClick={handleAnalyze}
               disabled={!selectedImage || isLoading}
-              className={`mt-5 w-full py-4 rounded-3xl text-white text-xl font-bold transition-transform shadow-xl ${
-                isLoading
-                  ? "bg-(--ui-muted-2) text-(--ui-foreground) opacity-70 cursor-not-allowed"
-                  : "btn-gradient hover:scale-105"
-              }`}
+              isLoading={isLoading}
+              loadingText={t("analysis.actions.analyzing")}
+              fullWidth
+              size="lg"
+              className="mt-5"
             >
-              {isLoading ? t("analysis.actions.analyzing") : t("analysis.actions.analyze")}
-            </button>
+              {t("analysis.actions.analyze")}
+            </Button>
 
             {/* شريط التقدم عند التحميل */}
             {uploadProgress !== null && (

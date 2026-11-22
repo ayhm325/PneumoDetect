@@ -1,15 +1,16 @@
 "use client";
 
 import { useLocale, useTranslations } from "@/lib/compat/intl";
+import Button from "./Button";
 
 export default function Pagination({
   page = 1,
   pageCount = 1,
   onPageChange = () => {},
-  className,
+  className = "",
   ...props
 }) {
-  useLocale(); // Ensure component updates when locale changes
+  useLocale();
   const t = useTranslations("ui");
 
   const prevLabel = t("pagination.previous");
@@ -20,35 +21,30 @@ export default function Pagination({
   const prevDisabled = page <= 1;
   const nextDisabled = page >= pageCount;
 
-  const btnClass =
-    "h-9 px-3.5 rounded-lg border border-[var(--ui-border)] bg-[var(--ui-surface-elevated)] text-xs font-semibold text-[var(--ui-foreground)] transition hover:bg-[var(--ui-table-hover)] disabled:cursor-not-allowed disabled:opacity-50";
-
-  const containerClass = [
-    "mt-4 flex items-center justify-center gap-2",
-    className,
-  ]
-    .filter(Boolean)
-    .join(" ");
-
   return (
-    <div className={containerClass} {...props}>
-      <button
+    <div
+      className={`mt-4 flex items-center justify-center gap-2 ${className}`.trim()}
+      {...props}
+    >
+      <Button
+        variant="secondary"
+        size="sm"
         disabled={prevDisabled}
-        className={btnClass}
         onClick={() => onPageChange(Math.max(1, page - 1))}
       >
         {prevLabel}
-      </button>
-      <span className="mx-2 text-sm text-(--ui-muted-foreground)">
+      </Button>
+      <span className="mx-2 text-xs font-medium text-[var(--ui-muted)]">
         {pageLabel} {page} {ofLabel} {pageCount}
       </span>
-      <button
+      <Button
+        variant="secondary"
+        size="sm"
         disabled={nextDisabled}
-        className={btnClass}
         onClick={() => onPageChange(Math.min(pageCount, page + 1))}
       >
         {nextLabel}
-      </button>
+      </Button>
     </div>
   );
 }

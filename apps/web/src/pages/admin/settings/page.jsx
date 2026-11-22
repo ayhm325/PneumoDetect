@@ -14,6 +14,7 @@ import { FiSettings, FiUsers } from "react-icons/fi";
 import { useTranslations } from "@/lib/compat/intl";
 import useLocale from "@/lib/compat/intl";
 import { useToast } from "@/components/ui/ToastProvider";
+import { Button } from "@/components/ui";
 
 // --- مكون Toggle Switch مخصص ---
 const ToggleSwitch = ({ checked, onChange, label }) => (
@@ -433,12 +434,9 @@ export default function SettingsPage() {
               <div className="hidden sm:block text-xs text-(--ui-muted-2) px-2 border-r border-(--ui-border)">
                 {t("ui.unsavedChanges")}
               </div>
-              <button
-                onClick={handleSave}
-                className="flex items-center gap-2 btn-gradient text-white px-6 py-2.5 rounded-xl transition-all active:scale-95 font-medium text-sm"
-              >
+              <Button size="sm" onClick={handleSave}>
                 <FaSave /> {t("actions.save")}
-              </button>
+              </Button>
             </div>
           </div>
         </div>

@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import Image from "@/lib/compat/Image";
 import AnalysisDetailsModal from "@/components/analysis/AnalysisDetailsModal";
+import { Button } from "@/components/ui";
 import { useLocale, useTranslations } from "@/lib/compat/intl";
 import { formatDateTime } from "@/lib/date";
 import { formatArabicDate } from "@/lib/arabicMonths";
@@ -152,12 +153,12 @@ export default function PatientAnalysisHistoryPage() {
                 <div className="flex items-center justify-between">
                   {/* Removed saved-to-history text as requested */}
                   <div className="flex items-center gap-2">
-                    <button
+                    <Button
+                      size="sm"
                       onClick={() => setSelected(item)}
-                      className="px-3 py-1 btn-gradient rounded-md text-sm"
                     >
                       {t("analysisHistory.view")}
-                    </button>
+                    </Button>
                     <button
                       onClick={async () => {
                         const ok =
