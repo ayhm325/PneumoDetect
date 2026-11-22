@@ -47,8 +47,20 @@ export class AppError extends Error {
   }
 }
 
+export function isAppError(error: unknown): error is AppError {
+  if (error instanceof AppError) return true;
+  if (typeof error === "object" && error !== null) {
+    const candidate = error as { name?: string; statusCode?: unknown; code?: unknown };
+    return (
+      candidate.name === "AppError" ||
+      (typeof candidate.statusCode === "number" && typeof candidate.code === "string")
+    );
+  }
+  return false;
+}
+
 export function toAppError(error: unknown): AppError {
-  if (error instanceof AppError) return error;
+  if (isAppError(error)) return error;
 
   return new AppError({
     code: "server_error",

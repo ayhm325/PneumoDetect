@@ -129,13 +129,19 @@ export function createAuthService(deps: AuthServiceDeps): AuthService {
 
       deps.loginAttemptStore.clear(email);
 
-      await deps.activityRepository.createLoginActivity({
-        userId: user.id,
-        fullName: user.fullName,
-        email: user.email,
-        role: user.role,
-        ip: command.ip,
-      });
+      try {
+        await deps.activityRepository.createLoginActivity({
+          userId: user.id,
+          fullName: user.fullName,
+          email: user.email,
+          role: user.role,
+          ip: command.ip,
+        });
+      } catch (error) {
+        if (process.env.DEBUG_AUTH === "1" || process.env.NODE_ENV !== "production") {
+          console.warn("authService.login activity persistence warning:", error);
+        }
+      }
 
       try {
         const since = new Date(Date.now() - 12 * 60 * 60 * 1000);

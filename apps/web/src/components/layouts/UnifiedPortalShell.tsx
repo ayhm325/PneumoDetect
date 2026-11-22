@@ -64,8 +64,8 @@ function SidebarNavItem({
               isCollapsed ? "justify-center px-0" : "gap-3.5 px-4"
             } ${
               linkActive
-                ? "bg-white/15 text-white shadow-xs"
-                : "text-white/85 hover:bg-white/8 hover:text-white"
+                ? "bg-white/15 text-white shadow-xs border-s-3 border-sky-400 font-semibold"
+                : "border-s-3 border-transparent text-white/85 hover:bg-white/8 hover:text-white"
             }`
           }
         >
@@ -217,7 +217,7 @@ export function UnifiedPortalShell({
 
         {!collapsed && (
           <div className="mb-2 px-2">
-            <span className="inline-block rounded-full bg-white/10 px-3 py-1 text-[11px] font-semibold text-sky-200">
+            <span className="inline-block rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-sky-200">
               {portalBadge}
             </span>
           </div>
@@ -280,7 +280,7 @@ export function UnifiedPortalShell({
             </header>
 
             <div className="mb-2 px-2">
-              <span className="inline-block rounded-full bg-white/10 px-3 py-1 text-[11px] font-semibold text-sky-200">
+              <span className="inline-block rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-sky-200">
                 {portalBadge}
               </span>
             </div>

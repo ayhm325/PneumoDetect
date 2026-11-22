@@ -22,6 +22,7 @@ export function createSessionService(deps: SessionServiceDeps): SessionService {
         id: auth.user.id,
         role: auth.user.role,
         email: auth.user.email,
+        fullName: auth.user.fullName,
       };
     },
 

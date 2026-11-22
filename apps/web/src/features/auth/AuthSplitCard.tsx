@@ -8,6 +8,7 @@ import { FaBed, FaEye, FaEyeSlash, FaStethoscope } from "react-icons/fa";
 import { LoginRequestSchema, type LoginRequest } from "@pneumodetect/contracts";
 import { useAuth } from "@/stores/authStore";
 import { apiRequest, ApiClientError } from "@/lib/apiClient";
+import { formatAuthError } from "@/lib/authErrorMap";
 import { Button, GlideSelect } from "@/components/ui";
 
 interface AuthSplitCardProps {
@@ -77,11 +78,7 @@ export function AuthSplitCard({ initialMode = "login" }: AuthSplitCardProps) {
             : "/patient/dashboard";
       navigate(target, { replace: true });
     } catch (err) {
-      if (err instanceof ApiClientError) {
-        setLoginError(err.message);
-      } else {
-        setLoginError(isAr ? "حدث خطأ أثناء تسجيل الدخول" : "Login failed");
-      }
+      setLoginError(formatAuthError(err, isAr));
     }
   };
 

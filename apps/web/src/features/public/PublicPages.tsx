@@ -19,6 +19,7 @@ import {
   FaUserShield,
   FaXRay,
 } from "react-icons/fa";
+import { MedicalScannerHero } from "@/components/home/MedicalScannerHero";
 
 export function HomePage() {
   const { i18n } = useTranslation();
@@ -225,47 +226,8 @@ export function HomePage() {
                 </div>
 
                 {previewTab === "ai" ? (
-                  <div className="space-y-4 p-5">
-                    <div className="grid gap-4 sm:grid-cols-5">
-                      <div className="relative overflow-hidden rounded-2xl border border-[var(--ui-border)] bg-slate-950 sm:col-span-3">
-                        <img
-                          src="/icons/hero1.jpeg"
-                          alt={isAr ? "معاينة تحليل الأشعة السينية" : "Chest X-Ray Screening Preview"}
-                          className="h-48 w-full object-cover opacity-85"
-                        />
-                        <div className="absolute inset-x-3 bottom-3 flex items-center justify-between rounded-xl border border-white/15 bg-slate-950/80 px-3 py-2 text-xs text-white backdrop-blur-sm">
-                          <span className="font-semibold">DenseNet121 + Grad-CAM</span>
-                          <span className="rounded-full bg-[var(--color-secondary-500)]/25 px-2 py-0.5 text-[10px] font-bold text-teal-200">
-                            {isAr ? "خريطة حرارية" : "Heatmap Layer"}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-col justify-between gap-3 rounded-2xl border border-[var(--ui-border)] bg-[var(--ui-surface-2)]/70 p-4 sm:col-span-2">
-                        <div>
-                          <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--ui-muted)]">
-                            {isAr ? "مسار الفحص" : "Screening Output"}
-                          </p>
-                          <p className="mt-1 text-sm font-bold text-[var(--ui-foreground)]">
-                            {isAr ? "مؤشر فرز + تفسير بصري" : "Screening Flag + Visual Map"}
-                          </p>
-                        </div>
-                        <div className="space-y-2 text-xs text-[var(--ui-muted)]">
-                          <div className="flex items-center gap-2">
-                            <FaCheckCircle className="shrink-0 text-[var(--ui-success)]" />
-                            <span>{isAr ? "فحص تنسيق الصورة" : "Image integrity check"}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <FaCheckCircle className="shrink-0 text-[var(--ui-success)]" />
-                            <span>{isAr ? "حفظ في السجل الطبي" : "Saved to medical record"}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <FaCheckCircle className="shrink-0 text-[var(--ui-info)]" />
-                            <span>{isAr ? "إشعار للطبيب المعالج" : "Routed for doctor review"}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                  <div className="p-3 sm:p-5">
+                    <MedicalScannerHero />
                   </div>
                 ) : (
                   <div className="grid gap-3 p-5 sm:grid-cols-3">

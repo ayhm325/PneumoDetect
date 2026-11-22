@@ -8,6 +8,7 @@ export type ButtonVariant =
   | "outline"
   | "ghost"
   | "danger"
+  | "success"
   | "link";
 
 export type ButtonSize = "sm" | "md" | "lg";
@@ -65,6 +66,15 @@ const SPECULAR_PRESETS: Record<Exclude<ButtonVariant, "link">, SpecularPreset> =
     textColor: "#ffffff",
     lineColor: "#ffd6da",
     baseColor: "#b23340",
+    idleIntensity: 0.4,
+    glow: 1,
+  },
+  success: {
+    tint: "#159a72",
+    tintOpacity: 0.9,
+    textColor: "#ffffff",
+    lineColor: "#bcf0e1",
+    baseColor: "#0e7254",
     idleIntensity: 0.4,
     glow: 1,
   },

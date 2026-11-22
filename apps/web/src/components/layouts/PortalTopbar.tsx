@@ -96,10 +96,16 @@ export function PortalTopbar({
 
     const loadUnread = async () => {
       try {
+        const notifPath =
+          user.role === "admin"
+            ? "/api/admin/notifications"
+            : user.role === "doctor"
+              ? "/api/doctor/notifications"
+              : "/api/patient/notifications";
         const data = await apiRequest<{
           notifications?: Array<{ isRead?: boolean; read?: boolean }>;
           unreadCount?: number;
-        }>("/api/notifications");
+        }>(notifPath);
         if (!active) return;
         const list = Array.isArray(data?.notifications)
           ? data.notifications

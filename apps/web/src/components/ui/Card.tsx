@@ -1,8 +1,17 @@
 import React from "react";
 import clsx from "clsx";
 
-type CardVariant = "default" | "elevated" | "outline" | "interactive";
-type CardSize = "sm" | "md" | "lg";
+export type CardVariant =
+  | "default"
+  | "elevated"
+  | "outline"
+  | "interactive"
+  | "medical"
+  | "highlighted"
+  | "empty"
+  | "loading";
+
+export type CardSize = "sm" | "md" | "lg" | "none";
 
 export type CardProps = React.HTMLAttributes<HTMLDivElement> & {
   variant?: CardVariant;
@@ -11,19 +20,28 @@ export type CardProps = React.HTMLAttributes<HTMLDivElement> & {
 
 const variantClasses: Record<CardVariant, string> = {
   default:
-    "border border-[var(--ui-border)] bg-[var(--ui-surface-elevated)] text-[var(--ui-foreground)] shadow-[var(--shadow-card,var(--shadow-soft))] transition-all duration-250",
+    "border border-[var(--ui-border)] bg-[var(--ui-surface-elevated)] text-[var(--ui-foreground)] shadow-[var(--shadow-card,var(--shadow-soft))] transition-all duration-200",
   elevated:
-    "border border-[var(--ui-border)] bg-[var(--ui-surface-elevated)] text-[var(--ui-foreground)] shadow-[var(--shadow-lift)] transition-all duration-250",
+    "border border-[var(--ui-border)] bg-[var(--ui-surface-elevated)] text-[var(--ui-foreground)] shadow-[var(--shadow-lift)] transition-all duration-200",
   outline:
-    "border border-[var(--ui-border)] bg-transparent text-[var(--ui-foreground)] transition-all duration-250",
+    "border border-[var(--ui-border)] bg-transparent text-[var(--ui-foreground)] transition-all duration-200",
   interactive:
-    "border border-[var(--ui-border)] bg-[var(--ui-surface-elevated)] text-[var(--ui-foreground)] shadow-[var(--shadow-card,var(--shadow-soft))] transition-all duration-250 hover:-translate-y-0.5 hover:border-[var(--ui-border-strong)] hover:shadow-[var(--shadow-lift)]",
+    "border border-[var(--ui-border)] bg-[var(--ui-surface-elevated)] text-[var(--ui-foreground)] shadow-[var(--shadow-card,var(--shadow-soft))] transition-all duration-200 hover:-translate-y-0.5 hover:border-[var(--ui-border-strong)] hover:shadow-[var(--shadow-lift)]",
+  medical:
+    "border border-[var(--ui-info-border)] bg-[var(--ui-surface-elevated)] text-[var(--ui-foreground)] shadow-[var(--shadow-glow)] transition-all duration-200",
+  highlighted:
+    "border-2 border-[var(--color-primary-500)] bg-[var(--ui-surface-elevated)] text-[var(--ui-foreground)] shadow-[var(--shadow-lift)] transition-all duration-200",
+  empty:
+    "border-2 border-dashed border-[var(--ui-border)] bg-[var(--ui-surface-2)]/40 text-[var(--ui-muted-foreground)] text-center transition-all duration-200",
+  loading:
+    "border border-[var(--ui-border)] bg-[var(--ui-surface-elevated)] text-[var(--ui-foreground)] shadow-[var(--shadow-soft)] animate-pulse",
 };
 
 const sizeClasses: Record<CardSize, string> = {
-  sm: "rounded-[22px] p-5",
-  md: "rounded-[22px] p-6",
-  lg: "rounded-[22px] p-7 sm:p-8",
+  none: "p-0 rounded-[20px]",
+  sm: "rounded-[20px] p-4 sm:p-5",
+  md: "rounded-[22px] p-5 sm:p-6",
+  lg: "rounded-[24px] p-6 sm:p-8",
 };
 
 export function Card({
@@ -35,6 +53,67 @@ export function Card({
   return (
     <div
       className={clsx(variantClasses[variant], sizeClasses[size], className)}
+      {...props}
+    />
+  );
+}
+
+export function CardHeader({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div
+      className={clsx("flex flex-col space-y-1.5 pb-4", className)}
+      {...props}
+    />
+  );
+}
+
+export function CardTitle({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLHeadingElement>) {
+  return (
+    <h3
+      className={clsx(
+        "font-bold text-lg sm:text-xl leading-tight tracking-tight text-[var(--ui-foreground)]",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+export function CardDescription({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLParagraphElement>) {
+  return (
+    <p
+      className={clsx("text-sm text-[var(--ui-muted-foreground)] leading-normal", className)}
+      {...props}
+    />
+  );
+}
+
+export function CardContent({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
+  return <div className={clsx("pt-0", className)} {...props} />;
+}
+
+export function CardFooter({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div
+      className={clsx(
+        "flex items-center pt-4 border-t border-[var(--ui-border)]",
+        className,
+      )}
       {...props}
     />
   );

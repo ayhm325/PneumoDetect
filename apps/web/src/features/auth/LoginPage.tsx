@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { LoginRequestSchema, type LoginRequest } from "@pneumodetect/contracts";
 import { useAuth } from "@/stores/authStore";
 import { ApiClientError } from "@/lib/apiClient";
+import { formatAuthError } from "@/lib/authErrorMap";
 
 export function LoginPage() {
   const { t, i18n } = useTranslation("login");
@@ -34,11 +35,7 @@ export function LoginPage() {
             : "/patient/dashboard";
       navigate(target, { replace: true });
     } catch (err) {
-      if (err instanceof ApiClientError) {
-        setServerError(err.message);
-      } else {
-        setServerError(isAr ? "حدث خطأ أثناء تسجيل الدخول" : "Login failed");
-      }
+      setServerError(formatAuthError(err, isAr));
     }
   };
 

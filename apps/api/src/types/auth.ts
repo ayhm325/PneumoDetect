@@ -56,6 +56,7 @@ export type WhoAmIResult = {
   id: string;
   role?: string;
   email?: string;
+  fullName?: string;
 };
 
 export type LogoutResult = {

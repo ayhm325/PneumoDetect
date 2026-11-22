@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import { ZodError } from "zod";
-import { AppError } from "../lib/errors/appError.js";
+import { isAppError } from "../lib/errors/appError.js";
 
 export function errorHandler(
   err: unknown,
@@ -8,7 +8,7 @@ export function errorHandler(
   res: Response,
   _next: NextFunction,
 ) {
-  if (err instanceof AppError) {
+  if (isAppError(err)) {
     res.setHeader("Cache-Control", "no-store");
     return res.status(err.statusCode).json({
       error: err.code || "error",

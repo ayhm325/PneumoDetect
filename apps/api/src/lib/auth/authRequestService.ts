@@ -8,6 +8,7 @@ export type AuthPayload = {
   id: string;
   email?: string;
   role?: string;
+  fullName?: string;
   isActive?: boolean;
 };
 
@@ -80,6 +81,7 @@ export async function authenticateToken(token: string): Promise<{ token: string;
         id: userId,
         email: typeof payload.email === "string" ? payload.email : undefined,
         role: typeof payload.role === "string" ? payload.role : undefined,
+        fullName: typeof payload.fullName === "string" ? payload.fullName : undefined,
         isActive: typeof payload.isActive === "boolean" ? payload.isActive : undefined,
       },
     };
