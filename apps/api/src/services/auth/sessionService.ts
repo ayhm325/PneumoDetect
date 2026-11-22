@@ -57,18 +57,18 @@ export function createSessionService(deps: SessionServiceDeps): SessionService {
         });
       }
 
-      let expMs: number | null = null;
+      let expSeconds: number | null = null;
       try {
         const decoded = jwt.decode(token) as jwt.JwtPayload | null;
-        if (decoded?.exp) {
-          expMs = decoded.exp * 1000;
+        if (typeof decoded?.exp === "number" && Number.isFinite(decoded.exp)) {
+          expSeconds = decoded.exp;
         }
       } catch {
-        expMs = null;
+        expSeconds = null;
       }
 
       try {
-        await deps.sessionRepository.revoke(token, expMs);
+        await deps.sessionRepository.revoke(token, expSeconds);
       } catch (error) {
         console.error("sessionService.logout revoke failed", error);
         throw new AppError({

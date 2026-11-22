@@ -38,6 +38,7 @@ analysisRouter.post(
 analysisRouter.post(
   "/analysis/analyze",
   requireAuth,
+  withRateLimit("POST /api/analysis/analyze"),
   async (req: AuthenticatedRequest, res, next) => {
     try {
       const contentType = String(req.headers["content-type"] || "");

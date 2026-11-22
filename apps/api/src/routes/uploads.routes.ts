@@ -16,6 +16,8 @@ uploadsRouter.post(
         chatId: req.body?.chatId,
         filename: req.body?.filename || req.body?.fileName,
         contentType: req.body?.contentType,
+        userId: req.auth?.user?.id,
+        role: req.auth?.user?.role,
       });
       return res.status(200).json(result);
     } catch (error) {
@@ -37,6 +39,8 @@ uploadsRouter.post(
         provider: req.body?.provider,
         bucket: req.body?.bucket,
         region: req.body?.region,
+        userId: req.auth?.user?.id,
+        role: req.auth?.user?.role,
       });
       return res.status(200).json(result);
     } catch (error) {
@@ -50,7 +54,7 @@ uploadsRouter.put(
   requireAuth,
   withRateLimit("PUT /api/uploads/local-upload"),
   express.raw({ type: "*/*", limit: "25mb" }),
-  async (req, res, next) => {
+  async (req: AuthenticatedRequest, res, next) => {
     try {
       const rel = typeof req.query.path === "string" ? req.query.path : "";
       if (!rel) {
@@ -64,6 +68,8 @@ uploadsRouter.put(
       const result = await uploadService.saveLocalUpload({
         relativePath: rel,
         data: data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength),
+        userId: req.auth?.user?.id,
+        role: req.auth?.user?.role,
       });
       return res.status(200).json(result);
     } catch (error) {

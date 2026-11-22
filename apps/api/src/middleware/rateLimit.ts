@@ -7,7 +7,10 @@ import type { AuthenticatedRequest } from "./auth.js";
 export function withRateLimit(endpointLabel: string) {
   return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
-      const rl = await rateLimit(toServiceRequest(req));
+      const rl = await rateLimit(toServiceRequest(req), {
+        userId: req.auth?.user?.id,
+        endpoint: endpointLabel,
+      });
       if (rl.limited) {
         logAudit({
           event: "rate_limit_exceeded",

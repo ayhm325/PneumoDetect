@@ -14,6 +14,27 @@ import type { MedicalRecordRepository } from "../../repositories/analysis/medica
 import type { NotificationRepository } from "../../repositories/analysis/notificationRepository";
 import type { PatientRepository } from "../../repositories/analysis/patientRepository";
 
+function resolveUploadsDir(): string {
+  const cwd = process.cwd();
+  const repoRoot = fs.existsSync(path.join(cwd, "apps")) ? cwd : path.resolve(cwd, "../..");
+  return path.join(repoRoot, "public", "uploads");
+}
+
+function getUploadSigningSecret(): string {
+  const secret = process.env.UPLOAD_URL_SIGNING_SECRET || process.env.JWT_SECRET;
+  if (secret && secret.trim().length > 0) {
+    return secret;
+  }
+  if (process.env.NODE_ENV === "production") {
+    throw new AppError({
+      code: "server_error",
+      message: "Missing UPLOAD_URL_SIGNING_SECRET or JWT_SECRET in production",
+      statusCode: 500,
+    });
+  }
+  return "pneumo-detect-dev-signing-secret";
+}
+
 function generateUUID() {
   if (globalThis.crypto && typeof globalThis.crypto.randomUUID === "function") {
     return globalThis.crypto.randomUUID();
@@ -147,11 +168,10 @@ export function createAnalysisService(deps: AnalysisServiceDeps): AnalysisServic
         });
       }
 
-      const uploadsDir = path.join(process.cwd(), "public", "uploads");
+      const uploadsDir = resolveUploadsDir();
       if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 
-      const signingSecret =
-        process.env.UPLOAD_URL_SIGNING_SECRET || process.env.JWT_SECRET || "pneumo-detect-default-secret-signing";
+      const signingSecret = getUploadSigningSecret();
 
       const safeFileName = path.basename(`${generateUUID()}${safeExt}`);
       const savedFilePath = path.join(uploadsDir, safeFileName);
@@ -235,6 +255,7 @@ export function createAnalysisService(deps: AnalysisServiceDeps): AnalysisServic
           }
         }
       } catch (error) {
+        await fs.promises.unlink(savedFilePath).catch(() => undefined);
         console.error("analysisService: mandatory persistence failed", error);
         throw new AppError({
           code: "server_error",

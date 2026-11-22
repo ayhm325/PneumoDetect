@@ -29,6 +29,9 @@ jobs:
       - name: Typecheck Monorepo
         run: npm run typecheck
 
+      - name: Lint Monorepo
+        run: npm run lint
+
       - name: Run tests
         run: npm test
 

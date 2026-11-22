@@ -19,7 +19,7 @@
     "typecheck": "npm run typecheck:contracts && npm --workspace=@pneumodetect/api run typecheck && npm --workspace=@pneumodetect/web run typecheck",
     "typecheck:contracts": "npm --workspace=@pneumodetect/contracts run typecheck",
     "start": "npm --workspace=@pneumodetect/api run start",
-    "lint": "eslint apps/web/src apps/api/src/routes",
+    "lint": "eslint apps/web/src apps/api/src",
     "test": "jest",
     "test:e2e": "npm run check:model && npx playwright test playwright-tests/analysis-e2e.spec.js --project=chromium",
     "test:e2e:ui": "playwright test --ui",

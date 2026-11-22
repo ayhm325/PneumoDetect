@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import { isTokenRevoked } from "../../legacy-lib/auth/revocation.server.js";
 import { getJwtSecret } from "../../legacy-lib/auth/jwtSecret.js";
+import { getJwtVerifyOptions } from "../../legacy-lib/auth/jwtClaims.js";
 import { AppError } from "../errors/appError";
 
 export type AuthPayload = {
@@ -53,6 +54,7 @@ export async function authenticateToken(token: string): Promise<{ token: string;
 
   try {
     const payload = jwt.verify(token, getJwtSecret(), {
+      ...getJwtVerifyOptions(),
       algorithms: ["HS256"],
     }) as jwt.JwtPayload;
     const userId = payload.id as string | undefined;
@@ -61,6 +63,14 @@ export async function authenticateToken(token: string): Promise<{ token: string;
         code: "invalid_token_payload",
         message: "Token payload is invalid",
         statusCode: 401,
+      });
+    }
+
+    if (payload.isActive === false) {
+      throw new AppError({
+        code: "forbidden",
+        message: "Account is inactive",
+        statusCode: 403,
       });
     }
 

@@ -8,7 +8,11 @@ import { createHash } from "crypto";
 
 // إنشاء اتصال مع Redis باستخدام رابط الاتصال من متغيرات البيئة
 // مثال: redis://localhost:6379
-const redis = new Redis(process.env.REDIS_URL);
+const redis = new Redis(process.env.REDIS_URL, {
+  maxRetriesPerRequest: 1,
+  connectTimeout: 2000,
+  enableOfflineQueue: false,
+});
 
 // دالة تقوم بعمل hash للتوكن باستخدام SHA-256
 // هذا يمنع تخزين التوكن الأصلي ويقلل المخاطر في حال تسريب Redis
@@ -44,14 +48,10 @@ export async function addRevokedToken(token, exp = null) {
   // حساب hash للتوكن
   const h = hashToken(token);
 
-  // إذا كان وقت الانتهاء موجودًا
-  if (exp) {
-    // حساب مدة البقاء (TTL) بالميلي ثانية
-    // Redis يحتاج TTL بالـ milliseconds
-    const ttlMs = Math.max(
-      0,
-      Math.floor(exp * 1000 - Date.now())
-    );
+  // إذا كان وقت الانتهاء موجودًا (يدعم الثواني أو الميلي ثانية)
+  if (typeof exp === "number" && Number.isFinite(exp) && exp > 0) {
+    const expMs = exp >= 1e12 ? exp : exp * 1000;
+    const ttlMs = Math.max(0, Math.floor(expMs - Date.now()));
 
     // إذا كان التوكن لم ينتهِ بعد
     if (ttlMs > 0) {

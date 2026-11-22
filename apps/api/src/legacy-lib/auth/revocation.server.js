@@ -47,8 +47,10 @@ async function readRevokedFile() {
       return it;
     });
   } catch (e) {
-    // إذا لم يوجد الملف أو حصل خطأ، نرجع مصفوفة فارغة
-    return [];
+    if (e && e.code === "ENOENT") {
+      return [];
+    }
+    throw e;
   }
 }
 
@@ -98,11 +100,16 @@ async function file_isTokenRevoked(token) {
 // إضافة توكن إلى الملف
 async function file_addRevokedToken(token, exp = null) {
   if (!token) return;
-  const list = await readRevokedFile();
+  const now = Date.now();
+  const list = (await readRevokedFile()).filter((r) => {
+    if (typeof r?.exp !== "number" || !Number.isFinite(r.exp)) return true;
+    const expMs = r.exp >= 1e12 ? r.exp : r.exp * 1000;
+    return expMs > now;
+  });
   const h = hashToken(token);
   // إذا لم يكن موجودًا مسبقًا
   if (!list.find((r) => r.hash === h)) {
-    list.push({ hash: h, revokedAt: Date.now(), exp });
+    list.push({ hash: h, revokedAt: now, exp });
     await writeRevokedFile(list);
   }
 }
@@ -121,7 +128,10 @@ export async function isTokenRevoked(token) {
   if (!token) return false;
   if (useRedis) {
     const mod = await ensureRedisModule();
-    if (mod && mod.isTokenRevoked) return mod.isTokenRevoked(token);
+    if (!mod || !mod.isTokenRevoked) {
+      throw new Error("Redis revocation store unavailable");
+    }
+    return mod.isTokenRevoked(token);
   }
   return file_isTokenRevoked(token);
 }
@@ -131,7 +141,10 @@ export async function addRevokedToken(token, exp = null) {
   if (!token) return;
   if (useRedis) {
     const mod = await ensureRedisModule();
-    if (mod && mod.addRevokedToken) return mod.addRevokedToken(token, exp);
+    if (!mod || !mod.addRevokedToken) {
+      throw new Error("Redis revocation store unavailable");
+    }
+    return mod.addRevokedToken(token, exp);
   }
   return file_addRevokedToken(token, exp);
 }

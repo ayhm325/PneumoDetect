@@ -10,7 +10,6 @@
 
 // ===============================================
 // استيرادات
-import jwt from "jsonwebtoken"; // لفك JWT المستخدم للمستخدمين المسجلين
 import Redis from "ioredis";    // Redis client
 
 // ===============================================
@@ -25,7 +24,24 @@ const RATE_LIMIT_REDIS_RETRIES =
 
 // ===============================================
 // fallback: كاش في الذاكرة (Map)
+const MAX_MEMORY_KEYS = 10_000;
 const ipHits = new Map();
+
+function pruneMemoryHits(now) {
+  for (const [k, timestamps] of ipHits.entries()) {
+    const fresh = timestamps.filter((ts) => now - ts < RATE_LIMIT_WINDOW_MS);
+    if (fresh.length === 0) {
+      ipHits.delete(k);
+    } else if (fresh.length !== timestamps.length) {
+      ipHits.set(k, fresh);
+    }
+  }
+  while (ipHits.size >= MAX_MEMORY_KEYS) {
+    const oldestKey = ipHits.keys().next().value;
+    if (oldestKey === undefined) break;
+    ipHits.delete(oldestKey);
+  }
+}
 
 // ===============================================
 // Singleton Redis client
@@ -60,7 +76,7 @@ function fnv1aHex(str) {
 
 // ===============================================
 // الدالة الأساسية للتحقق من الحد الأقصى للطلبات
-export async function rateLimit(request) {
+export async function rateLimit(request, options = {}) {
   // تعطيل الـ rate limit أثناء التطوير إذا كان محدد
   if (
     process.env.NODE_ENV === "development" &&
@@ -69,25 +85,25 @@ export async function rateLimit(request) {
     return { limited: false };
   }
 
+  const endpointLabel = String(options?.endpoint || "default")
+    .trim()
+    .replace(/[^a-zA-Z0-9:_-]/g, "_") || "default";
+
   // ===============================================
-  // إنشاء المفتاح الفريد للمستخدم
-  let key = null;
-  try {
-    const token = request.cookies?.get?.("token")?.value;
-    if (token) {
-      const decoded = jwt.decode(token);
-      if (decoded && decoded.id) key = `rl:user:${decoded.id}`;
-    }
-  } catch (e) {
-    console.warn("JWT decode failed:", e.message);
-  }
+  // إنشاء المفتاح الفريد للمستخدم (فقط من الهوية الموثقة، وليس jwt.decode)
+  const verifiedUserId =
+    typeof options?.userId === "string" && options.userId.trim()
+      ? options.userId.trim()
+      : null;
+
+  let key = verifiedUserId ? `rl:${endpointLabel}:user:${verifiedUserId}` : null;
 
   // مستخدم مجهول: استخدام IP + user-agent
   const ip = request.headers.get("x-forwarded-for") || request.ip || "unknown";
   if (!key) {
     const ua = request.headers.get("user-agent") || "";
     const uaHash = ua ? fnv1aHex(ua).slice(0, 8) : "no-ua";
-    key = `rl:anon:${ip}:${uaHash}`;
+    key = `rl:${endpointLabel}:anon:${ip}:${uaHash}`;
   }
 
   // تحديد الحد الأقصى حسب نوع الـ endpoint
@@ -139,11 +155,13 @@ export async function rateLimit(request) {
   // fallback إلى الذاكرة (best-effort)
   try {
     const now = Date.now();
-    if (!ipHits.has(key)) ipHits.set(key, []);
-    const recent = ipHits
-      .get(key)
-      .filter((ts) => now - ts < RATE_LIMIT_WINDOW_MS);
+    if (!ipHits.has(key) && ipHits.size >= MAX_MEMORY_KEYS) {
+      pruneMemoryHits(now);
+    }
+    const existing = ipHits.get(key) || [];
+    const recent = existing.filter((ts) => now - ts < RATE_LIMIT_WINDOW_MS);
     if (recent.length >= max) {
+      ipHits.set(key, recent);
       console.info(
         `Memory fallback rate limit exceeded for ${key}: ${recent.length} > ${max}`
       );

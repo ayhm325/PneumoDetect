@@ -154,7 +154,15 @@ export function createChatMessageService(deps: {
         });
       }
 
-      const sender = role === "doctor" ? "doctor" : "patient";
+      if (role !== "doctor" && role !== "patient") {
+        throw new AppError({
+          code: "forbidden",
+          message: "forbidden",
+          statusCode: 403,
+        });
+      }
+
+      const sender = role;
 
       if (clientKey) {
         const existing = await deps.chatPatientRepository.findMessageByClientKey(chatId, clientKey);

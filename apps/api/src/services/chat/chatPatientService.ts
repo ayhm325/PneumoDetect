@@ -82,19 +82,28 @@ export function createChatPatientService(deps: {
         });
       }
 
-      const patients = await deps.chatPatientRepository.listActivePatientsForDoctor(normalizedUserId);
+      const [patients, existingDoctorChats] = await Promise.all([
+        deps.chatPatientRepository.listActivePatientsForDoctor(normalizedUserId),
+        deps.chatPatientRepository.listDoctorChatsWithPatient(normalizedUserId),
+      ]);
+
+      const existingChatByPatientId = new Map<string, Record<string, unknown>>();
+      for (const chat of existingDoctorChats) {
+        const pid = String(chat.patientId || (chat.patient as { id?: string } | undefined)?.id || "").trim();
+        if (pid && !existingChatByPatientId.has(pid)) {
+          existingChatByPatientId.set(pid, chat);
+        }
+      }
 
       const chats: Array<{ id: string; patient: Record<string, unknown> }> = [];
+      const seenChatIds = new Set<string>();
 
       for (const patient of patients) {
         const patientId = String(patient.id || "").trim();
         const patientUserId = String((patient.userId as string | undefined) || "").trim();
         if (!patientId) continue;
 
-        const existing = await deps.chatPatientRepository.findChatByDoctorAndPatient(
-          normalizedUserId,
-          patientId,
-        );
+        const existing = existingChatByPatientId.get(patientId) || null;
         const chat =
           existing ||
           (await deps.chatPatientRepository.createChat({
@@ -109,16 +118,20 @@ export function createChatPatientService(deps: {
           });
         }
 
-        chats.push({ id: String(chat.id || ""), patient });
+        const chatId = String(chat.id || "");
+        if (chatId && !seenChatIds.has(chatId)) {
+          seenChatIds.add(chatId);
+          chats.push({ id: chatId, patient });
+        }
       }
 
-      const extraChats = await deps.chatPatientRepository.listDoctorChatsWithPatient(normalizedUserId);
-      for (const chat of extraChats) {
+      for (const chat of existingDoctorChats) {
         const chatId = String(chat.id || "").trim();
         const patient = (chat.patient as Record<string, unknown> | undefined) || null;
         if (!chatId || !patient) continue;
         if (String(patient.status || "") !== "active") continue;
-        if (!chats.find((item) => item.id === chatId)) {
+        if (!seenChatIds.has(chatId)) {
+          seenChatIds.add(chatId);
           chats.push({ id: chatId, patient });
         }
       }

@@ -96,7 +96,9 @@ export function createAuthService(deps: AuthServiceDeps): AuthService {
             statusCode: 403,
           });
         }
-      } else if (!user.isActive) {
+      }
+
+      if (!user.isActive) {
         throw new AppError({
           code: "forbidden",
           message: "الحساب غير مفعل",
