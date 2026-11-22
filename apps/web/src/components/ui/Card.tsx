@@ -56,13 +56,13 @@ export function Card({ className, variant = "default", size = "md", shape, ...pr
   const resolvedShape = shape ?? VARIANT_TO_SHAPE[variant];
   const tone =
     variant === "elevated"
-      ? "elevated"
+      ? "moss"
       : variant === "medical" || variant === "clinical"
         ? "sage"
         : variant === "highlighted"
-          ? "copper"
-          : variant === "timeline" || variant === "utility"
-            ? "inset"
+          ? "crimson"
+          : variant === "utility"
+            ? "parchment"
             : "default";
 
   return (

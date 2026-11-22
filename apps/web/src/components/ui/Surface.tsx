@@ -11,7 +11,15 @@ export type SurfaceShape =
   | "capsule"
   | "editorial";
 
-export type SurfaceTone = "default" | "elevated" | "inset" | "copper" | "sage";
+export type SurfaceTone =
+  | "default"
+  | "elevated"
+  | "inset"
+  | "copper"
+  | "crimson"
+  | "parchment"
+  | "sage"
+  | "moss";
 
 export interface SurfaceProps extends React.HTMLAttributes<HTMLDivElement> {
   shape?: SurfaceShape;
@@ -35,8 +43,11 @@ const TONE_CLASS: Record<SurfaceTone, string> = {
   default: "",
   elevated: "!bg-[var(--pd-surface-2)] border-[var(--pd-border-strong)]",
   inset: "!bg-[var(--pd-surface-inset)]",
-  copper: "border-[var(--pd-copper-border)] bg-[linear-gradient(155deg,var(--pd-copper-soft),var(--pd-surface)_58%)]",
-  sage: "border-[color-mix(in_srgb,var(--pd-sage)_28%,transparent)] bg-[linear-gradient(155deg,var(--pd-sage-soft),var(--pd-surface)_58%)]",
+  copper: "pd-tone-crimson",
+  crimson: "pd-tone-crimson",
+  parchment: "pd-tone-parchment",
+  sage: "pd-tone-sage",
+  moss: "pd-tone-moss",
 };
 
 export function Surface({
@@ -54,7 +65,7 @@ export function Surface({
         "relative text-[var(--pd-text-primary)]",
         shape !== "editorial" && "shadow-[var(--pd-shadow-soft)]",
         SHAPE_CLASS[shape],
-        shape !== "editorial" && shape !== "slanted" && TONE_CLASS[tone],
+        shape !== "editorial" && TONE_CLASS[tone],
         interactive && "pd-panel--interactive",
         className,
       )}

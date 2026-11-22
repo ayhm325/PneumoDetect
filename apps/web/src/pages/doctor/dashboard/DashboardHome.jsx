@@ -449,22 +449,20 @@ export default function DashboardHome({ serverData = {} }) {
             description={`${labels.welcome}${effectiveData.doctorName || effectiveData.doctor?.user?.fullName ? ` ${effectiveData.doctorName || effectiveData.doctor?.user?.fullName}` : ""} · ${formattedDate}`}
           />
 
-          {/* Stats — Orbital + Editorial + Layered */}
+          {/* Stats — equal 25/25/25/25 across Crimson, Parchment, Sage, Moss */}
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {stats.map((stat, index) => {
               const Icon = stat.icon;
-              const tone =
-                index === 1 ? "success" : index === 2 ? "warning" : "info";
-              const shape =
-                index === 0 ? "orbital" : index === 2 ? "layered" : "editorial";
+              const tones = ["crimson", "parchment", "sage", "moss"];
+              const shapes = ["orbital", "editorial", "layered", "slanted"];
               return (
                 <StatCard
                   key={index}
                   label={stat.title}
                   value={stat.value}
                   icon={<Icon size={18} strokeWidth={1.7} />}
-                  tone={tone}
-                  shape={shape}
+                  tone={tones[index % tones.length]}
+                  shape={shapes[index % shapes.length]}
                 />
               );
             })}

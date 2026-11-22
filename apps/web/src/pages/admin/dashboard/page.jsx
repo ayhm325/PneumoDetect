@@ -242,17 +242,18 @@ export default function AdminDashboardPage() {
         {/* Header */}
         <PageHeader title={t("title")} description={formattedDate} />
 
-        {/* Stats Row */}
+        {/* Stats Row — equal 25/25/25/25 across Crimson, Parchment, Sage, Moss */}
         <div className="mb-10 grid w-full grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {stats.map((stat, index) => {
             const shapes = ["pd-shape-asymmetric", "pd-shape-layered", "pd-shape-organic", "pd-shape-asymmetric", "pd-shape-layered"];
+            const tones = ["pd-tone-crimson", "pd-tone-parchment", "pd-tone-sage", "pd-tone-moss"];
             return (
               <div
                 key={index}
-                className={`pd-panel pd-panel--deep pd-panel--interactive w-full p-5 ${shapes[index % shapes.length]}`}
+                className={`pd-panel pd-panel--interactive w-full p-5 ${shapes[index % shapes.length]} ${tones[index % tones.length]}`}
               >
                 <div className="mb-4 flex items-center justify-between">
-                  <div className="pd-orb pd-shape-orbital pd-orb--copper">
+                  <div className="pd-orb pd-shape-orbital border-[var(--pd-border-strong)] bg-black/15 text-[var(--pd-text-primary)]">
                     <stat.icon size={19} strokeWidth={1.7} />
                   </div>
                   {stat.changePercent ? (

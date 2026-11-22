@@ -56,20 +56,21 @@ export function MedicalScannerHero() {
       const cx = width / 2;
       const cy = height / 2;
 
-      // 1. Forest & Copper radial glow
+      // 1. Equal 4-color radial glow (#BD4444, #73976A, #677E61, #F1DEC4)
       const bgGrad = ctx.createRadialGradient(cx, cy, 30, cx, cy, 220);
-      bgGrad.addColorStop(0, "rgba(208, 146, 114, 0.14)");
-      bgGrad.addColorStop(0.54, "rgba(168, 179, 152, 0.08)");
-      bgGrad.addColorStop(1, "rgba(17, 23, 19, 0)");
+      bgGrad.addColorStop(0, "rgba(189, 68, 68, 0.22)");
+      bgGrad.addColorStop(0.45, "rgba(115, 151, 106, 0.18)");
+      bgGrad.addColorStop(0.75, "rgba(103, 126, 97, 0.12)");
+      bgGrad.addColorStop(1, "rgba(241, 222, 196, 0)");
       ctx.fillStyle = bgGrad;
       ctx.beginPath();
       ctx.arc(cx, cy, 220, 0, Math.PI * 2);
       ctx.fill();
 
-      // 2. Spatial coordinate rings in warm sand
+      // 2. Spatial coordinate rings in parchment
       ctx.lineWidth = 1;
       for (let r = 80; r <= 200; r += 60) {
-        ctx.strokeStyle = `rgba(224, 213, 194, ${0.14 - (r / 200) * 0.07})`;
+        ctx.strokeStyle = `rgba(241, 222, 196, ${0.2 - (r / 200) * 0.08})`;
         ctx.beginPath();
         ctx.arc(cx, cy, r, 0, Math.PI * 2);
         ctx.stroke();
@@ -85,9 +86,9 @@ export function MedicalScannerHero() {
       ctx.translate(-cx, -cy);
 
       const leftLungGrad = ctx.createLinearGradient(120, 100, 210, 360);
-      leftLungGrad.addColorStop(0, "rgba(208, 146, 114, 0.24)");
-      leftLungGrad.addColorStop(0.58, "rgba(168, 179, 152, 0.20)");
-      leftLungGrad.addColorStop(1, "rgba(200, 171, 120, 0.12)");
+      leftLungGrad.addColorStop(0, "rgba(189, 68, 68, 0.36)");
+      leftLungGrad.addColorStop(0.5, "rgba(115, 151, 106, 0.34)");
+      leftLungGrad.addColorStop(1, "rgba(241, 222, 196, 0.24)");
 
       ctx.beginPath();
       ctx.moveTo(190, 120);
@@ -98,14 +99,14 @@ export function MedicalScannerHero() {
       ctx.closePath();
       ctx.fillStyle = leftLungGrad;
       ctx.fill();
-      ctx.strokeStyle = "rgba(208, 146, 114, 0.58)";
-      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = "#F1DEC4";
+      ctx.lineWidth = 1.6;
       ctx.stroke();
 
       const rightLungGrad = ctx.createLinearGradient(270, 100, 360, 360);
-      rightLungGrad.addColorStop(0, "rgba(208, 146, 114, 0.24)");
-      rightLungGrad.addColorStop(0.58, "rgba(168, 179, 152, 0.20)");
-      rightLungGrad.addColorStop(1, "rgba(200, 171, 120, 0.12)");
+      rightLungGrad.addColorStop(0, "rgba(103, 126, 97, 0.42)");
+      rightLungGrad.addColorStop(0.5, "rgba(189, 68, 68, 0.32)");
+      rightLungGrad.addColorStop(1, "rgba(241, 222, 196, 0.24)");
 
       ctx.beginPath();
       ctx.moveTo(290, 120);
@@ -116,12 +117,12 @@ export function MedicalScannerHero() {
       ctx.closePath();
       ctx.fillStyle = rightLungGrad;
       ctx.fill();
-      ctx.strokeStyle = "rgba(208, 146, 114, 0.58)";
-      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = "#F1DEC4";
+      ctx.lineWidth = 1.6;
       ctx.stroke();
 
       // Bronchial tree stem
-      ctx.strokeStyle = "rgba(224, 213, 194, 0.34)";
+      ctx.strokeStyle = "rgba(241, 222, 196, 0.48)";
       ctx.lineWidth = 2.2;
       ctx.beginPath();
       ctx.moveTo(240, 90);
@@ -132,40 +133,40 @@ export function MedicalScannerHero() {
       ctx.stroke();
 
       const nodes = [
-        { x: 170, y: 240, color: "#D09272" },
-        { x: 310, y: 250, color: "#A8B398" },
-        { x: 185, y: 310, color: "#C8AB78" },
-        { x: 295, y: 300, color: "#D09272" },
+        { x: 170, y: 240, color: "#BD4444" },
+        { x: 310, y: 250, color: "#73976A" },
+        { x: 185, y: 310, color: "#F1DEC4" },
+        { x: 295, y: 300, color: "#677E61" },
       ];
 
       nodes.forEach((node, idx) => {
         const nodePulse = Math.sin(pulsePhase * 2 + idx) * 0.5 + 0.5;
         ctx.beginPath();
-        ctx.arc(node.x, node.y, 4, 0, Math.PI * 2);
+        ctx.arc(node.x, node.y, 4.5, 0, Math.PI * 2);
         ctx.fillStyle = node.color;
         ctx.fill();
 
         ctx.beginPath();
         ctx.arc(node.x, node.y, 7 + nodePulse * 5, 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(208, 146, 114, ${0.42 - nodePulse * 0.3})`;
+        ctx.strokeStyle = `rgba(241, 222, 196, ${0.45 - nodePulse * 0.25})`;
         ctx.lineWidth = 1;
         ctx.stroke();
       });
 
       ctx.restore();
 
-      // 4. Burnished Copper scanning beam
+      // 4. Crimson-Parchment-Sage scanning beam
       if (!isReducedMotion && scanActive) {
         scanY += scanDirection * 1.65;
         if (scanY > 370) scanDirection = -1;
         if (scanY < 90) scanDirection = 1;
 
         const scanGrad = ctx.createLinearGradient(110, scanY, 370, scanY);
-        scanGrad.addColorStop(0, "rgba(208, 146, 114, 0)");
-        scanGrad.addColorStop(0.28, "rgba(208, 146, 114, 0.72)");
-        scanGrad.addColorStop(0.5, "rgba(224, 213, 194, 0.92)");
-        scanGrad.addColorStop(0.72, "rgba(168, 179, 152, 0.72)");
-        scanGrad.addColorStop(1, "rgba(168, 179, 152, 0)");
+        scanGrad.addColorStop(0, "rgba(189, 68, 68, 0)");
+        scanGrad.addColorStop(0.28, "rgba(189, 68, 68, 0.85)");
+        scanGrad.addColorStop(0.5, "rgba(241, 222, 196, 0.95)");
+        scanGrad.addColorStop(0.72, "rgba(115, 151, 106, 0.85)");
+        scanGrad.addColorStop(1, "rgba(103, 126, 97, 0)");
 
         ctx.strokeStyle = scanGrad;
         ctx.lineWidth = 2;
@@ -175,8 +176,8 @@ export function MedicalScannerHero() {
         ctx.stroke();
 
         const glowGrad = ctx.createLinearGradient(0, scanY - scanDirection * 22, 0, scanY);
-        glowGrad.addColorStop(0, "rgba(208, 146, 114, 0)");
-        glowGrad.addColorStop(1, "rgba(208, 146, 114, 0.14)");
+        glowGrad.addColorStop(0, "rgba(189, 68, 68, 0)");
+        glowGrad.addColorStop(1, "rgba(189, 68, 68, 0.16)");
         ctx.fillStyle = glowGrad;
         ctx.fillRect(110, Math.min(scanY, scanY - scanDirection * 22), 260, 22);
       }

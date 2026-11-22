@@ -1,41 +1,40 @@
 import React from "react";
 import clsx from "clsx";
-import { Surface, type SurfaceShape } from "./Surface";
+import { Surface, type SurfaceShape, type SurfaceTone } from "./Surface";
 
 export interface StatCardProps {
   label: string;
   value: string | number;
   icon?: React.ReactNode;
   trend?: string;
-  tone?: "primary" | "info" | "secondary" | "success" | "warning" | "danger";
+  tone?: "primary" | "info" | "secondary" | "success" | "warning" | "danger" | "crimson" | "parchment" | "sage" | "moss";
   shape?: SurfaceShape;
 }
 
-const VALUE_TONE_MAP: Record<NonNullable<StatCardProps["tone"]>, string> = {
-  primary: "text-[var(--pd-text-primary)]",
-  info: "text-[var(--pd-copper)]",
-  secondary: "text-[var(--pd-text-primary)]",
-  success: "text-[var(--pd-sage)]",
-  warning: "text-[var(--pd-ochre)]",
-  danger: "text-[var(--pd-clay)]",
-};
-
-const ORB_TONE_MAP: Record<NonNullable<StatCardProps["tone"]>, string> = {
-  primary: "pd-orb--copper",
-  info: "pd-orb--copper",
-  secondary: "pd-orb--sage",
-  success: "pd-orb--sage",
-  warning: "pd-orb--ochre",
-  danger: "pd-orb--clay",
+const SURFACE_TONE_MAP: Record<NonNullable<StatCardProps["tone"]>, SurfaceTone> = {
+  primary: "crimson",
+  crimson: "crimson",
+  info: "moss",
+  moss: "moss",
+  secondary: "parchment",
+  parchment: "parchment",
+  success: "sage",
+  sage: "sage",
+  warning: "parchment",
+  danger: "crimson",
 };
 
 const SHAPE_BY_TONE: Record<NonNullable<StatCardProps["tone"]>, SurfaceShape> = {
-  primary: "editorial",
+  primary: "asymmetric",
+  crimson: "layered",
   info: "editorial",
-  secondary: "asymmetric",
+  moss: "asymmetric",
+  secondary: "organic",
+  parchment: "slanted",
   success: "layered",
+  sage: "organic",
   warning: "slanted",
-  danger: "organic",
+  danger: "layered",
 };
 
 export function StatCard({
@@ -47,20 +46,17 @@ export function StatCard({
   shape,
 }: StatCardProps) {
   const resolvedShape = shape ?? SHAPE_BY_TONE[tone];
+  const resolvedTone = SURFACE_TONE_MAP[tone];
 
   if (resolvedShape === "orbital") {
     return (
       <div className="flex items-center gap-4 py-2">
-        <div
-          className={clsx(
-            "pd-shape-orbital h-20 w-20 shrink-0 border border-[var(--pd-copper-border)] bg-[var(--pd-surface-inset)] shadow-[var(--pd-shadow-soft)]",
-          )}
-        >
-          <span className={clsx("pd-metric-value !text-2xl", VALUE_TONE_MAP[tone])}>{value}</span>
+        <div className="pd-shape-orbital pd-tone-crimson h-20 w-20 shrink-0 border shadow-[var(--pd-shadow-soft)]">
+          <span className="pd-metric-value !text-2xl text-[var(--pd-text-primary)]">{value}</span>
         </div>
         <div className="min-w-0 space-y-1">
           <div className="flex items-center gap-2 text-[var(--pd-text-muted)]">
-            {icon && <span className="text-sm text-[var(--pd-copper)]">{icon}</span>}
+            {icon && <span className="text-sm text-[var(--pd-parchment)]">{icon}</span>}
             <p className="truncate text-xs font-medium tracking-[var(--tracking-label)] uppercase">
               {label}
             </p>
@@ -74,7 +70,7 @@ export function StatCard({
   return (
     <Surface
       shape={resolvedShape}
-      tone={resolvedShape === "editorial" ? "default" : "inset"}
+      tone={resolvedShape === "editorial" ? "default" : resolvedTone}
       interactive={resolvedShape !== "editorial"}
       className={clsx(
         "flex items-center justify-between gap-4",
@@ -85,10 +81,14 @@ export function StatCard({
         <p className="truncate text-xs font-medium tracking-[var(--tracking-label)] uppercase text-[var(--pd-text-muted)]">
           {label}
         </p>
-        <p className={clsx("pd-metric-value", VALUE_TONE_MAP[tone])}>{value}</p>
+        <p className="pd-metric-value text-[var(--pd-text-primary)]">{value}</p>
         {trend && <p className="text-xs text-[var(--pd-text-secondary)]">{trend}</p>}
       </div>
-      {icon && <div className={clsx("pd-orb pd-shape-orbital", ORB_TONE_MAP[tone])}>{icon}</div>}
+      {icon && (
+        <div className="pd-orb pd-shape-orbital border-[var(--pd-border-strong)] bg-black/15 text-[var(--pd-text-primary)]">
+          {icon}
+        </div>
+      )}
     </Surface>
   );
 }

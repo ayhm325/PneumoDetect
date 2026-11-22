@@ -309,20 +309,20 @@ export default function PatientDashboardPage() {
           description={today}
         />
 
-        {/* Stats — orbital + editorial rhythm (no 4 identical boxes) */}
+        {/* Stats — equal 25/25/25/25 across Crimson, Parchment, Sage, Moss */}
         <div className="mb-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {stats.map((s, i) => {
             const StatIcon = s.icon;
-            const tone = i === 1 ? "success" : i === 2 ? "warning" : "info";
-            const shape = i === 0 ? "orbital" : i === 3 ? "layered" : "editorial";
+            const tones = ["crimson", "parchment", "sage", "moss"];
+            const shapes = ["orbital", "editorial", "slanted", "layered"];
             return (
               <StatCard
                 key={i}
                 label={s.title}
                 value={s.value}
                 icon={<StatIcon size={18} strokeWidth={1.7} />}
-                tone={tone}
-                shape={shape}
+                tone={tones[i % tones.length]}
+                shape={shapes[i % shapes.length]}
               />
             );
           })}

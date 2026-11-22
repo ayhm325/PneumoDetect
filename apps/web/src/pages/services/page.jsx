@@ -7,6 +7,7 @@ import { Surface } from "@/components/ui";
 
 const SERVICE_ICONS = [ScanLineIcon, CpuIcon, StethoscopeIcon, ShieldCheckIcon, FileHeartIcon];
 const SERVICE_SHAPES = ["arch", "slanted", "layered", "asymmetric"];
+const SERVICE_TONES = ["crimson", "parchment", "sage", "moss"];
 
 export default function ServicesPage() {
   const t = useTranslations("services");
@@ -20,13 +21,14 @@ export default function ServicesPage() {
           {services.map((service, idx) => {
             const Icon = SERVICE_ICONS[idx % SERVICE_ICONS.length];
             const shape = SERVICE_SHAPES[idx % SERVICE_SHAPES.length];
+            const tone = SERVICE_TONES[idx % SERVICE_TONES.length];
             const isOdd = idx % 2 === 1;
 
             return (
               <Surface
                 key={idx}
                 shape={shape}
-                tone={idx === 0 ? "copper" : idx === 2 ? "sage" : "default"}
+                tone={tone}
                 interactive
                 className={`flex flex-col justify-between gap-6 p-7 sm:p-9 ${
                   shape === "arch" ? "pt-12 text-center items-center" : "items-start"
@@ -37,7 +39,7 @@ export default function ServicesPage() {
                     shape === "arch" ? "flex-col gap-3" : "justify-between gap-4"
                   }`}
                 >
-                  <div className="pd-orb pd-orb--lg pd-shape-orbital pd-orb--copper ring-4 ring-[var(--pd-copper-soft)]">
+                  <div className="pd-orb pd-orb--lg pd-shape-orbital border-[var(--pd-border-strong)] bg-black/15 text-[var(--pd-text-primary)]">
                     <Icon size={24} strokeWidth={1.6} />
                   </div>
                   <span className="pd-tabular text-xs font-medium tracking-[0.18em] text-[var(--pd-text-muted)]">

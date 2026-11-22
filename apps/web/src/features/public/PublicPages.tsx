@@ -47,28 +47,28 @@ export function HomePage() {
     icon: typeof ScanLineIcon;
     title: string;
     desc: string;
-    tone: "copper" | "sage" | "ochre";
+    tone: "crimson" | "parchment" | "sage";
     shape: SurfaceShape;
   }> = [
     {
       icon: ScanLineIcon,
       title: features("item1.title"),
       desc: features("item1.desc"),
-      tone: "copper",
+      tone: "crimson",
       shape: "arch",
     },
     {
       icon: FileHeartIcon,
       title: features("item2.title"),
       desc: features("item2.desc"),
-      tone: "sage",
+      tone: "parchment",
       shape: "slanted",
     },
     {
       icon: BriefcaseMedicalIcon,
       title: features("item3.title"),
       desc: features("item3.desc"),
-      tone: "ochre",
+      tone: "sage",
       shape: "layered",
     },
   ];
@@ -303,22 +303,16 @@ export function HomePage() {
         <div className="mt-12 grid gap-8 md:grid-cols-3">
           {capabilities.map((item, index) => {
             const Icon = item.icon;
-            const orbClass =
-              item.tone === "copper"
-                ? "pd-orb--copper"
-                : item.tone === "sage"
-                  ? "pd-orb--sage"
-                  : "pd-orb--ochre";
             const isArch = item.shape === "arch";
             return (
               <Surface
                 key={`cap-${index}`}
                 shape={item.shape}
-                tone={index === 0 ? "copper" : "default"}
+                tone={item.tone}
                 interactive
                 className={`p-7 ${isArch ? "pt-10 text-center flex flex-col items-center" : ""}`}
               >
-                <div className={`pd-orb pd-orb--lg pd-shape-orbital ${orbClass} ring-4 ring-[var(--pd-copper-soft)]`}>
+                <div className="pd-orb pd-orb--lg pd-shape-orbital border-[var(--pd-border-strong)] bg-black/15 text-[var(--pd-text-primary)]">
                   <Icon size={24} strokeWidth={1.6} />
                 </div>
                 <h3 className="mt-5 text-xl font-medium text-[var(--pd-text-primary)]">{item.title}</h3>
@@ -456,8 +450,8 @@ export function HomePage() {
             })}
           </div>
 
-          {/* Final CTA Banner */}
-          <div className="pd-panel pd-panel--feature mt-12 flex flex-col items-start justify-between gap-6 p-8 sm:flex-row sm:items-center">
+          {/* Final CTA Banner — Parchment (#F1DEC4) balanced against Crimson & Moss */}
+          <Surface shape="asymmetric" tone="parchment" className="mt-12 flex flex-col items-start justify-between gap-6 p-8 sm:flex-row sm:items-center">
             <div className="space-y-1.5">
               <h3 className="text-xl font-semibold text-[var(--pd-text-primary)]">
                 {workflowData.ctaTitle}
@@ -472,7 +466,7 @@ export function HomePage() {
                 {isAr ? "تواصل معنا" : "Contact Us"}
               </Link>
             </div>
-          </div>
+          </Surface>
         </div>
       </section>
     </div>
