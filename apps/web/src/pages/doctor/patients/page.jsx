@@ -8,7 +8,7 @@ import { useRouter } from "@/lib/compat/navigation";
 import { useLocale, useTranslations } from "@/lib/compat/intl";
 import { formatDate } from "@/lib/date";
 import { apiRequest } from "@/lib/apiClient";
-import { Button, Card, GlideSelect, ProfileMediaCard, StatCard } from "@/components/ui";
+import { Button, Card, GlideSelect, MetricCard, ProfileMediaCard } from "@/components/ui";
 
 // You may need to get locale and labels from props or context, adjust as needed
 export default function DoctorPatientsPage({ locale }) {
@@ -222,32 +222,48 @@ export default function DoctorPatientsPage({ locale }) {
             {/* Add patient button removed per request */}
           </div>
 
-          {/* Stats Cards */}
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <StatCard shape="orbital"
-              label={t("stats.total")}
-              value={stats.total}
-              icon={<UsersIcon />}
-              tone="info"
-            />
-            <StatCard shape="editorial"
-              label={t("stats.stable")}
-              value={stats.stable}
-              icon={<CircleCheckIcon />}
-              tone="success"
-            />
-            <StatCard shape="layered"
-              label={t("stats.critical")}
-              value={stats.critical}
-              icon={<TriangleAlertIcon />}
-              tone="danger"
-            />
-            <StatCard shape="slanted"
-              label={t("stats.recovering")}
-              value={stats.recovering}
-              icon={<ClockIcon />}
-              tone="warning"
-            />
+          {/* Stats Cards — Equal 25/25/25/25 Bento Row */}
+          <div className="pd-bento-grid">
+            <div className="pd-span-3">
+              <MetricCard
+                id="doc-patients-total"
+                label={t("stats.total")}
+                value={stats.total}
+                icon={UsersIcon}
+                tone="olive"
+                layout="editorial"
+              />
+            </div>
+            <div className="pd-span-3">
+              <MetricCard
+                id="doc-patients-stable"
+                label={t("stats.stable")}
+                value={stats.stable}
+                icon={CircleCheckIcon}
+                tone="sage"
+                layout="visual"
+              />
+            </div>
+            <div className="pd-span-3">
+              <MetricCard
+                id="doc-patients-critical"
+                label={t("stats.critical")}
+                value={stats.critical}
+                icon={TriangleAlertIcon}
+                tone="red"
+                layout="compact"
+              />
+            </div>
+            <div className="pd-span-3">
+              <MetricCard
+                id="doc-patients-recovering"
+                label={t("stats.recovering")}
+                value={stats.recovering}
+                icon={ClockIcon}
+                tone="cream"
+                layout="editorial"
+              />
+            </div>
           </div>
 
           {/* Filters */}

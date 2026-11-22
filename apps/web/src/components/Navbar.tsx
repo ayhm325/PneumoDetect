@@ -47,7 +47,7 @@ export default function Navbar() {
 
   return (
     <div className="sticky top-3 z-40 mx-auto w-full max-w-7xl px-3 sm:px-6 lg:px-8">
-      <header className="shape-leaf pd-tone-moss border border-[var(--pd-line)] shadow-[var(--pd-shadow-depth)] backdrop-blur-md">
+      <header className="rounded-3xl border border-[var(--pd-line)] bg-[var(--pd-neutral-surface)]/95 text-[var(--pd-text-primary)] shadow-[var(--pd-shadow-depth)] backdrop-blur-md">
         <div className="flex h-[68px] items-center justify-between gap-3 px-4 sm:px-6">
           {/* Brand */}
           <Link
@@ -71,8 +71,8 @@ export default function Navbar() {
                   className={({ isActive }) =>
                     `relative shrink-0 whitespace-nowrap rounded-full px-2 py-1.5 text-[13px] font-medium transition-colors lg:px-2.5 lg:py-1.5 ${
                       isActive
-                        ? "bg-[var(--pd-crimson)] text-[var(--pd-parchment)]"
-                        : "text-[var(--pd-parchment)]/90 hover:bg-[var(--pd-parchment)]/14 hover:text-[var(--pd-parchment)]"
+                        ? "bg-[var(--pd-crimson)] text-[#faf0e1]"
+                        : "text-[var(--pd-text-secondary)] hover:bg-[var(--pd-surface-2)] hover:text-[var(--pd-text-primary)]"
                     }`
                   }
                 >

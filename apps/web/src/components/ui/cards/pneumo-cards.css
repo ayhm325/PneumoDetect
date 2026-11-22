@@ -1,0 +1,599 @@
+/* ==========================================================================
+   PNEUMODETECT — COMPLETE CARD DESIGN SYSTEM
+   Color Hunt Palette (strict 25/25/25/25 visual area balance):
+     --pd-red:   #BD4444 (25%)
+     --pd-cream: #F1DEC4 (25%)
+     --pd-sage:  #73976A (25%)
+     --pd-olive: #677E61 (25%)
+   Structural Neutrals:
+     --pd-ink:             #172019
+     --pd-ink-deep:        #111713
+     --pd-neutral-surface: #20291F
+     --pd-neutral-raised:  #293329
+   ========================================================================== */
+
+:root,
+:root[data-theme="forest"],
+:root[data-theme="night"] {
+  --pd-red: #9b4747;
+  --pd-cream: #ead8be;
+  --pd-sage: #6e8e66;
+  --pd-olive: #52674c;
+
+  --pd-ink: #181f1a;
+  --pd-ink-deep: #111713;
+  --pd-neutral-surface: #202923;
+  --pd-neutral-raised: #29342d;
+
+  --pd-card-radius: 24px;
+  --pd-card-border: rgba(234, 216, 190, 0.14);
+
+  --pd-motion-duration: 220ms;
+  --pd-motion-easing: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+:root[data-theme="clay"],
+:root.light {
+  --pd-red: #b25252;
+  --pd-cream: #fbf6ee;
+  --pd-sage: #d3e0cd;
+  --pd-olive: #5b7156;
+
+  --pd-ink: #1e2821;
+  --pd-ink-deep: #151d17;
+  --pd-neutral-surface: #fbf6ee;
+  --pd-neutral-raised: #efe4d3;
+  --pd-card-border: rgba(30, 40, 33, 0.12);
+}
+
+/* Base card surface */
+.pd-card {
+  position: relative;
+  isolation: isolate;
+  min-width: 0;
+  overflow: hidden;
+  padding: 24px;
+  border: 1px solid var(--pd-card-border);
+  border-radius: var(--pd-card-radius);
+  background: var(--pd-card-bg);
+  color: var(--pd-card-fg);
+  box-shadow: 0 8px 24px rgba(17, 23, 19, 0.09);
+  transition:
+    box-shadow var(--pd-motion-duration) var(--pd-motion-easing),
+    border-color var(--pd-motion-duration) var(--pd-motion-easing);
+  font-family: inherit;
+}
+
+.pd-card--red {
+  --pd-card-bg: var(--pd-red);
+  --pd-card-fg: #faf0e1;
+  --pd-card-border: rgba(241, 222, 196, 0.22);
+  --pd-text-primary: #faf0e1;
+  --pd-text-secondary: rgba(250, 240, 225, 0.9);
+  --pd-text-muted: rgba(250, 240, 225, 0.8);
+  background: var(--pd-card-bg);
+  color: var(--pd-card-fg);
+  border-color: var(--pd-card-border);
+}
+
+.pd-card--cream {
+  --pd-card-bg: var(--pd-cream);
+  --pd-card-fg: var(--pd-ink);
+  --pd-card-border: rgba(23, 32, 25, 0.14);
+  --pd-text-primary: #172019;
+  --pd-text-secondary: #2b382d;
+  --pd-text-muted: #465448;
+  background: var(--pd-card-bg);
+  color: var(--pd-card-fg);
+  border-color: var(--pd-card-border);
+}
+
+.pd-card--sage {
+  --pd-card-bg: var(--pd-sage);
+  --pd-card-fg: var(--pd-ink);
+  --pd-card-border: rgba(23, 32, 25, 0.16);
+  --pd-text-primary: #141c16;
+  --pd-text-secondary: #1e2a20;
+  --pd-text-muted: #29382b;
+  background: var(--pd-card-bg);
+  color: var(--pd-card-fg);
+  border-color: var(--pd-card-border);
+}
+
+.pd-card--olive {
+  --pd-card-bg: var(--pd-olive);
+  --pd-card-fg: #faf0e1;
+  --pd-card-border: rgba(241, 222, 196, 0.22);
+  --pd-text-primary: #faf0e1;
+  --pd-text-secondary: rgba(250, 240, 225, 0.92);
+  --pd-text-muted: rgba(250, 240, 225, 0.82);
+  background: var(--pd-card-bg);
+  color: var(--pd-card-fg);
+  border-color: var(--pd-card-border);
+}
+
+/* Metric cards */
+.pd-metric {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 14px;
+  height: 100%;
+  min-height: 138px;
+  padding: 20px;
+}
+
+.pd-metric__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.pd-metric__label {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.pd-metric__icon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border: 1px solid currentColor;
+  border-radius: 12px;
+  opacity: 0.85;
+}
+
+.pd-metric__value {
+  font-family: inherit;
+  font-size: clamp(1.375rem, 1.8vw, 1.75rem);
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.pd-metric__description {
+  font-size: 13px;
+  line-height: 1.65;
+  opacity: 0.86;
+}
+
+.pd-metric__trend {
+  width: fit-content;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.pd-metric--editorial {
+  min-height: 138px;
+}
+
+.pd-metric--visual {
+  min-height: 138px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-content: space-between;
+}
+
+.pd-metric--visual .pd-metric__header {
+  grid-column: 1 / -1;
+}
+
+.pd-metric--visual .pd-metric__value {
+  grid-column: 1 / 2;
+  align-self: end;
+}
+
+.pd-metric--visual .pd-metric__visual {
+  grid-column: 2 / 3;
+  align-self: end;
+}
+
+.pd-metric--visual .pd-metric__description,
+.pd-metric--visual .pd-metric__trend {
+  grid-column: 1 / -1;
+}
+
+.pd-metric--compact {
+  min-height: 138px;
+  gap: 12px;
+  padding: 20px;
+}
+
+.pd-metric--compact .pd-metric__value {
+  font-size: 1.375rem;
+}
+
+/* Feature card */
+.pd-feature {
+  min-height: 260px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.pd-feature__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+}
+
+.pd-feature__eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.pd-feature__content {
+  max-width: 480px;
+  margin-block: 10px;
+}
+
+.pd-feature__content h3 {
+  font-size: clamp(20px, 2.4vw, 28px);
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.pd-feature__content p {
+  margin-top: 10px;
+  font-size: 14px;
+  line-height: 1.7;
+  opacity: 0.88;
+}
+
+.pd-feature__action,
+.pd-medical-media__action {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  width: fit-content;
+  min-height: 40px;
+  padding: 8px 16px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background var(--pd-motion-duration) var(--pd-motion-easing),
+    transform var(--pd-motion-duration) var(--pd-motion-easing);
+}
+
+.pd-feature__action:hover,
+.pd-medical-media__action:hover {
+  transform: translateY(-2px);
+  background: rgba(23, 32, 25, 0.1);
+}
+
+/* Medical media */
+.pd-medical-media {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  gap: 20px;
+  align-items: stretch;
+}
+
+.pd-medical-media__image {
+  display: grid;
+  place-items: center;
+  min-height: 220px;
+  overflow: hidden;
+  border-radius: 16px;
+  background: var(--pd-ink-deep);
+}
+
+.pd-medical-media__image img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-height: 320px;
+  object-fit: contain;
+}
+
+.pd-medical-media__body {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.pd-medical-media__date {
+  font-size: 12px;
+  opacity: 0.78;
+}
+
+.pd-medical-media__body h3 {
+  margin-top: 10px;
+  font-size: 19px;
+  font-weight: 600;
+}
+
+.pd-medical-media__status {
+  margin-top: 8px;
+  font-size: 13px;
+  opacity: 0.86;
+}
+
+/* Quick actions */
+.pd-quick-action {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  min-height: 96px;
+  padding: 20px;
+  text-align: start;
+  border: 1px solid var(--pd-card-border);
+  border-radius: 20px;
+  background: var(--pd-card-bg);
+  color: var(--pd-card-fg);
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(17, 23, 19, 0.08);
+  transition:
+    box-shadow 200ms ease,
+    transform 200ms ease,
+    border-color 200ms ease;
+}
+
+.pd-quick-action--red {
+  --pd-card-bg: var(--pd-red);
+  --pd-card-fg: #faf0e1;
+  --pd-card-border: rgba(241, 222, 196, 0.22);
+}
+.pd-quick-action--cream {
+  --pd-card-bg: var(--pd-cream);
+  --pd-card-fg: var(--pd-ink);
+  --pd-card-border: rgba(23, 32, 25, 0.14);
+}
+.pd-quick-action--sage {
+  --pd-card-bg: var(--pd-sage);
+  --pd-card-fg: var(--pd-ink);
+  --pd-card-border: rgba(23, 32, 25, 0.16);
+}
+.pd-quick-action--olive {
+  --pd-card-bg: var(--pd-olive);
+  --pd-card-fg: #faf0e1;
+  --pd-card-border: rgba(241, 222, 196, 0.22);
+}
+
+.pd-quick-action--primary {
+  min-height: 112px;
+  box-shadow: 0 12px 28px rgba(17, 23, 19, 0.16);
+}
+
+.pd-quick-action:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.pd-quick-action:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 4px;
+}
+
+.pd-quick-action__icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 46px;
+  height: 46px;
+  border: 1px solid currentColor;
+  border-radius: 16px;
+}
+
+.pd-quick-action__content {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.pd-quick-action__content strong {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.pd-quick-action__content span {
+  font-size: 12px;
+  line-height: 1.5;
+  opacity: 0.84;
+}
+
+/* Activity list — open editorial list, no nested bordered rows */
+.pd-activity {
+  min-width: 0;
+}
+
+.pd-activity__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--pd-line-strong, rgba(241, 222, 196, 0.23));
+}
+
+.pd-activity__header h3 {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.pd-activity__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.pd-activity__item {
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 15px 4px;
+  border-bottom: 1px solid var(--pd-line, rgba(241, 222, 196, 0.14));
+}
+
+.pd-activity__item:last-child {
+  border-bottom: 0;
+}
+
+.pd-activity__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.pd-tone-red { background: var(--pd-red); }
+.pd-tone-cream { background: var(--pd-cream); }
+.pd-tone-sage-dot { background: var(--pd-sage); }
+.pd-tone-olive { background: var(--pd-olive); }
+
+.pd-activity__body {
+  min-width: 0;
+}
+
+.pd-activity__body strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.pd-activity__body p {
+  margin-top: 3px;
+  font-size: 12px;
+  line-height: 1.55;
+  opacity: 0.8;
+}
+
+.pd-activity__meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pd-activity__time {
+  font-size: 12px;
+  opacity: 0.75;
+  white-space: nowrap;
+}
+
+/* Chart card */
+.pd-chart-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pd-chart-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.pd-chart-card__title {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.pd-chart-card__subtitle {
+  margin-top: 3px;
+  font-size: 12px;
+  opacity: 0.78;
+}
+
+.pd-chart-card__canvas {
+  min-width: 0;
+  width: 100%;
+}
+
+/* Bento layout */
+.pd-bento-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.pd-span-3 { grid-column: span 3; }
+.pd-span-4 { grid-column: span 4; }
+.pd-span-5 { grid-column: span 5; }
+.pd-span-6 { grid-column: span 6; }
+.pd-span-7 { grid-column: span 7; }
+.pd-span-8 { grid-column: span 8; }
+.pd-span-12 { grid-column: span 12; }
+
+/* RTL direction for action arrows */
+[dir="rtl"] .pd-feature__action svg,
+[dir="rtl"] .pd-medical-media__action svg {
+  transform: scaleX(-1);
+}
+
+/* Responsive */
+@media (max-width: 1000px) {
+  .pd-span-3,
+  .pd-span-4,
+  .pd-span-5,
+  .pd-span-6,
+  .pd-span-7,
+  .pd-span-8 {
+    grid-column: span 6;
+  }
+}
+
+@media (max-width: 640px) {
+  .pd-bento-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .pd-span-3,
+  .pd-span-4,
+  .pd-span-5,
+  .pd-span-6,
+  .pd-span-7,
+  .pd-span-8,
+  .pd-span-12 {
+    grid-column: span 2;
+  }
+
+  .pd-card {
+    padding: 18px;
+  }
+
+  .pd-medical-media {
+    grid-template-columns: 1fr;
+  }
+
+  .pd-activity__item {
+    grid-template-columns: 9px minmax(0, 1fr);
+  }
+
+  .pd-activity__meta {
+    grid-column: 2;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pd-card,
+  .pd-feature__action,
+  .pd-medical-media__action,
+  .pd-quick-action {
+    transition: none !important;
+  }
+}

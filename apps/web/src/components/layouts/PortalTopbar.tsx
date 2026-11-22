@@ -143,7 +143,7 @@ export function PortalTopbar({
   const displayName = user?.fullName || user?.email || (isAr ? "المستخدم" : "User");
 
   return (
-    <header className="shape-leaf pd-tone-sage sticky top-3 z-30 mx-3 mt-3 flex h-[66px] items-center justify-between gap-3 border border-[var(--pd-line)] px-4 shadow-[var(--pd-shadow-soft)] backdrop-blur-md sm:px-6 md:top-4 md:mx-4 md:mt-4">
+    <header className="sticky top-3 z-30 mx-3 mt-3 flex h-[66px] items-center justify-between gap-3 rounded-2xl border border-[var(--pd-line)] bg-[var(--pd-neutral-surface)]/95 px-4 text-[var(--pd-text-primary)] shadow-[var(--pd-shadow-soft)] backdrop-blur-md sm:px-6 md:top-4 md:mx-4 md:mt-4">
       {/* Context & Breadcrumb */}
       <div className="flex min-w-0 items-center gap-3">
         <button
@@ -156,7 +156,7 @@ export function PortalTopbar({
         </button>
 
         <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-2">
-          <span className="shrink-0 whitespace-nowrap text-sm font-medium text-[var(--pd-text-muted)] sm:text-[15px]">
+          <span className="truncate text-sm font-medium text-[var(--pd-text-muted)] sm:shrink-0 sm:text-[15px]">
             {portalTitle}
           </span>
           {currentPageLabel && (

@@ -13,7 +13,7 @@ import {
 import { useLocale, useTranslations } from "@/lib/compat/intl";
 import { useSearchParams } from "@/lib/compat/navigation";
 import { apiRequest } from "@/lib/apiClient";
-import { Button, Card, GlideSelect, ProfileMediaCard, StatCard } from "@/components/ui";
+import { Button, Card, GlideSelect, MetricCard, ProfileMediaCard } from "@/components/ui";
 
 export default function DoctorResultsPage() {
   const { showSuccess, showError, showInfo, showWarning } = useToast();
@@ -366,32 +366,48 @@ export default function DoctorResultsPage() {
             </div>
           </div>
 
-          {/* Stats Cards */}
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <StatCard shape="orbital"
-              label={t("stats.total")}
-              value={stats.total}
-              icon={<ScanLineIcon />}
-              tone="info"
-            />
-            <StatCard shape="editorial"
-              label={t("stats.completed")}
-              value={stats.completed}
-              icon={<CircleCheckIcon />}
-              tone="success"
-            />
-            <StatCard shape="layered"
-              label={t("stats.pending")}
-              value={stats.pending}
-              icon={<HourglassIcon />}
-              tone="warning"
-            />
-            <StatCard shape="slanted"
-              label={t("stats.today")}
-              value={stats.today}
-              icon={<CalendarDaysIcon />}
-              tone="primary"
-            />
+          {/* Stats Cards — Equal 25/25/25/25 Bento Row */}
+          <div className="pd-bento-grid">
+            <div className="pd-span-3">
+              <MetricCard
+                id="doc-results-total"
+                label={t("stats.total")}
+                value={stats.total}
+                icon={ScanLineIcon}
+                tone="olive"
+                layout="editorial"
+              />
+            </div>
+            <div className="pd-span-3">
+              <MetricCard
+                id="doc-results-completed"
+                label={t("stats.completed")}
+                value={stats.completed}
+                icon={CircleCheckIcon}
+                tone="sage"
+                layout="visual"
+              />
+            </div>
+            <div className="pd-span-3">
+              <MetricCard
+                id="doc-results-pending"
+                label={t("stats.pending")}
+                value={stats.pending}
+                icon={HourglassIcon}
+                tone="cream"
+                layout="compact"
+              />
+            </div>
+            <div className="pd-span-3">
+              <MetricCard
+                id="doc-results-today"
+                label={t("stats.today")}
+                value={stats.today}
+                icon={CalendarDaysIcon}
+                tone="red"
+                layout="editorial"
+              />
+            </div>
           </div>
 
           {/* Filters */}

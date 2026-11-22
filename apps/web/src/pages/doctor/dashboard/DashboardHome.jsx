@@ -9,7 +9,7 @@ import { formatTime } from "@/lib/date";
 import { formatActivityDescription } from "@/lib/activityFormat";
 import useSocket from "@/components/chat/useSocket.client";
 import { apiFetch, apiRequest } from "@/lib/apiClient";
-import { Button, StatCard, Surface } from "@/components/ui";
+import { ActivityList, Button, FeatureCard, MetricCard, PneumoCard, QuickActionCard } from "@/components/ui";
 import { PageHeader } from "@/components/ui/PageHeader";
 
 export default function DashboardHome({ serverData = {} }) {
@@ -455,223 +455,157 @@ export default function DashboardHome({ serverData = {} }) {
             description={`${labels.welcome}${effectiveData.doctorName || effectiveData.doctor?.user?.fullName ? ` ${effectiveData.doctorName || effectiveData.doctor?.user?.fullName}` : ""} · ${formattedDate}`}
           />
 
-          {/* Stats — equal 25/25/25/25 across Crimson, Parchment, Sage, Moss */}
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {stats.map((stat, index) => {
-              const Icon = stat.icon;
-              const tones = ["crimson", "parchment", "sage", "moss"];
-              const shapes = ["orbital", "editorial", "layered", "slanted"];
-              return (
-                <StatCard
-                  key={index}
-                  label={stat.title}
-                  value={stat.value}
-                  icon={<Icon size={18} strokeWidth={1.7} />}
-                  tone={tones[index % tones.length]}
-                  shape={shapes[index % shapes.length]}
-                />
-              );
-            })}
-          </div>
-
-          {/* Quick Actions — Frameless Editorial Strip */}
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {quickActions.map((action, index) => {
-              const Icon = action.icon;
-              return (
-                <Surface
-                  key={index}
-                  shape="editorial"
-                  interactive
-                  onClick={() => handleQuickAction(action.link)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      handleQuickAction(action.link);
-                    }
-                  }}
-                  className="group flex cursor-pointer flex-col justify-between gap-3 pt-5"
-                >
-                  <div className="flex w-full items-center justify-between">
-                    <div className="pd-orb pd-shape-orbital pd-orb--copper">
-                      <Icon size={18} strokeWidth={1.7} />
-                    </div>
-                    <ArrowRightIcon
-                      size={16}
-                      strokeWidth={1.7}
-                      className="text-[var(--pd-text-muted)] transition-transform group-hover:-translate-x-1 group-hover:text-[var(--pd-copper)]"
-                    />
-                  </div>
-                  <div>
-                    <h3 className="text-base font-semibold text-[var(--pd-text-primary)]">
-                      {action.title}
-                    </h3>
-                    <p className="mt-1 text-xs leading-relaxed text-[var(--pd-text-muted)]">
-                      {action.description}
-                    </p>
-                  </div>
-                </Surface>
-              );
-            })}
-          </div>
-
-          {/* Main Content Grid */}
-          <div className="grid gap-8 lg:grid-cols-3">
-            {/* Today's Appointments — Asymmetric Panel + Clinical Timeline */}
-            <Surface shape="asymmetric" className="p-6 lg:col-span-2">
-              <div className="mb-6 flex items-center justify-between border-b border-[var(--pd-border)] pb-4">
-                <h2 className="flex items-center gap-2.5 text-lg font-semibold text-[var(--pd-text-primary)]">
-                  <CalendarDaysIcon size={18} strokeWidth={1.7} className="text-[var(--pd-copper)]" />
-                  {labels.todayAppointments.title}
-                </h2>
-                <Link
-                  href={`${basePrefix}/doctor/appointments`}
-                  className="pd-btn pd-btn--link text-xs"
-                >
-                  {labels.todayAppointments.viewAll}
-                </Link>
-              </div>
-              {todayAppointments.length === 0 ? (
-                <div className="py-8 text-center text-sm text-[var(--pd-text-muted)]">
-                  {labels.todayAppointments.empty}
-                </div>
-              ) : (
-                <ol className="relative space-y-5 border-s border-[var(--pd-border-strong)] ps-5">
-                  {todayAppointments.map((apt) => {
-                    const displayStatus = normalizeStatus(apt.status);
-                    const badgeClass =
-                      displayStatus === "confirmed"
-                        ? "bg-[var(--pd-sage-soft)] text-[var(--pd-sage)]"
-                        : displayStatus === "pending"
-                          ? "bg-[var(--pd-ochre-soft)] text-[var(--pd-ochre)]"
-                          : displayStatus === "cancelled"
-                            ? "bg-[var(--pd-clay-soft)] text-[var(--pd-clay)]"
-                            : "bg-[var(--pd-surface-2)] text-[var(--pd-text-secondary)]";
-                    return (
-                      <li key={apt.id} className="relative flex items-center justify-between gap-4">
-                        <span
-                          aria-hidden="true"
-                          className="absolute -start-[25px] top-2 h-2.5 w-2.5 rounded-full bg-[var(--pd-copper)] ring-4 ring-[var(--pd-surface)]"
-                        />
-                        <div className="flex min-w-0 items-center gap-3.5">
-                          <div className="pd-orb pd-orb--sm pd-shape-orbital pd-orb--copper">
-                            <ClockIcon size={14} strokeWidth={1.7} />
-                          </div>
-                          <div className="min-w-0">
-                            <p className="truncate font-semibold text-[var(--pd-text-primary)]">
-                              {apt.patient}
-                            </p>
-                            <p className="truncate text-xs text-[var(--pd-text-muted)]">
-                              {apt.place ||
-                                apt.location ||
-                                labels.todayAppointments.types[apt.type] ||
-                                apt.type}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="shrink-0 text-end">
-                          <p className="pd-tabular text-sm font-medium text-[var(--pd-text-primary)]">
-                            {apt.time}
-                          </p>
-                          <span className={`mt-1 inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${badgeClass}`}>
-                            {labels.todayAppointments.status[displayStatus] || displayStatus}
-                          </span>
-                        </div>
-                      </li>
-                    );
-                  })}
-                </ol>
-              )}
-            </Surface>
-
-            {/* Pending Scans — Architectural Arch + Open Divide List */}
-            <Surface shape="arch" tone="inset" className="p-6 pt-8">
-              <div className="mb-5 flex items-center justify-between border-b border-[var(--pd-border)] pb-3">
-                <h2 className="flex items-center gap-2 text-lg font-semibold text-[var(--pd-text-primary)]">
-                  <ScanLineIcon size={18} strokeWidth={1.7} className="text-[var(--pd-ochre)]" />
-                  {labels.pendingScans.title}
-                </h2>
-              </div>
-              <div className="divide-y divide-[var(--pd-border)]">
-                {pendingScans.map((scan) => (
-                  <div key={scan.id} className="py-3.5 first:pt-1">
-                    <div className="mb-1.5 flex items-center justify-between gap-2">
-                      <p className="truncate font-semibold text-[var(--pd-text-primary)]">
-                        {scan.patient}
-                      </p>
-                      <span
-                        className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                          scan.clinicalStatus === "critical" || scan.priority === "high"
-                            ? "bg-[var(--pd-clay-soft)] text-[var(--pd-clay)]"
-                            : scan.clinicalStatus === "stable"
-                              ? "bg-[var(--pd-sage-soft)] text-[var(--pd-sage)]"
-                              : scan.priority === "medium"
-                                ? "bg-[var(--pd-ochre-soft)] text-[var(--pd-ochre)]"
-                                : "bg-[var(--pd-copper-soft)] text-[var(--pd-copper)]"
-                        }`}
-                      >
-                        {scan.clinicalStatus
-                          ? patientT(`clinicalStatuses.${scan.clinicalStatus}`) || scan.clinicalStatus
-                          : labels.pendingScans.priority[scan.priority] || scan.priority}
-                      </span>
-                    </div>
-                    {scan.type ? (
-                      <p className="text-xs text-[var(--pd-text-secondary)]">{scan.type}</p>
-                    ) : null}
-                    <p className="pd-tabular mt-1 text-xs text-[var(--pd-text-muted)]">{scan.date}</p>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-4">
-                <Button onClick={() => router.push(`${basePrefix}/doctor/results`)} size="sm" variant="outline">
-                  {labels.pendingScans.viewAll}
-                </Button>
-              </div>
-            </Surface>
-          </div>
-
-          {/* Recent Activity — Frameless Editorial */}
-          <Surface shape="editorial" className="pt-5">
-            <div className="mb-5 flex items-center justify-between">
-              <h2 className="flex items-center gap-2 text-lg font-semibold text-[var(--pd-text-primary)]">
-                <ChartLineIcon size={18} strokeWidth={1.7} className="text-[var(--pd-copper)]" />
-                {labels.recentActivityTitle}
-              </h2>
+          {/* Top Asymmetric Bento: Primary Screening Feature + 2x2 Metric Cluster */}
+          <div className="pd-bento-grid">
+            <div className="pd-span-5">
+              <FeatureCard
+                eyebrow={locale === "ar" ? "سير العمل السريري" : "Clinical Workflow"}
+                title={quickActions[1]?.title || labels.pendingScans.title}
+                description={quickActions[1]?.description || ""}
+                icon={quickActions[1]?.icon}
+                tone="olive"
+                actionLabel={quickActions[1]?.title}
+                onAction={() => handleQuickAction(quickActions[1]?.link)}
+                className="h-full"
+              />
             </div>
-            {recentActivity.length === 0 ? (
-              <div className="py-6 text-sm text-[var(--pd-text-muted)]">
-                {locale === "ar"
-                  ? "لا يوجد نشاط سريري مسجل حتى الآن."
-                  : "No clinical activity recorded yet."}
-              </div>
-            ) : (
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                {recentActivity.map((activity) => {
-                  const Icon = activity.icon;
+
+            <div className="pd-span-7">
+              <div className="grid h-full grid-cols-1 gap-4 sm:grid-cols-2">
+                {stats.map((stat, index) => {
+                  const tones = ["red", "cream", "sage", "cream"];
+                  const layouts = ["editorial", "visual", "compact", "editorial"];
                   return (
-                    <div
-                      key={activity.id}
-                      className="flex items-start gap-3 border-s border-[var(--pd-border-strong)] ps-3.5"
-                    >
-                      <div className={`mt-0.5 ${activity.color}`}>
-                        <Icon size={16} strokeWidth={1.7} />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium text-[var(--pd-text-primary)]">
-                          {activity.action}
-                        </p>
-                        <p className="pd-tabular mt-1 text-xs text-[var(--pd-text-muted)]">
-                          {activity.time}
-                        </p>
-                      </div>
-                    </div>
+                    <MetricCard
+                      key={index}
+                      id={`doctor-stat-${index}`}
+                      label={stat.title}
+                      value={stat.value}
+                      icon={stat.icon}
+                      tone={tones[index % tones.length]}
+                      layout={layouts[index % layouts.length]}
+                    />
                   );
                 })}
               </div>
-            )}
-          </Surface>
+            </div>
+          </div>
+
+          {/* Secondary Quick Actions — 3-column Bento Strip */}
+          <div className="pd-bento-grid">
+            {quickActions
+              .filter((_, idx) => idx !== 1)
+              .map((action, index) => {
+                const tones = ["cream", "red", "sage"];
+                return (
+                  <div key={action.link} className="pd-span-4">
+                    <QuickActionCard
+                      title={action.title}
+                      description={action.description}
+                      icon={action.icon}
+                      tone={tones[index % tones.length]}
+                      onClick={() => handleQuickAction(action.link)}
+                    />
+                  </div>
+                );
+              })}
+          </div>
+
+          {/* Main Content Bento Grid */}
+          <div className="pd-bento-grid">
+            <div className="pd-span-7">
+              <PneumoCard tone="cream" hover={false}>
+                <ActivityList
+                  title={labels.todayAppointments.title}
+                  emptyMessage={labels.todayAppointments.empty}
+                  headerAction={
+                    <Link
+                      href={`${basePrefix}/doctor/appointments`}
+                      className="text-xs font-semibold underline underline-offset-4 opacity-85 hover:opacity-100"
+                    >
+                      {labels.todayAppointments.viewAll}
+                    </Link>
+                  }
+                  items={todayAppointments.map((apt) => {
+                    const displayStatus = normalizeStatus(apt.status);
+                    const statusLabel = labels.todayAppointments.status[displayStatus] || displayStatus;
+                    const placeOrType =
+                      apt.place ||
+                      apt.location ||
+                      labels.todayAppointments.types[apt.type] ||
+                      apt.type;
+                    return {
+                      id: String(apt.id),
+                      title: apt.patient,
+                      description: `${placeOrType} · ${statusLabel}`,
+                      timestamp: apt.time,
+                      tone:
+                        displayStatus === "confirmed"
+                          ? "sage"
+                          : displayStatus === "cancelled"
+                            ? "red"
+                            : "olive",
+                    };
+                  })}
+                />
+              </PneumoCard>
+            </div>
+
+            <div className="pd-span-5">
+              <PneumoCard tone="olive" hover={false}>
+                <ActivityList
+                  title={labels.pendingScans.title}
+                  emptyMessage={
+                    locale === "ar"
+                      ? "لا توجد فحوصات معلقة حالياً."
+                      : "No pending scans right now."
+                  }
+                  headerAction={
+                    <button
+                      type="button"
+                      onClick={() => router.push(`${basePrefix}/doctor/results`)}
+                      className="text-xs font-semibold underline underline-offset-4 opacity-90 hover:opacity-100"
+                    >
+                      {labels.pendingScans.viewAll}
+                    </button>
+                  }
+                  items={pendingScans.map((scan) => {
+                    const statusText = scan.clinicalStatus
+                      ? patientT(`clinicalStatuses.${scan.clinicalStatus}`) || scan.clinicalStatus
+                      : labels.pendingScans.priority[scan.priority] || scan.priority;
+                    return {
+                      id: String(scan.id),
+                      title: scan.patient,
+                      description: scan.type ? `${scan.type} · ${statusText}` : statusText,
+                      timestamp: scan.date,
+                      tone:
+                        scan.clinicalStatus === "critical" || scan.priority === "high"
+                          ? "red"
+                          : scan.clinicalStatus === "stable"
+                            ? "sage"
+                            : "cream",
+                    };
+                  })}
+                />
+              </PneumoCard>
+            </div>
+          </div>
+
+          {/* Recent Activity — Open Editorial List */}
+          <ActivityList
+            title={labels.recentActivityTitle}
+            emptyMessage={
+              locale === "ar"
+                ? "لا يوجد نشاط سريري مسجل حتى الآن."
+                : "No clinical activity recorded yet."
+            }
+            items={recentActivity.map((activity, idx) => ({
+              id: String(activity.id),
+              title: activity.action,
+              timestamp: activity.time,
+              tone: ["red", "cream", "sage", "olive"][idx % 4],
+            }))}
+          />
         </div>
       </div>
     </>

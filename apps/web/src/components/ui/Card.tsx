@@ -145,36 +145,51 @@ export function ProfileMediaCard({
 }: ProfileMediaCardProps) {
   const hasPhoto = Boolean(image);
   return (
-    <div className={clsx("profile-card", featured && "profile-card--featured", className)} {...props}>
+    <article
+      className={clsx(
+        "pd-card bg-[var(--pd-neutral-surface)] text-[var(--pd-cream)] border-[var(--pd-line)] flex flex-col gap-5 sm:flex-row",
+        featured && "pd-card--olive",
+        className,
+      )}
+      {...props}
+    >
       {(image || mediaNode) && (
         <div
           className={clsx(
-            "profile-card-image",
-            hasPhoto ? "profile-card-image--photo" : "profile-card-image--icon",
-            isAvatar && "profile-card-image--avatar",
+            "shrink-0 overflow-hidden",
+            isAvatar
+              ? "h-16 w-16 rounded-full border border-[var(--pd-line-strong)] bg-[var(--pd-neutral-raised)] flex items-center justify-center"
+              : "h-44 w-full sm:h-auto sm:w-44 rounded-2xl bg-[var(--pd-ink-deep)] flex items-center justify-center",
           )}
         >
-          {image ? (
-            <img src={image} alt={typeof imageAlt === "string" ? imageAlt : ""} className="h-full w-full object-cover" />
+          {hasPhoto && image ? (
+            <img
+              src={image}
+              alt={typeof imageAlt === "string" ? imageAlt : ""}
+              loading="lazy"
+              className={isAvatar ? "h-full w-full object-cover" : "h-full w-full object-contain"}
+            />
           ) : (
-            mediaNode
+            <span className="text-[var(--pd-cream)]/75">{mediaNode}</span>
           )}
         </div>
       )}
 
-      <div className="profile-card-content">
-        {(title || badge) && (
-          <div className="mb-1 flex flex-wrap items-start justify-between gap-2">
-            {title && <h2 className="profile-card-title">{title}</h2>}
-            {badge && <div className="shrink-0">{badge}</div>}
-          </div>
-        )}
-        {subtitle && <h3 className="profile-card-subtitle">{subtitle}</h3>}
-        {description && <div className="profile-card-description">{description}</div>}
-        {children}
-        {actions && <div className="profile-card-buttons">{actions}</div>}
+      <div className="min-w-0 flex-1 flex flex-col justify-between gap-3">
+        <div>
+          {(title || badge) && (
+            <div className="mb-1.5 flex flex-wrap items-start justify-between gap-2">
+              {title && <h2 className="text-lg font-semibold leading-snug">{title}</h2>}
+              {badge && <div className="shrink-0">{badge}</div>}
+            </div>
+          )}
+          {subtitle && <h3 className="text-sm opacity-80">{subtitle}</h3>}
+          {description && <div className="mt-2 text-xs leading-relaxed opacity-80">{description}</div>}
+          {children}
+        </div>
+        {actions && <div className="mt-2 flex flex-wrap items-center gap-2 pt-2 border-t border-[var(--pd-line)]">{actions}</div>}
       </div>
-    </div>
+    </article>
   );
 }
 

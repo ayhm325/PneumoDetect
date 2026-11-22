@@ -17,7 +17,7 @@ import { useTranslations, useLocale } from "@/lib/compat/intl";
 import PatientDashboardWrapper from "@/components/PatientDashboardWrapper";
 import useSocket from "@/components/chat/useSocket.client";
 import { apiFetch, apiRequest } from "@/lib/apiClient";
-import { Button, StatCard, Surface } from "@/components/ui";
+import { ActivityList, Button, FeatureCard, MetricCard, PneumoCard, QuickActionCard } from "@/components/ui";
 import { PageHeader } from "@/components/ui/PageHeader";
 
 export default function PatientDashboardPage() {
@@ -309,103 +309,93 @@ export default function PatientDashboardPage() {
           description={today}
         />
 
-        {/* Stats — equal 25/25/25/25 across Crimson, Parchment, Sage, Moss */}
-        <div className="mb-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {stats.map((s, i) => {
-            const StatIcon = s.icon;
-            const tones = ["crimson", "parchment", "sage", "moss"];
-            const shapes = ["orbital", "editorial", "slanted", "layered"];
-            return (
-              <StatCard
-                key={i}
-                label={s.title}
-                value={s.value}
-                icon={<StatIcon size={18} strokeWidth={1.7} />}
-                tone={tones[i % tones.length]}
-                shape={shapes[i % shapes.length]}
-              />
-            );
-          })}
+        {/* Top Asymmetric Bento: Primary AI Screening Feature + 2x2 Metric Cluster */}
+        <div className="pd-bento-grid">
+          <div className="pd-span-5">
+            <FeatureCard
+              eyebrow={locale === "ar" ? "الفحص الذكي" : "AI Screening"}
+              title={quickActions[1].title}
+              description={quickActions[1].desc}
+              icon={quickActions[1].Icon}
+              tone="red"
+              actionLabel={quickActions[1].title}
+              onAction={() => router.push(`${basePrefix}${quickActions[1].href}`)}
+              className="h-full"
+            />
+          </div>
+
+          <div className="pd-span-7">
+            <div className="grid h-full grid-cols-1 gap-4 sm:grid-cols-2">
+              {stats.map((s, i) => {
+                const tones = ["cream", "sage", "olive", "cream"];
+                const layouts = ["editorial", "visual", "compact", "editorial"];
+                return (
+                  <MetricCard
+                    key={i}
+                    id={`patient-stat-${i}`}
+                    label={s.title}
+                    value={s.value}
+                    icon={s.icon}
+                    tone={tones[i % tones.length]}
+                    layout={layouts[i % layouts.length]}
+                  />
+                );
+              })}
+            </div>
+          </div>
         </div>
 
-        {/* Recent Analyses (asymmetric panel + open list) & Upcoming Appointments (frameless timeline) */}
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
-          <Surface shape="asymmetric" tone="moss" className="p-6 lg:col-span-7">
-            <div className="mb-5 flex items-center justify-between border-b border-[var(--pd-border)] pb-4">
-              <h2 className="flex items-center gap-2.5 text-lg font-semibold text-[var(--pd-text-primary)]">
-                <ScanLineIcon size={18} strokeWidth={1.7} className="text-[var(--pd-copper)]" />
-                <span>{locale === "ar" ? "أحدث تحليلات الأشعة" : "Recent X-Ray Analyses"}</span>
-              </h2>
-              <button
-                type="button"
-                onClick={() => router.push(`${basePrefix}/patient/analysis/history`)}
-                className="pd-btn pd-btn--link text-xs"
-              >
-                {locale === "ar" ? "عرض السجل" : "View history"}
-              </button>
-            </div>
-
-            {overviewLoading ? (
-              <div className="space-y-3">
-                {[1, 2].map((i) => (
-                  <div key={i} className="pd-skeleton h-14 rounded-xl" />
-                ))}
-              </div>
-            ) : recentAnalyses.length === 0 ? (
-              <div className="py-8 text-center">
-                <p className="text-sm font-medium text-[var(--pd-text-muted)]">
-                  {locale === "ar" ? "لا توجد تحليلات أشعة مسجلة بعد." : "No X-ray analyses recorded yet."}
-                </p>
-                <Button
-                  size="sm"
-                  className="mt-4"
-                  onClick={() => router.push(`${basePrefix}/patient/analysis`)}
-                >
-                  {t("dashboard.quickActions.uploadXray")}
-                </Button>
-              </div>
-            ) : (
-              <div className="divide-y divide-[var(--pd-border)]">
-                {recentAnalyses.map((item) => (
-                  <div key={item.id} className="flex items-center justify-between gap-4 py-3.5">
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-[var(--pd-text-primary)]">
-                        {item.prediction || (locale === "ar" ? "نتيجة تحليل" : "Analysis Result")}
-                      </p>
-                      <p className="pd-tabular text-xs text-[var(--pd-text-muted)]">
-                        {item.createdAt
-                          ? new Date(item.createdAt).toLocaleDateString(locale === "en" ? "en-US" : "ar-EG")
-                          : placeholder}
-                      </p>
-                    </div>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => router.push(`${basePrefix}/patient/results`)}
+        {/* Recent Analyses (Olive Bento Card + ActivityList) & Upcoming Appointments (Open Editorial List) */}
+        <div className="pd-bento-grid">
+          <div className="pd-span-7">
+            <PneumoCard tone="olive" hover={false}>
+              {overviewLoading ? (
+                <div className="space-y-3">
+                  {[1, 2].map((i) => (
+                    <div key={i} className="pd-skeleton h-14 rounded-xl" />
+                  ))}
+                </div>
+              ) : recentAnalyses.length === 0 ? (
+                <div className="py-6 text-center">
+                  <p className="text-sm font-medium">
+                    {locale === "ar" ? "لا توجد تحليلات أشعة مسجلة بعد." : "No X-ray analyses recorded yet."}
+                  </p>
+                  <Button
+                    size="sm"
+                    className="mt-4"
+                    onClick={() => router.push(`${basePrefix}/patient/analysis`)}
+                  >
+                    {t("dashboard.quickActions.uploadXray")}
+                  </Button>
+                </div>
+              ) : (
+                <ActivityList
+                  title={locale === "ar" ? "أحدث تحليلات الأشعة" : "Recent X-Ray Analyses"}
+                  headerAction={
+                    <button
+                      type="button"
+                      onClick={() => router.push(`${basePrefix}/patient/analysis/history`)}
+                      className="text-xs font-semibold underline underline-offset-4 opacity-90 hover:opacity-100"
                     >
-                      {locale === "ar" ? "التفاصيل" : "Details"}
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </Surface>
+                      {locale === "ar" ? "عرض السجل" : "View history"}
+                    </button>
+                  }
+                  items={recentAnalyses.map((item, idx) => ({
+                    id: String(item.id || idx),
+                    title: item.prediction || (locale === "ar" ? "نتيجة تحليل" : "Analysis Result"),
+                    timestamp: item.createdAt
+                      ? new Date(item.createdAt).toLocaleDateString(locale === "en" ? "en-US" : "ar-EG")
+                      : placeholder,
+                    tone: idx === 0 ? "red" : "cream",
+                    actionLabel: locale === "ar" ? "التفاصيل" : "Details",
+                    onAction: () => router.push(`${basePrefix}/patient/results`),
+                  }))}
+                />
+              )}
+            </PneumoCard>
+          </div>
 
-          <Surface shape="editorial" className="pt-5 lg:col-span-5">
-            <div className="mb-5 flex items-center justify-between">
-              <h2 className="flex items-center gap-2.5 text-lg font-semibold text-[var(--pd-text-primary)]">
-                <CalendarDaysIcon size={18} strokeWidth={1.7} className="text-[var(--pd-sage)]" />
-                <span>{locale === "ar" ? "المواعيد القادمة" : "Upcoming Appointments"}</span>
-              </h2>
-              <button
-                type="button"
-                onClick={() => router.push(`${basePrefix}/patient/appointments`)}
-                className="pd-btn pd-btn--link text-xs"
-              >
-                {locale === "ar" ? "كل المواعيد" : "All appointments"}
-              </button>
-            </div>
-
+          <div className="pd-span-5 flex flex-col justify-start pt-1">
             {overviewLoading ? (
               <div className="space-y-3">
                 {[1, 2].map((i) => (
@@ -414,6 +404,9 @@ export default function PatientDashboardPage() {
               </div>
             ) : upcomingAppointments.length === 0 ? (
               <div className="py-6">
+                <h3 className="mb-3 text-lg font-semibold">
+                  {locale === "ar" ? "المواعيد القادمة" : "Upcoming Appointments"}
+                </h3>
                 <p className="text-sm text-[var(--pd-text-muted)]">
                   {locale === "ar" ? "لا توجد مواعيد محجوزة حالياً." : "No appointments scheduled yet."}
                 </p>
@@ -427,75 +420,53 @@ export default function PatientDashboardPage() {
                 </Button>
               </div>
             ) : (
-              <ol className="relative space-y-5 border-s border-[var(--pd-border-strong)] ps-5">
-                {upcomingAppointments.map((appt) => (
-                  <li key={appt.id} className="relative flex items-start justify-between gap-3">
-                    <span
-                      aria-hidden="true"
-                      className="absolute -start-[25px] top-1.5 h-2.5 w-2.5 rounded-full bg-[var(--pd-copper)] ring-4 ring-[var(--pd-bg)]"
-                    />
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-[var(--pd-text-primary)]">
-                        {appt.doctorName || appt.doctor?.user?.fullName || (locale === "ar" ? "موعد طبي" : "Medical Visit")}
-                      </p>
-                      <p className="pd-tabular text-xs text-[var(--pd-text-muted)]">
-                        {appt.scheduledAt
-                          ? new Date(appt.scheduledAt).toLocaleString(locale === "en" ? "en-US" : "ar-EG")
-                          : placeholder}
-                      </p>
-                    </div>
-                    <span className="shrink-0 rounded-full border border-[var(--pd-copper-border)] bg-[var(--pd-copper-soft)] px-2.5 py-0.5 text-xs font-medium text-[var(--pd-copper)]">
-                      {appt.status || "scheduled"}
-                    </span>
-                  </li>
-                ))}
-              </ol>
+              <ActivityList
+                title={locale === "ar" ? "المواعيد القادمة" : "Upcoming Appointments"}
+                headerAction={
+                  <button
+                    type="button"
+                    onClick={() => router.push(`${basePrefix}/patient/appointments`)}
+                    className="pd-btn pd-btn--link text-xs"
+                  >
+                    {locale === "ar" ? "كل المواعيد" : "All appointments"}
+                  </button>
+                }
+                items={upcomingAppointments.map((appt, idx) => ({
+                  id: String(appt.id || idx),
+                  title: appt.doctorName || appt.doctor?.user?.fullName || (locale === "ar" ? "موعد طبي" : "Medical Visit"),
+                  description: appt.status || "scheduled",
+                  timestamp: appt.scheduledAt
+                    ? new Date(appt.scheduledAt).toLocaleDateString(locale === "en" ? "en-US" : "ar-EG")
+                    : placeholder,
+                  tone: idx === 0 ? "red" : "sage",
+                }))}
+              />
             )}
-          </Surface>
+          </div>
         </div>
 
-        {/* Quick Actions — 1 sculpted focal action + 3 frameless editorial links */}
+        {/* Secondary Quick Actions — 3-column Bento Row */}
         <div className="pt-2">
-          <h2 className="mb-5 text-lg font-semibold text-[var(--pd-text-primary)]">
+          <h2 className="mb-4 text-lg font-medium text-[var(--pd-text-primary)]">
             {t("dashboard.quickActions.title")}
           </h2>
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {quickActions.map((a, i) => {
-              const ActionIcon = a.Icon;
-              const isPrimaryAction = i === 1;
-              return (
-                <Surface
-                  key={i}
-                  shape={isPrimaryAction ? "layered" : "editorial"}
-                  tone={isPrimaryAction ? "copper" : "default"}
-                  interactive
-                  onClick={() => router.push(`${basePrefix}${a.href}`)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      router.push(`${basePrefix}${a.href}`);
-                    }
-                  }}
-                  className={`group flex cursor-pointer flex-col justify-between gap-3 ${
-                    isPrimaryAction ? "p-5" : "pt-5"
-                  }`}
-                >
-                  <div className={`pd-orb pd-shape-orbital ${isPrimaryAction ? "pd-orb--solid" : "pd-orb--copper"}`}>
-                    <ActionIcon size={18} strokeWidth={1.7} />
+          <div className="pd-bento-grid">
+            {quickActions
+              .filter((_, i) => i !== 1)
+              .map((a, i) => {
+                const tones = ["cream", "sage", "olive"];
+                return (
+                  <div key={a.href} className="pd-span-4">
+                    <QuickActionCard
+                      title={a.title}
+                      description={a.desc}
+                      icon={a.Icon}
+                      tone={tones[i % tones.length]}
+                      onClick={() => router.push(`${basePrefix}${a.href}`)}
+                    />
                   </div>
-                  <div>
-                    <h3 className="text-base font-semibold text-[var(--pd-text-primary)]">
-                      {a.title}
-                    </h3>
-                    <p className="mt-1 text-xs leading-relaxed text-[var(--pd-text-muted)]">
-                      {a.desc}
-                    </p>
-                  </div>
-                </Surface>
-              );
-            })}
+                );
+              })}
           </div>
         </div>
       </div>

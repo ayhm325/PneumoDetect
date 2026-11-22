@@ -6,7 +6,7 @@ import { useToast } from "@/components/ui/ToastProvider";
 import { useEffect, useMemo, useState } from "react";
 import { useLocale, useTranslations } from "@/lib/compat/intl";
 import { apiRequest } from "@/lib/apiClient";
-import { Card, GlideSelect } from "@/components/ui";
+import { ActivityList, ChartCard, GlideSelect, MetricCard, PneumoCard } from "@/components/ui";
 
 export default function Page() {
   const { showSuccess, showError, showInfo, showWarning } = useToast();
@@ -168,264 +168,144 @@ export default function Page() {
             </div>
           </div>
 
-          {/* Stats Cards */}
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {/* Total Patients */}
-            <Card variant="interactive" className="group relative overflow-hidden">
-              <div className="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 transform rounded-full bg-(--ui-info)/10 transition-transform group-hover:scale-150"></div>
-              <div className="relative">
-                <div className="flex items-center justify-between">
-                  <UserRoundIcon className="text-4xl text-(--ui-info)" />
-                  <div
-                    className={`flex items-center gap-1 text-sm font-medium ${
-                      currentStats.patients.percentage > 0
-                        ? "text-(--ui-success)"
-                        : "text-(--ui-danger)"
-                    }`}
-                  >
-                    {currentStats.patients.percentage > 0 ? (
-                      <ArrowUpIcon />
-                    ) : (
-                      <ArrowDownIcon />
-                    )}
-                    {Math.abs(currentStats.patients.percentage)}%
-                  </div>
-                </div>
-                <div className="mt-4">
-                  <p className="text-sm text-(--ui-muted-foreground)">
-                    {t("stats.patients")}
-                  </p>
-                  <p className="mt-1 text-3xl font-bold text-(--ui-foreground)">
-                    {currentStats.patients.current}
-                  </p>
-                  <p className="mt-1 text-xs text-(--ui-muted-foreground)">
-                    {t("stats.previous")}: {currentStats.patients.previous}
-                  </p>
-                </div>
-              </div>
-            </Card>
-
-            {/* Total Scans */}
-            <Card variant="interactive" className="group relative overflow-hidden">
-              <div className="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 transform rounded-full bg-(--ui-info)/10 transition-transform group-hover:scale-150"></div>
-              <div className="relative">
-                <div className="flex items-center justify-between">
-                  <ScanLineIcon className="text-4xl text-(--ui-info)" />
-                  <div
-                    className={`flex items-center gap-1 text-sm font-medium ${
-                      currentStats.scans.percentage > 0
-                        ? "text-(--ui-success)"
-                        : "text-(--ui-danger)"
-                    }`}
-                  >
-                    {currentStats.scans.percentage > 0 ? (
-                      <ArrowUpIcon />
-                    ) : (
-                      <ArrowDownIcon />
-                    )}
-                    {Math.abs(currentStats.scans.percentage)}%
-                  </div>
-                </div>
-                <div className="mt-4">
-                  <p className="text-sm text-(--ui-muted-foreground)">
-                    {t("stats.scans")}
-                  </p>
-                  <p className="mt-1 text-3xl font-bold text-(--ui-foreground)">
-                    {currentStats.scans.current}
-                  </p>
-                  <p className="mt-1 text-xs text-(--ui-muted-foreground)">
-                    {t("stats.previous")}: {currentStats.scans.previous}
-                  </p>
-                </div>
-              </div>
-            </Card>
-
-            {/* Completed */}
-            <Card variant="interactive" className="group relative overflow-hidden">
-              <div className="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 transform rounded-full bg-(--ui-success)/10 transition-transform group-hover:scale-150"></div>
-              <div className="relative">
-                <div className="flex items-center justify-between">
-                  <CircleCheckIcon className="text-4xl text-(--ui-success)" />
-                  <div
-                    className={`flex items-center gap-1 text-sm font-medium ${
-                      currentStats.completed.percentage > 0
-                        ? "text-(--ui-success)"
-                        : "text-(--ui-danger)"
-                    }`}
-                  >
-                    {currentStats.completed.percentage > 0 ? (
-                      <ArrowUpIcon />
-                    ) : (
-                      <ArrowDownIcon />
-                    )}
-                    {Math.abs(currentStats.completed.percentage)}%
-                  </div>
-                </div>
-                <div className="mt-4">
-                  <p className="text-sm text-(--ui-muted-foreground)">
-                    {t("stats.completed")}
-                  </p>
-                  <p className="mt-1 text-3xl font-bold text-(--ui-foreground)">
-                    {currentStats.completed.current}
-                  </p>
-                  <p className="mt-1 text-xs text-(--ui-muted-foreground)">
-                    {t("stats.previous")}: {currentStats.completed.previous}
-                  </p>
-                </div>
-              </div>
-            </Card>
-
-            {/* Pending */}
-            <Card variant="interactive" className="group relative overflow-hidden">
-              <div className="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 transform rounded-full bg-(--ui-warning)/10 transition-transform group-hover:scale-150"></div>
-              <div className="relative">
-                <div className="flex items-center justify-between">
-                  <ClockIcon className="text-4xl text-(--ui-warning)" />
-                  <div
-                    className={`flex items-center gap-1 text-sm font-medium ${
-                      currentStats.pending.percentage < 0
-                        ? "text-(--ui-success)"
-                        : "text-(--ui-danger)"
-                    }`}
-                  >
-                    {currentStats.pending.percentage < 0 ? (
-                      <ArrowDownIcon />
-                    ) : (
-                      <ArrowUpIcon />
-                    )}
-                    {Math.abs(currentStats.pending.percentage)}%
-                  </div>
-                </div>
-                <div className="mt-4">
-                  <p className="text-sm text-(--ui-muted-foreground)">
-                    {t("stats.pending")}
-                  </p>
-                  <p className="mt-1 text-3xl font-bold text-(--ui-foreground)">
-                    {currentStats.pending.current}
-                  </p>
-                  <p className="mt-1 text-xs text-(--ui-muted-foreground)">
-                    {t("stats.previous")}: {currentStats.pending.previous}
-                  </p>
-                </div>
-              </div>
-            </Card>
-          </div>
-
-          {/* Charts Section */}
-          <div className="grid gap-6 lg:grid-cols-3">
-            {/* Patient Distribution Chart */}
-            <Card variant="feature" className="lg:col-span-2">
-              <div className="mb-6 flex items-center justify-between">
-                <h2 className="flex items-center gap-2 text-xl font-bold text-(--ui-foreground)">
-                  <CalendarDaysIcon className="text-(--ui-info)" />
-                  {t("chart.patientDistribution")}
-                </h2>
-              </div>
-
-              <div className="space-y-4">
-                {patientChartData.map((item, index) => (
-                  <div key={index} className="flex items-center gap-4">
-                    <div className="w-20 text-sm font-medium text-(--ui-foreground)">
-                      {item.day}
+          {/* Top Asymmetric Bento: Prominent Chart + Stacked Key Metrics */}
+          <div className="pd-bento-grid">
+            <div className="pd-span-8">
+              <ChartCard
+                title={t("chart.patientDistribution")}
+                tone="cream"
+                headerAction={<CalendarDaysIcon size={20} strokeWidth={1.7} aria-hidden="true" />}
+                className="h-full"
+              >
+                <div className="space-y-4">
+                  {patientChartData.map((item, index) => (
+                    <div key={index} className="flex items-center gap-4">
+                      <div className="w-20 text-sm font-medium">{item.day}</div>
+                      <div className="flex-1">
+                        <progress
+                          value={item.value}
+                          max={maxValue}
+                          className="h-7 w-full overflow-hidden rounded-full bg-[var(--pd-ink)]/15 [&::-webkit-progress-bar]:bg-[var(--pd-ink)]/15 [&::-webkit-progress-value]:bg-[var(--pd-red)] [&::-moz-progress-bar]:bg-[var(--pd-red)]"
+                        />
+                      </div>
+                      <div className="pd-tabular w-16 text-end text-sm font-medium">
+                        {item.value} {t("units.patients")}
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <progress
-                        value={item.value}
-                        max={maxValue}
-                        className="h-10 w-full overflow-hidden rounded-lg bg-(--ui-surface) [&::-webkit-progress-bar]:bg-(--ui-surface) [&::-webkit-progress-value]:bg-(--ui-info) [&::-moz-progress-bar]:bg-(--ui-info)"
-                      />
-                    </div>
-                    <div className="w-12 text-sm text-(--ui-muted-foreground)">
-                      {item.value} {t("units.patients")}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
-
-            {/* Scan Types Distribution */}
-            <Card variant="clinical">
-              <h2 className="mb-6 flex items-center gap-2 text-xl font-bold text-(--ui-foreground)">
-                <ScanLineIcon className="text-(--ui-info)" />
-                {t("scanTypesTitle")}
-              </h2>
-
-              <div className="space-y-4">
-                {scanTypes.map((scan, index) => (
-                  <div key={index}>
-                    <div className="mb-2 flex items-center justify-between">
-                      <span className="text-sm font-medium text-(--ui-foreground)">
-                        {scan.label}
-                      </span>
-                      <span className="text-sm font-bold text-(--ui-foreground)">
-                        {scan.count}
-                      </span>
-                    </div>
-                    <progress
-                      value={scan.percentage}
-                      max={100}
-                      className="h-3 w-full overflow-hidden rounded-full bg-(--ui-surface) [&::-webkit-progress-bar]:bg-(--ui-surface) [&::-webkit-progress-value]:bg-(--ui-info) [&::-moz-progress-bar]:bg-(--ui-info)"
-                    />
-                    <p className="mt-1 text-xs text-(--ui-muted-foreground)">
-                      {scan.percentage}% {t("scanTypesOfTotal")}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </Card>
-          </div>
-
-          {/* Recent Activity */}
-          <Card variant="utility">
-            <h2 className="mb-6 flex items-center gap-2 text-xl font-bold text-(--ui-foreground)">
-              <ClockIcon className="text-(--ui-info)" />
-              {t("recentActivityTitle")}
-            </h2>
-
-            <div className="space-y-3">
-              {recentActivity.map((activity, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between rounded-lg border border-(--ui-border) p-4 transition-all hover:bg-(--ui-surface-2)"
-                >
-                  <div className="flex items-center gap-4">
-                    <div
-                      className={`flex h-10 w-10 items-center justify-center rounded-full ${
-                        activity.status === "completed"
-                          ? "bg-(--ui-success-bg)"
-                          : activity.status === "pending"
-                            ? "bg-(--ui-warning-bg)"
-                            : activity.status === "sent"
-                              ? "bg-(--ui-info-bg)"
-                              : "bg-(--ui-info-bg)"
-                      }`}
-                    >
-                      {activity.status === "completed" ? (
-                        <CircleCheckIcon className="text-(--ui-success)" />
-                      ) : activity.status === "pending" ? (
-                        <ClockIcon className="text-(--ui-warning)" />
-                      ) : (
-                        <EyeIcon className="text-(--ui-info)" />
-                      )}
-                    </div>
-                    <div>
-                      <p className="font-medium text-(--ui-foreground)">
-                        {activity.actionLabel}
-                      </p>
-                      <p className="text-sm text-(--ui-muted-foreground)">
-                        {activity.patient}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-left">
-                    <p className="text-sm text-(--ui-muted-foreground)">
-                      {activity.time}
-                    </p>
-                  </div>
+                  ))}
                 </div>
-              ))}
+              </ChartCard>
             </div>
-          </Card>
+
+            <div className="pd-span-4 flex flex-col gap-5">
+              <MetricCard
+                id="analytics-patients"
+                label={t("stats.patients")}
+                value={currentStats.patients.current}
+                description={`${t("stats.previous")}: ${currentStats.patients.previous}`}
+                icon={UserRoundIcon}
+                tone="red"
+                layout="editorial"
+                trend={{
+                  label: `${currentStats.patients.percentage > 0 ? "+" : "-"}${Math.abs(currentStats.patients.percentage)}%`,
+                  direction: currentStats.patients.percentage > 0 ? "up" : "down",
+                }}
+              />
+              <MetricCard
+                id="analytics-scans"
+                label={t("stats.scans")}
+                value={currentStats.scans.current}
+                description={`${t("stats.previous")}: ${currentStats.scans.previous}`}
+                icon={ScanLineIcon}
+                tone="olive"
+                layout="visual"
+                trend={{
+                  label: `${currentStats.scans.percentage > 0 ? "+" : "-"}${Math.abs(currentStats.scans.percentage)}%`,
+                  direction: currentStats.scans.percentage > 0 ? "up" : "down",
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Secondary Bento Row: Completed + Pending + Scan Types Distribution */}
+          <div className="pd-bento-grid">
+            <div className="pd-span-4">
+              <MetricCard
+                id="analytics-completed"
+                label={t("stats.completed")}
+                value={currentStats.completed.current}
+                description={`${t("stats.previous")}: ${currentStats.completed.previous}`}
+                icon={CircleCheckIcon}
+                tone="sage"
+                layout="compact"
+                trend={{
+                  label: `${currentStats.completed.percentage > 0 ? "+" : "-"}${Math.abs(currentStats.completed.percentage)}%`,
+                  direction: currentStats.completed.percentage > 0 ? "up" : "down",
+                }}
+              />
+            </div>
+
+            <div className="pd-span-4">
+              <MetricCard
+                id="analytics-pending"
+                label={t("stats.pending")}
+                value={currentStats.pending.current}
+                description={`${t("stats.previous")}: ${currentStats.pending.previous}`}
+                icon={ClockIcon}
+                tone="cream"
+                layout="editorial"
+                trend={{
+                  label: `${currentStats.pending.percentage < 0 ? "-" : "+"}${Math.abs(currentStats.pending.percentage)}%`,
+                  direction: currentStats.pending.percentage < 0 ? "down" : "up",
+                }}
+              />
+            </div>
+
+            <div className="pd-span-4">
+              <PneumoCard tone="olive" hover={false} className="h-full">
+                <h2 className="mb-5 flex items-center gap-2 text-base font-medium">
+                  <ScanLineIcon size={18} strokeWidth={1.7} aria-hidden="true" />
+                  <span>{t("scanTypesTitle")}</span>
+                </h2>
+
+                <div className="space-y-4">
+                  {scanTypes.map((scan, index) => (
+                    <div key={index}>
+                      <div className="mb-1.5 flex items-center justify-between text-sm">
+                        <span className="font-medium">{scan.label}</span>
+                        <span className="pd-tabular font-medium">{scan.count}</span>
+                      </div>
+                      <progress
+                        value={scan.percentage}
+                        max={100}
+                        className="h-2.5 w-full overflow-hidden rounded-full bg-[var(--pd-cream)]/20 [&::-webkit-progress-bar]:bg-[var(--pd-cream)]/20 [&::-webkit-progress-value]:bg-[var(--pd-cream)] [&::-moz-progress-bar]:bg-[var(--pd-cream)]"
+                      />
+                      <p className="mt-1 text-xs opacity-80">
+                        {scan.percentage}% {t("scanTypesOfTotal")}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </PneumoCard>
+            </div>
+          </div>
+
+          {/* Recent Activity — Open Editorial List */}
+          <ActivityList
+            title={t("recentActivityTitle")}
+            items={recentActivity.map((activity, index) => ({
+              id: `doc-act-${index}`,
+              title: activity.actionLabel,
+              description: activity.patient,
+              timestamp: activity.time,
+              tone:
+                activity.status === "completed"
+                  ? "sage"
+                  : activity.status === "pending"
+                    ? "red"
+                    : "cream",
+            }))}
+          />
         </div>
       </div>
     </DoctorLayout>

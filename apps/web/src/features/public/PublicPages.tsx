@@ -21,7 +21,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { motion, useReducedMotion } from "framer-motion";
 import { MedicalScannerHero } from "@/components/home/MedicalScannerHero";
-import { Surface, type SurfaceShape } from "@/components/ui";
+import { FeatureCard, PneumoCard, Surface, type SurfaceShape } from "@/components/ui";
 import { pdMotion } from "@/lib/motion";
 
 export function HomePage() {
@@ -300,24 +300,20 @@ export function HomePage() {
           </p>
         </div>
 
-        <div className="mt-12 grid gap-8 md:grid-cols-3">
+        <div className="pd-bento-grid mt-12">
           {capabilities.map((item, index) => {
-            const Icon = item.icon;
-            const isArch = item.shape === "arch";
+            const cardTones = ["red", "olive", "sage"] as const;
+            const spans = ["pd-span-6", "pd-span-3", "pd-span-3"];
             return (
-              <Surface
-                key={`cap-${index}`}
-                shape={item.shape}
-                tone={item.tone}
-                interactive
-                className={`p-7 ${isArch ? "pt-10 text-center flex flex-col items-center" : ""}`}
-              >
-                <div className="pd-orb pd-orb--lg pd-shape-orbital border-[var(--pd-border-strong)] bg-black/15 text-[var(--pd-text-primary)]">
-                  <Icon size={24} strokeWidth={1.6} />
-                </div>
-                <h3 className="mt-5 text-xl font-medium text-[var(--pd-text-primary)]">{item.title}</h3>
-                <p className="mt-2.5 text-[15px] leading-relaxed text-[var(--pd-text-secondary)]">{item.desc}</p>
-              </Surface>
+              <div key={`cap-${index}`} className={spans[index % spans.length]}>
+                <FeatureCard
+                  tone={cardTones[index % cardTones.length]}
+                  icon={item.icon}
+                  title={item.title}
+                  description={item.desc}
+                  className="h-full"
+                />
+              </div>
             );
           })}
         </div>
@@ -450,13 +446,13 @@ export function HomePage() {
             })}
           </div>
 
-          {/* Final CTA Banner — Parchment (#F1DEC4) balanced against Crimson & Moss */}
-          <Surface shape="asymmetric" tone="parchment" className="mt-12 flex flex-col items-start justify-between gap-6 p-8 sm:flex-row sm:items-center">
+          {/* Final CTA Banner — Cream (#F1DEC4) balanced against Red, Olive & Sage */}
+          <PneumoCard tone="cream" hover={false} className="mt-12 flex flex-col items-start justify-between gap-6 p-8 sm:flex-row sm:items-center">
             <div className="space-y-1.5">
-              <h3 className="text-xl font-semibold text-[var(--pd-text-primary)]">
+              <h3 className="text-xl font-semibold">
                 {workflowData.ctaTitle}
               </h3>
-              <p className="text-sm text-[var(--pd-text-secondary)]">{workflowData.ctaSubtitle}</p>
+              <p className="text-sm opacity-85">{workflowData.ctaSubtitle}</p>
             </div>
             <div className="flex shrink-0 flex-wrap gap-3">
               <Link to="/signup" className="pd-btn pd-btn--primary">
@@ -466,7 +462,7 @@ export function HomePage() {
                 {isAr ? "تواصل معنا" : "Contact Us"}
               </Link>
             </div>
-          </Surface>
+          </PneumoCard>
         </div>
       </section>
     </div>

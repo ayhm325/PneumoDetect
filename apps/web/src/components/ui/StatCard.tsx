@@ -48,47 +48,19 @@ export function StatCard({
   const resolvedShape = shape ?? SHAPE_BY_TONE[tone];
   const resolvedTone = SURFACE_TONE_MAP[tone];
 
-  if (resolvedShape === "orbital") {
-    return (
-      <div className="flex items-center gap-4 py-2">
-        <div className="pd-shape-orbital pd-tone-crimson h-20 w-20 shrink-0 border shadow-[var(--pd-shadow-soft)]">
-          <span className="pd-metric-value !text-2xl text-[var(--pd-text-primary)]">{value}</span>
-        </div>
-        <div className="min-w-0 space-y-1">
-          <div className="flex items-center gap-2 text-[var(--pd-text-muted)]">
-            {icon && <span className="text-sm text-[var(--pd-parchment)]">{icon}</span>}
-            <p className="truncate text-xs font-medium tracking-[var(--tracking-label)] uppercase">
-              {label}
-            </p>
-          </div>
-          {trend && <p className="text-xs text-[var(--pd-text-secondary)]">{trend}</p>}
-        </div>
-      </div>
-    );
-  }
-
   return (
     <Surface
       shape={resolvedShape}
-      tone={resolvedShape === "editorial" ? "default" : resolvedTone}
-      interactive={resolvedShape !== "editorial"}
-      className={clsx(
-        "flex items-center justify-between gap-4",
-        resolvedShape === "editorial" ? "pt-4 pb-2" : "p-5",
-      )}
+      tone={resolvedTone}
+      interactive
+      className="pd-metric pd-metric--editorial p-6"
     >
-      <div className="min-w-0 space-y-2">
-        <p className="truncate text-xs font-medium tracking-[var(--tracking-label)] uppercase text-[var(--pd-text-muted)]">
-          {label}
-        </p>
-        <p className="pd-metric-value text-[var(--pd-text-primary)]">{value}</p>
-        {trend && <p className="text-xs text-[var(--pd-text-secondary)]">{trend}</p>}
+      <div className="pd-metric__header">
+        <span className="pd-metric__label">{label}</span>
+        {icon && <span className="pd-metric__icon">{icon}</span>}
       </div>
-      {icon && (
-        <div className="pd-orb pd-shape-orbital border-[var(--pd-border-strong)] bg-black/15 text-[var(--pd-text-primary)]">
-          {icon}
-        </div>
-      )}
+      <div className="pd-metric__value">{value}</div>
+      {trend && <p className="pd-metric__description">{trend}</p>}
     </Surface>
   );
 }

@@ -11,7 +11,7 @@ import {
   resolveClinicalPriority,
 } from "@/lib/analysisStatus";
 import { apiFetch, apiRequest } from "@/lib/apiClient";
-import { Button, Card, GlideSelect, ProfileMediaCard, StatCard } from "@/components/ui";
+import { Button, Card, GlideSelect, MetricCard, ProfileMediaCard } from "@/components/ui";
 
 export default function PatientResultsPage() {
   const { showSuccess, showError, showInfo } = useToast();
@@ -387,17 +387,25 @@ export default function PatientResultsPage() {
         </p>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 print:hidden">
-        {stats.map((stat, index) => (
-          <StatCard shape="orbital"
-            key={index}
-            label={stat.title}
-            value={stat.value}
-            icon={stat.icon}
-            tone={stat.tone}
-          />
-        ))}
+      {/* Stats — Equal 25/25/25/25 Bento Row */}
+      <div className="pd-bento-grid mb-8 print:hidden">
+        {stats.map((stat, index) => {
+          const tones = ["red", "cream", "sage", "olive"];
+          const layouts = ["editorial", "visual", "compact", "editorial"];
+          const IconComponent = stat.icon?.type;
+          return (
+            <div key={index} className="pd-span-3">
+              <MetricCard
+                id={`patient-results-stat-${index}`}
+                label={stat.title}
+                value={stat.value}
+                icon={IconComponent}
+                tone={tones[index % tones.length]}
+                layout={layouts[index % layouts.length]}
+              />
+            </div>
+          );
+        })}
       </div>
 
       {error && (

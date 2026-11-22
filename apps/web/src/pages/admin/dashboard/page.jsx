@@ -8,7 +8,7 @@ import { ArrowDownIcon, ArrowUpIcon, BriefcaseMedicalIcon, ChartLineIcon, Circle
 import { useEffect, useState } from "react";
 import { useRouter } from "@/lib/compat/navigation";
 import { useToast } from "@/components/ui/ToastProvider";
-import { Button } from "@/components/ui";
+import { ActivityList, Button, FeatureCard, MetricCard, PneumoCard, QuickActionCard } from "@/components/ui";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { useLocale, useTranslations } from "@/lib/compat/intl";
 import { formatActivityDescription } from "@/lib/activityFormat";
@@ -242,104 +242,101 @@ export default function AdminDashboardPage() {
         {/* Header */}
         <PageHeader title={t("title")} description={formattedDate} />
 
-        {/* Stats Row — equal 25/25/25/25 across Crimson, Parchment, Sage, Moss */}
-        <div className="mb-10 grid w-full grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-          {stats.map((stat, index) => {
-            const shapes = ["pd-shape-asymmetric", "pd-shape-layered", "pd-shape-organic", "pd-shape-asymmetric", "pd-shape-layered"];
-            const tones = ["pd-tone-crimson", "pd-tone-parchment", "pd-tone-sage", "pd-tone-moss"];
-            return (
-              <div
-                key={index}
-                className={`pd-panel pd-panel--interactive w-full p-5 ${shapes[index % shapes.length]} ${tones[index % tones.length]}`}
-              >
-                <div className="mb-4 flex items-center justify-between">
-                  <div className="pd-orb pd-shape-orbital border-[var(--pd-border-strong)] bg-black/15 text-[var(--pd-text-primary)]">
-                    <stat.icon size={19} strokeWidth={1.7} />
-                  </div>
-                  {stat.changePercent ? (
-                    <div
-                      className={`pd-tabular flex items-center gap-1 text-xs font-medium ${stat.trend === "up" ? "text-[var(--pd-sage)]" : "text-[var(--pd-clay)]"}`}
-                    >
-                      {stat.trend === "up" ? <ArrowUpIcon size={13} /> : <ArrowDownIcon size={13} />}
-                      <span>{stat.changePercent}</span>
-                    </div>
-                  ) : null}
-                </div>
-                <h3 className="mb-1.5 text-xs font-medium uppercase tracking-wider text-[var(--pd-text-muted)]">
-                  {stat.title}
-                </h3>
-                <p className="pd-metric-value">{stat.value}</p>
-              </div>
-            );
-          })}
+        {/* Top Asymmetric Bento: Pending Approvals Feature Spotlight + Metrics Grid */}
+        <div className="pd-bento-grid mb-10">
+          <div className="pd-span-4">
+            <FeatureCard
+              eyebrow={locale === "ar" ? "إدارة النظام" : "System Governance"}
+              title={t("pendingApprovalsTitle")}
+              description={`${pendingLoading ? t("pendingApprovals.loading") : pendingApprovals.length} — ${t("pendingApprovals.viewAll")}`}
+              icon={BriefcaseMedicalIcon}
+              tone="red"
+              actionLabel={t("pendingApprovals.viewAll")}
+              onAction={() => router.push(`${basePrefix}/admin/doctors?pending=1`)}
+              className="h-full"
+            />
+          </div>
+
+          <div className="pd-span-8">
+            <div className="grid h-full grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {stats.map((stat, index) => {
+                const tones = ["cream", "sage", "olive", "cream", "sage"];
+                const layouts = ["editorial", "visual", "compact", "editorial", "compact"];
+                return (
+                  <MetricCard
+                    key={index}
+                    id={`admin-stat-${index}`}
+                    label={stat.title}
+                    value={stat.value}
+                    icon={stat.icon}
+                    tone={tones[index % tones.length]}
+                    layout={layouts[index % layouts.length]}
+                    trend={
+                      stat.changePercent
+                        ? {
+                            label: stat.changePercent,
+                            direction: stat.trend === "up" ? "up" : "down",
+                          }
+                        : undefined
+                    }
+                  />
+                );
+              })}
+            </div>
+          </div>
         </div>
 
-        {/* Quick Actions — Frameless Editorial */}
+        {/* Quick Actions — 4-Tone Bento Row */}
         <div className="mb-10">
           <h2 className="mb-5 text-xl font-semibold text-[var(--pd-text-primary)]">
             {t("quickActionsTitle")}
           </h2>
-          <div className="grid grid-cols-1 gap-7 md:grid-cols-2 lg:grid-cols-4">
+          <div className="pd-bento-grid">
             {quickActions.map((action, index) => {
-              const ActionIcon = action.Icon;
+              const tones = ["cream", "red", "sage", "olive"];
               return (
-                <button
-                  key={index}
-                  onClick={action.action}
-                  className="pd-shape-editorial group text-start transition-transform duration-200 hover:-translate-y-0.5"
-                >
-                  <div className="pd-orb pd-shape-orbital pd-orb--copper mb-3.5">
-                    <ActionIcon size={18} strokeWidth={1.7} />
-                  </div>
-                  <h3 className="mb-1.5 text-base font-semibold text-[var(--pd-text-primary)]">
-                    {action.title}
-                  </h3>
-                  <p className="text-sm leading-relaxed text-[var(--pd-text-muted)]">
-                    {action.description}
-                  </p>
-                  <div className="mt-3.5 flex items-center gap-2 text-xs font-medium text-[var(--pd-copper)] transition-all group-hover:gap-3">
-                    <span>{t("more")}</span>
-                    <span>{locale === "en" ? "→" : "←"}</span>
-                  </div>
-                </button>
+                <div key={index} className="pd-span-3">
+                  <QuickActionCard
+                    title={action.title}
+                    description={action.description}
+                    icon={action.Icon}
+                    tone={tones[index % tones.length]}
+                    emphasis={index === 0 ? "primary" : "secondary"}
+                    onClick={action.action}
+                  />
+                </div>
               );
             })}
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+        <div className="pd-bento-grid">
           {/* System Status */}
-          <div className="pd-panel pd-shape-organic p-6">
-            <div className="mb-5 flex items-center justify-between border-b border-[var(--pd-border)] pb-4">
-              <h2 className="text-lg font-semibold text-[var(--pd-text-primary)]">
-                {t("systemStatusTitle")}
-              </h2>
-              <ChartLineIcon size={20} strokeWidth={1.7} className="text-[var(--pd-copper)]" />
-            </div>
-            <div className="divide-y divide-[var(--pd-border)]">
-              {systemStatus.map((item, index) => (
-                <div key={index} className="flex items-center justify-between py-3.5">
-                  <div className="flex items-center gap-3">
-                    <item.icon className={getStatusColor(item.status)} />
-                    <span className="text-sm font-medium text-[var(--pd-text-secondary)]">
-                      {item.label}
-                    </span>
-                  </div>
-                  <span className={`pd-tabular text-sm font-semibold ${getStatusColor(item.status)}`}>
-                    {item.value}
-                  </span>
-                </div>
-              ))}
-            </div>
+          <div className="pd-span-5">
+            <PneumoCard tone="olive" hover={false}>
+              <ActivityList
+                title={t("systemStatusTitle")}
+                headerAction={
+                  <ChartLineIcon size={20} strokeWidth={1.7} aria-hidden="true" />
+                }
+                items={systemStatus.map((item, index) => ({
+                  id: `sys-${index}`,
+                  title: item.label,
+                  timestamp: String(item.value ?? ""),
+                  tone: item.status === "healthy" ? "sage" : "red",
+                }))}
+              />
+            </PneumoCard>
           </div>
 
           {/* Pending Approvals */}
-          <div className="pd-panel pd-shape-layered p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-foreground">
+          <div className="pd-span-7">
+            <PneumoCard tone="cream" hover={false}>
+            <div className="mb-6 flex items-center justify-between border-b border-[var(--pd-border)] pb-4">
+              <h2 className="text-lg font-semibold">
                 {t("pendingApprovalsTitle")}
               </h2>
-              <span className="bg-(--ui-warning-bg) text-(--ui-warning) border border-(--ui-warning-border) px-3 py-1 rounded-full text-sm font-bold">
+              <span className="rounded-full border border-current px-3 py-0.5 text-xs font-semibold">
                 {pendingLoading
                   ? t("pendingApprovals.loading")
                   : pendingApprovals.length}
@@ -452,50 +449,36 @@ export default function AdminDashboardPage() {
               onClick={() =>
                 router.push(`${basePrefix}/admin/doctors?pending=1`)
               }
-              className="w-full mt-4 text-(--ui-info) hover:underline text-sm font-medium"
+              className="mt-4 w-full text-sm font-semibold underline underline-offset-4 opacity-85 hover:opacity-100"
             >
               {t("pendingApprovals.viewAll")}
             </button>
+            </PneumoCard>
           </div>
         </div>
 
-        {/* Recent Activities */}
-        <div className="mt-8 card-glass rounded-xl shadow-(--shadow-soft) p-6 border border-(--ui-border)">
-          <h2 className="text-xl font-bold text-foreground mb-6">
-            {t("recentActivity.title")}
-          </h2>
-          <div className="space-y-4">
-            {activitiesLoading ? (
-              <div className="text-(--ui-muted-2)">
-                {t("recentActivity.loading")}
-              </div>
-            ) : activitiesError ? (
-              <div className="text-(--ui-danger)">{activitiesError}</div>
-            ) : recentActivities.length === 0 ? (
-              <div className="text-(--ui-muted-2)">
-                {t("recentActivity.empty")}
-              </div>
-            ) : (
-              recentActivities.map((activity) => (
-                <div
-                  key={activity.id}
-                  className="flex items-center gap-4 p-3 bg-(--ui-surface-2) rounded-lg border border-(--ui-border) hover:bg-(--ui-surface) transition-colors"
-                >
-                  <div className="text-3xl">ðŸ“</div>
-                  <div className="flex-1">
-                    <p className="font-medium text-foreground">
-                      {formatActivityDescription(activity, locale)}
-                    </p>
-                    <p className="text-sm text-(--ui-muted-2)">
-                      {new Date(activity.createdAt).toLocaleString(
-                        locale === "en" ? "en-US" : "ar-EG",
-                      )}
-                    </p>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
+        {/* Recent Activities — Open Editorial List */}
+        <div className="mt-10">
+          {activitiesLoading ? (
+            <div className="text-sm text-[var(--pd-text-muted)]">
+              {t("recentActivity.loading")}
+            </div>
+          ) : activitiesError ? (
+            <div className="text-sm text-[var(--pd-red)]">{activitiesError}</div>
+          ) : (
+            <ActivityList
+              title={t("recentActivity.title")}
+              emptyMessage={t("recentActivity.empty")}
+              items={recentActivities.map((activity, idx) => ({
+                id: String(activity.id || idx),
+                title: formatActivityDescription(activity, locale),
+                timestamp: new Date(activity.createdAt).toLocaleString(
+                  locale === "en" ? "en-US" : "ar-EG",
+                ),
+                tone: ["red", "cream", "sage", "olive"][idx % 4],
+              }))}
+            />
+          )}
         </div>
       </div>
     </>

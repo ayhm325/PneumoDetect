@@ -1,72 +1,89 @@
 /* ==========================================================================
    PNEUMODETECT — STRICT 25 / 25 / 25 / 25 COLOR SYSTEM
    Four equal brand colors, zero dominant color, zero unrelated accents:
-     - #BD4444 (25%) — Terracotta Crimson
-     - #F1DEC4 (25%) — Warm Parchment
-     - #73976A (25%) — Meadow Sage
-     - #1F352B (25%) — Deep Forest Pine
+     - #BD4444 (25%) — Red
+     - #F1DEC4 (25%) — Cream
+     - #73976A (25%) — Sage
+     - #677E61 (25%) — Olive
+   Supporting structural neutrals:
+     - #172019 (--pd-ink)
+     - #111713 (--pd-ink-deep)
+     - #20291F (--pd-neutral-surface)
+     - #293329 (--pd-neutral-raised)
    ========================================================================== */
 
 :root,
 :root[data-theme="forest"],
-:root[data-theme="night"],
-:root[data-theme="clay"] {
-  color-scheme: light dark;
+:root[data-theme="night"] {
+  color-scheme: dark;
 
-  /* -------------------------------------------------- Four Equal Brand Colors */
-  --pd-crimson: #bd4444;
-  --pd-parchment: #f1dec4;
-  --pd-sage: #73976a;
-  --pd-moss: #1f352b;
+  /* -------------------------------------------------- Four Equal Brand Colors (Softened for Eye Comfort) */
+  --pd-red: #9b4747;
+  --pd-cream: #ead8be;
+  --pd-sage: #6e8e66;
+  --pd-olive: #52674c;
 
-  /* Derived tonal steps strictly from the 4 colors (no external hues) */
-  --pd-moss-deep: color-mix(in srgb, var(--pd-moss) 78%, #0c1410);
-  --pd-moss-mid: color-mix(in srgb, var(--pd-moss) 86%, var(--pd-sage));
-  --pd-sage-deep: color-mix(in srgb, var(--pd-sage) 45%, #121811);
-  --pd-crimson-deep: color-mix(in srgb, var(--pd-crimson) 78%, #261010);
-  --pd-crimson-soft: rgba(189, 68, 68, 0.16);
-  --pd-parchment-soft: rgba(241, 222, 196, 0.16);
-  --pd-sage-soft: rgba(115, 151, 106, 0.18);
-  --pd-moss-soft: rgba(31, 53, 43, 0.16);
+  --pd-crimson: var(--pd-red);
+  --pd-parchment: var(--pd-cream);
+  --pd-moss: var(--pd-olive);
+
+  /* Supporting neutral tones (structural only) */
+  --pd-ink: #181f1a;
+  --pd-ink-deep: #111713;
+  --pd-neutral-surface: #202923;
+  --pd-neutral-raised: #29342d;
+
+  --pd-line: rgba(234, 216, 190, 0.13);
+  --pd-line-strong: rgba(234, 216, 190, 0.22);
+
+  /* Derived tonal steps strictly from the 4 colors */
+  --pd-moss-deep: var(--pd-ink-deep);
+  --pd-moss-mid: var(--pd-neutral-raised);
+  --pd-sage-deep: color-mix(in srgb, var(--pd-sage) 45%, #111713);
+  --pd-crimson-deep: color-mix(in srgb, var(--pd-red) 78%, #111713);
+  --pd-crimson-soft: rgba(155, 71, 71, 0.18);
+  --pd-parchment-soft: rgba(234, 216, 190, 0.14);
+  --pd-sage-soft: rgba(110, 142, 102, 0.18);
+  --pd-moss-soft: rgba(82, 103, 76, 0.2);
 
   /* Ink pairs for accessible WCAG AA contrast on each of the 4 surfaces */
-  --pd-ink-on-crimson: #f1dec4;
-  --pd-ink-on-parchment: #1f352b;
-  --pd-ink-on-sage: #141e19;
-  --pd-ink-on-moss: #f1dec4;
+  --pd-ink-on-crimson: #faf0e1;
+  --pd-ink-on-parchment: #181f1a;
+  --pd-ink-on-sage: #141c16;
+  --pd-ink-on-moss: #f6ead8;
 
   /* ---------------------------------------------- Foundation & Surface Tokens */
-  --pd-bg: var(--pd-parchment);
-  --pd-bg-elevated: color-mix(in srgb, var(--pd-parchment) 92%, var(--pd-sage));
-  --pd-surface: var(--pd-moss);
-  --pd-surface-2: var(--pd-sage);
-  --pd-surface-3: color-mix(in srgb, var(--pd-sage) 82%, var(--pd-parchment));
-  --pd-surface-inset: color-mix(in srgb, var(--pd-parchment) 88%, var(--pd-moss));
+  --pd-bg: var(--pd-ink);
+  --pd-bg-elevated: var(--pd-neutral-surface);
+  --pd-surface: var(--pd-neutral-surface);
+  --pd-surface-2: var(--pd-neutral-raised);
+  --pd-surface-3: color-mix(in srgb, var(--pd-neutral-raised) 82%, var(--pd-cream));
+  --pd-surface-inset: var(--pd-ink-deep);
 
-  /* Typography — high-contrast dark moss ink on #F1DEC4 canvas */
-  --pd-text-primary: #232c21;
-  --pd-text-secondary: #394736;
-  --pd-text-muted: #52634e;
-  --pd-text-disabled: #758470;
+  /* Typography — soft warm cream ink on neutral dark structural surfaces */
+  --pd-text-primary: #efe2ce;
+  --pd-text-secondary: rgba(239, 226, 206, 0.84);
+  --pd-text-muted: rgba(239, 226, 206, 0.66);
+  --pd-text-disabled: rgba(239, 226, 206, 0.44);
 
   --pd-font-ar: "Alexandria Variable", "Alexandria", sans-serif;
   --pd-font-en: "Space Grotesk Variable", "Space Grotesk", sans-serif;
   --pd-weight-regular: 400;
   --pd-weight-medium: 500;
-  --pd-weight-semibold: 600;
-  --tracking-display: -0.03em;
-  --tracking-heading: -0.02em;
-  --tracking-label: 0.07em;
+  --pd-weight-semibold: 500;
+  --tracking-display: -0.025em;
+  --tracking-heading: -0.015em;
+  --tracking-label: 0.06em;
 
   --text-xs: 0.75rem;
   --text-sm: 0.875rem;
   --text-md: 0.9375rem;
   --text-base: 1rem;
   --text-lg: 1.125rem;
-  --text-xl: 1.375rem;
-  --text-2xl: 1.75rem;
-  --text-3xl: clamp(2rem, 3vw, 2.85rem);
-  --text-display: clamp(2.65rem, 4.8vw, 4.25rem);
+  --text-xl: 1.25rem;
+  --text-2xl: 1.45rem;
+  --text-3xl: clamp(1.5rem, 2.2vw, 2rem);
+  --text-display: clamp(1.9rem, 3vw, 2.7rem);
 
   /* Shared accent & semantic aliases mapped strictly to the 4 colors */
   --pd-copper: var(--pd-crimson);
@@ -90,9 +107,9 @@
   --pd-stage: #0e120d;
 
   /* Borders & Shadows */
-  --pd-border: rgba(35, 44, 33, 0.14);
-  --pd-border-strong: rgba(35, 44, 33, 0.26);
-  --pd-scrim: rgba(24, 31, 22, 0.68);
+  --pd-border: rgba(241, 222, 196, 0.14);
+  --pd-border-strong: rgba(241, 222, 196, 0.23);
+  --pd-scrim: rgba(17, 23, 19, 0.72);
 
   --pd-shadow-soft: 0 12px 32px rgba(0, 0, 0, 0.18);
   --pd-shadow-deep: 0 24px 60px rgba(0, 0, 0, 0.28);
@@ -235,4 +252,52 @@
   --ui-danger-bg: var(--pd-crimson-soft);
   --ui-danger-border: rgba(189, 68, 68, 0.4);
   --ui-danger-foreground: var(--pd-parchment);
+}
+
+/* ==========================================================================
+   DAY MODE (Warm Clay / Soft Botanical Paper) — Comfortable & Low-Glare
+   ========================================================================== */
+:root[data-theme="clay"],
+:root.light {
+  color-scheme: light;
+
+  --pd-red: #b25252;
+  --pd-cream: #fbf6ee;
+  --pd-sage: #d3e0cd;
+  --pd-olive: #5b7156;
+
+  --pd-crimson: var(--pd-red);
+  --pd-parchment: var(--pd-cream);
+  --pd-moss: var(--pd-olive);
+
+  --pd-ink: #1e2821;
+  --pd-ink-deep: #151d17;
+  --pd-neutral-surface: #fbf6ee;
+  --pd-neutral-raised: #efe4d3;
+
+  --pd-bg: #f4ece0;
+  --pd-bg-elevated: #fbf6ee;
+  --pd-surface: #fbf6ee;
+  --pd-surface-2: #efe4d3;
+  --pd-surface-3: #e5d7c2;
+  --pd-surface-inset: #eadcc8;
+
+  --pd-text-primary: #1e2821;
+  --pd-text-secondary: #3b4a3f;
+  --pd-text-muted: #58695c;
+  --pd-text-disabled: #7d8d81;
+
+  --pd-border: rgba(30, 40, 33, 0.12);
+  --pd-border-strong: rgba(30, 40, 33, 0.22);
+  --pd-line: var(--pd-border);
+  --pd-line-strong: var(--pd-border-strong);
+
+  --pd-shadow-soft: 0 8px 24px rgba(30, 40, 33, 0.06);
+  --pd-shadow-deep: 0 16px 40px rgba(30, 40, 33, 0.1);
+  --pd-shadow-floating: 0 12px 36px rgba(30, 40, 33, 0.09);
+
+  --ui-info-foreground: #1e2821;
+  --ui-success-foreground: #1e2821;
+  --ui-warning-foreground: #1e2821;
+  --ui-danger-foreground: #faf2e6;
 }

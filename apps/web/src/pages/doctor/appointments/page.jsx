@@ -6,7 +6,7 @@ import { useToast } from "@/components/ui/ToastProvider";
 import { useCallback, useEffect, useState } from "react";
 import { useLocale, useTranslations } from "@/lib/compat/intl";
 import { apiRequest } from "@/lib/apiClient";
-import { Button, Card, GlideSelect, ProfileMediaCard, StatCard } from "@/components/ui";
+import { Button, Card, GlideSelect, MetricCard, ProfileMediaCard } from "@/components/ui";
 
 export default function DoctorAppointmentsPage() {
   const { showSuccess, showError, showInfo } = useToast();
@@ -314,32 +314,48 @@ export default function DoctorAppointmentsPage() {
             </Button>
           </div>
 
-          {/* Stats Cards */}
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <StatCard shape="orbital"
-              label={t("stats.total")}
-              value={stats.total}
-              icon={<CalendarDaysIcon />}
-              tone="info"
-            />
-            <StatCard shape="editorial"
-              label={t("stats.confirmed")}
-              value={stats.confirmed}
-              icon={<CircleCheckIcon />}
-              tone="success"
-            />
-            <StatCard shape="layered"
-              label={t("stats.pending")}
-              value={stats.pending}
-              icon={<HourglassIcon />}
-              tone="warning"
-            />
-            <StatCard shape="slanted"
-              label={t("stats.cancelled")}
-              value={stats.cancelled}
-              icon={<CircleXIcon />}
-              tone="danger"
-            />
+          {/* Stats Cards — Equal 25/25/25/25 Bento Row */}
+          <div className="pd-bento-grid">
+            <div className="pd-span-3">
+              <MetricCard
+                id="doc-appt-total"
+                label={t("stats.total")}
+                value={stats.total}
+                icon={CalendarDaysIcon}
+                tone="olive"
+                layout="editorial"
+              />
+            </div>
+            <div className="pd-span-3">
+              <MetricCard
+                id="doc-appt-confirmed"
+                label={t("stats.confirmed")}
+                value={stats.confirmed}
+                icon={CircleCheckIcon}
+                tone="sage"
+                layout="visual"
+              />
+            </div>
+            <div className="pd-span-3">
+              <MetricCard
+                id="doc-appt-pending"
+                label={t("stats.pending")}
+                value={stats.pending}
+                icon={HourglassIcon}
+                tone="cream"
+                layout="compact"
+              />
+            </div>
+            <div className="pd-span-3">
+              <MetricCard
+                id="doc-appt-cancelled"
+                label={t("stats.cancelled")}
+                value={stats.cancelled}
+                icon={CircleXIcon}
+                tone="red"
+                layout="editorial"
+              />
+            </div>
           </div>
 
           {/* Filters and Search */}

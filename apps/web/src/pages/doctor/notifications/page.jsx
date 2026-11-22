@@ -1,6 +1,6 @@
 "use client";
 
-import { BellIcon, CheckCheckIcon, CheckIcon, Trash2Icon } from "lucide-react";
+import { BellIcon, CheckCheckIcon, CheckIcon, CircleAlertIcon, CircleCheckIcon, InfoIcon, Trash2Icon, TriangleAlertIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocale, useTranslations } from "@/lib/compat/intl";
 import { useToast } from "@/components/ui/ToastProvider";
@@ -32,8 +32,18 @@ export default function NotificationsPage() {
   };
 
   const getTypeIcon = (type) => {
-    const icons = { info: "ℹ️", success: "✅", warning: "⚠️", alert: "🚨" };
-    return icons[type] || "🔔";
+    switch (type) {
+      case "info":
+        return <InfoIcon size={18} strokeWidth={1.7} className="text-[var(--pd-sage)]" />;
+      case "success":
+        return <CircleCheckIcon size={18} strokeWidth={1.7} className="text-[var(--pd-sage)]" />;
+      case "warning":
+        return <TriangleAlertIcon size={18} strokeWidth={1.7} className="text-[var(--pd-cream)]" />;
+      case "alert":
+        return <CircleAlertIcon size={18} strokeWidth={1.7} className="text-[var(--pd-red)]" />;
+      default:
+        return <BellIcon size={18} strokeWidth={1.7} className="text-[var(--pd-text-secondary)]" />;
+    }
   };
 
   const getTypeBadgeColor = (type) => {
@@ -288,8 +298,8 @@ export default function NotificationsPage() {
               filteredNotifications.map((notif) => (
                 <div
                   key={notif.id}
-                  className={`pd-panel pd-shape-layered border border-(--ui-border) rounded-xl p-5 transition hover:shadow-(--shadow-lift) ${
-                    notif.isRead ? "" : "bg-(--ui-info-bg)"
+                  className={`rounded-2xl border border-[var(--pd-line)] bg-[var(--pd-neutral-surface)] p-5 text-[var(--pd-text-primary)] transition hover:border-[var(--pd-line-strong)] ${
+                    !notif.isRead ? "border-s-4 border-s-[var(--pd-red)]" : ""
                   }`}
                 >
                   <div className="flex items-start justify-between gap-4">

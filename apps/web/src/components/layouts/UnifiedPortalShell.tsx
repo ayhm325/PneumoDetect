@@ -60,8 +60,8 @@ function SidebarNavItem({
               isCollapsed ? "justify-center px-0" : "gap-3 px-3.5"
             } ${
               linkActive
-                ? "bg-[var(--pd-crimson)] text-[var(--pd-parchment)] shadow-[var(--pd-shadow-sm)]"
-                : "text-[var(--pd-parchment)]/85 hover:bg-[var(--pd-parchment)]/12 hover:text-[var(--pd-parchment)]"
+                ? "bg-[var(--pd-crimson)] text-[#faf0e1] shadow-[var(--pd-shadow-sm)]"
+                : "text-[var(--pd-text-secondary)] hover:bg-[var(--pd-surface-2)] hover:text-[var(--pd-text-primary)]"
             }`
           }
         >
@@ -191,7 +191,7 @@ export function UnifiedPortalShell({
       <div className="flex min-h-screen bg-[var(--pd-canvas)] text-[var(--pd-text-primary)]">
         {/* Desktop Sculpted Floating Sidebar */}
         <aside
-          className={`shape-feature pd-tone-moss hidden shrink-0 flex-col border border-[var(--pd-line)] shadow-[var(--pd-shadow-depth)] transition-[width,padding] duration-300 ease-out md:sticky md:top-4 md:m-4 md:flex md:h-[calc(100vh-2rem)] ${
+          className={`hidden shrink-0 flex-col rounded-3xl border border-[var(--pd-line)] bg-[var(--pd-neutral-surface)] text-[var(--pd-text-primary)] shadow-[var(--pd-shadow-depth)] transition-[width,padding] duration-300 ease-out md:sticky md:top-4 md:m-4 md:flex md:h-[calc(100vh-2rem)] ${
             collapsed ? "w-[78px] px-2.5" : "w-[264px] px-4"
           }`}
         >
@@ -244,12 +244,12 @@ export function UnifiedPortalShell({
               />
             ))}
 
-            <li className="mt-auto mb-3 border-t border-[var(--pd-parchment)]/18 pt-3">
+            <li className="mt-auto mb-3 border-t border-[var(--pd-line)] pt-3">
               <button
                 type="button"
                 onClick={handleLogout}
                 title={collapsed ? (isAr ? "تسجيل الخروج" : "Logout") : undefined}
-                className={`flex h-11 w-full items-center rounded-[var(--shape-control)] bg-[var(--pd-crimson)]/25 text-sm font-medium text-[var(--pd-parchment)] transition-colors hover:bg-[var(--pd-crimson)] ${
+                className={`flex h-11 w-full items-center rounded-[var(--shape-control)] bg-[var(--pd-crimson)]/15 text-sm font-medium text-[var(--pd-crimson)] transition-colors hover:bg-[var(--pd-crimson)] hover:text-[#faf0e1] ${
                   collapsed ? "justify-center px-0" : "gap-3 px-3.5"
                 }`}
               >
@@ -278,7 +278,7 @@ export function UnifiedPortalShell({
                 animate={{ opacity: 1, x: 0 }}
                 exit={reduceMotion ? { opacity: 0 } : { opacity: 0, x: isAr ? 24 : -24 }}
                 transition={pdMotion.normal}
-                className="shape-feature pd-tone-moss relative z-10 flex w-[276px] max-w-[85vw] flex-col border border-[var(--pd-line)] px-4 shadow-[var(--pd-shadow-float)]"
+                className="relative z-10 flex w-[276px] max-w-[85vw] flex-col rounded-3xl border border-[var(--pd-line)] bg-[var(--pd-neutral-surface)] px-4 text-[var(--pd-text-primary)] shadow-[var(--pd-shadow-float)]"
               >
                 <header className="flex h-[70px] shrink-0 items-center justify-between px-1 pt-1">
                   <Link

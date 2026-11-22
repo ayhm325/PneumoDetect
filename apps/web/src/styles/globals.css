@@ -85,10 +85,10 @@
     max-width: 100vw;
     overflow-x: clip;
     color: var(--pd-text-primary);
-    background-color: var(--pd-parchment);
+    background-color: var(--pd-bg);
     background-image:
-      radial-gradient(52rem 36rem at 0% 0%, rgba(115, 151, 106, 0.16), transparent 62%),
-      radial-gradient(48rem 34rem at 100% 100%, rgba(189, 68, 68, 0.12), transparent 62%);
+      radial-gradient(52rem 36rem at 0% 0%, rgba(110, 142, 102, 0.08), transparent 62%),
+      radial-gradient(48rem 34rem at 100% 100%, rgba(155, 71, 71, 0.07), transparent 62%);
     background-attachment: fixed;
     font-family: var(--font-active);
     font-weight: var(--pd-weight-regular);
@@ -560,13 +560,13 @@
   .pd-btn--primary:active:not(:disabled) { background: var(--pd-crimson-deep); color: var(--pd-parchment); }
 
   .pd-btn--secondary {
-    background: var(--pd-parchment);
-    border-color: rgba(31, 53, 43, 0.26);
-    color: #1f352b;
+    background: var(--pd-neutral-raised);
+    border-color: var(--pd-line-strong);
+    color: var(--pd-cream);
   }
   .pd-btn--secondary:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--pd-parchment) 84%, var(--pd-sage));
-    color: #1f352b;
+    background: color-mix(in srgb, var(--pd-neutral-raised) 82%, var(--pd-cream));
+    color: var(--pd-cream);
   }
 
   .pd-btn--outline,
@@ -692,11 +692,11 @@
 
   /* ---------- Metrics & Skeleton ---------- */
   .pd-metric-value {
-    font-family: var(--pd-font-en), var(--font-active);
-    font-size: clamp(1.85rem, 2.5vw, 2.5rem);
-    line-height: 1;
+    font-family: inherit;
+    font-size: clamp(1.375rem, 1.8vw, 1.75rem);
+    line-height: 1.2;
     font-weight: var(--pd-weight-medium);
-    letter-spacing: var(--tracking-display);
+    letter-spacing: var(--tracking-heading);
     font-variant-numeric: tabular-nums;
     color: var(--pd-text-primary);
   }
