@@ -10,10 +10,14 @@ export type PredictRequest = z.infer<typeof PredictRequestSchema>;
 export const PredictResponseSchema = z.object({
   prediction: AnalysisPredictionEnum.or(z.string()),
   confidence: z.number(),
-  probabilities: z.record(z.string(), z.number()).optional(),
+  probabilities: z.record(z.string(), z.number()).nullable().optional(),
+  needs_review: z.boolean().optional(),
+  display_label: z.string().optional(),
+  explanation: z.string().nullable().optional(),
   heatmap_url: z.string().nullable().optional(),
   model_version: z.string().optional(),
   inference_time_ms: z.number().optional(),
+  is_mock: z.boolean().optional(),
 });
 export type PredictResponse = z.infer<typeof PredictResponseSchema>;
 

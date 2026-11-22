@@ -15,12 +15,15 @@ healthRouter.get("/health", async (_req, res) => {
 
   let aiOk = false;
   try {
-    const aiHealthUrl = env.pyModelUrl.replace(/\/predict\/?$/, "/docs");
+    const aiHealthUrl = env.pyModelUrl.replace(/\/predict\/?$/, "/health/ready");
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 2000);
     const resp = await fetch(aiHealthUrl, { signal: controller.signal });
     clearTimeout(timer);
-    aiOk = resp.ok || resp.status === 307;
+    if (resp.ok) {
+      const data = (await resp.json().catch(() => ({}))) as { ready?: boolean; model_loaded?: boolean };
+      aiOk = data.ready === true && data.model_loaded === true;
+    }
   } catch {
     aiOk = false;
   }

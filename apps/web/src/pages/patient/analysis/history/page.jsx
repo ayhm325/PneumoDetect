@@ -1,11 +1,11 @@
-"use client";
+﻿"use client";
 import React, { useEffect, useState } from "react";
 import Image from "@/lib/compat/Image";
 import AnalysisDetailsModal from "@/components/analysis/AnalysisDetailsModal";
 import { Button } from "@/components/ui";
 import { useLocale, useTranslations } from "@/lib/compat/intl";
 import { formatDateTime } from "@/lib/date";
-import { formatArabicDate } from "@/lib/arabicMonths";
+import ARABIC_MONTHS from "@/lib/arabicMonths";
 
 export default function PatientAnalysisHistoryPage() {
   const locale = useLocale();
@@ -118,20 +118,17 @@ export default function PatientAnalysisHistoryPage() {
                             const d = new Date(
                               item.createdAt || item.created_at,
                             );
-                            // Format: day month yearØŒ Ø§Ù„Ø³Ø§Ø¹Ø© hh:mm Øµ/Ù…
-                            const month = require("../../../lib/arabicMonths")
-                              .default[d.getMonth()];
+                            const month = ARABIC_MONTHS[d.getMonth()];
                             const day = d.getDate();
                             const year = d.getFullYear();
-                            let hour = d.getHours();
-                            let minute = d.getMinutes();
+                            const hour = d.getHours();
+                            const minute = d.getMinutes();
                             const isAM = hour < 12;
                             let hour12 = hour % 12;
                             if (hour12 === 0) hour12 = 12;
-                            // Western numerals
                             const toWestern = (n) =>
                               n.toLocaleString("en-US", { useGrouping: false });
-                            return `${toWestern(day)} ${month} ${toWestern(year)} ÙÙŠ ${toWestern(hour12)}:${toWestern(minute.toString().padStart(2, "0"))} ${isAM ? "Øµ" : "Ù…"}`;
+                            return `${toWestern(day)} ${month} ${toWestern(year)} في ${toWestern(hour12)}:${toWestern(minute.toString().padStart(2, "0"))} ${isAM ? "ص" : "م"}`;
                           })()
                         : formatDateTime(
                             item.createdAt || item.created_at,

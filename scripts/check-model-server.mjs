@@ -1,35 +1,51 @@
-// Simple script to check if model server is running
-import http from 'http';
+// Check Python model server readiness (/health/ready)
+import http from "http";
 
-const HOST = 'localhost';
-const PORT = 8000; // منفذ FastAPI الافتراضي
-const PATH = '/static'; // مسار الملفات الثابتة في FastAPI
+const HOST = process.env.PY_MODEL_HOST || "127.0.0.1";
+const PORT = Number(process.env.PY_MODEL_PORT || 8000);
+const PATH = "/health/ready";
 
-const options = {
-  hostname: HOST,
-  port: PORT,
-  path: PATH,
-  method: 'GET',
-  timeout: 3000,
-};
+const req = http.request(
+  {
+    hostname: HOST,
+    port: PORT,
+    path: PATH,
+    method: "GET",
+    timeout: 4000,
+  },
+  (res) => {
+    let body = "";
+    res.on("data", (chunk) => {
+      body += chunk;
+    });
+    res.on("end", () => {
+      try {
+        const parsed = JSON.parse(body || "{}");
+        if (res.statusCode === 200 && parsed.ready === true && parsed.model_loaded === true) {
+          console.log(
+            `Model server is ready (${parsed.architecture || "DenseNet121"} ${parsed.model_version || ""})`,
+          );
+          process.exit(0);
+        }
+        console.error(
+          `Model server not ready (status ${res.statusCode}): ${parsed.error || body}`,
+        );
+        process.exit(1);
+      } catch {
+        console.error(`Invalid readiness response (status ${res.statusCode}): ${body}`);
+        process.exit(1);
+      }
+    });
+  },
+);
 
-const req = http.request(options, (res) => {
-  if (res.statusCode === 200 || res.statusCode === 404) {
-    console.log('Model server is running (static endpoint responded).');
-    process.exit(0);
-  } else {
-    console.error(`Model server responded with status: ${res.statusCode}`);
-    process.exit(1);
-  }
-});
-
-req.on('error', (err) => {
-  console.error('Model server is not running:', err.message);
+req.on("error", (err) => {
+  console.error("Model server is not running:", err.message);
   process.exit(1);
 });
 
-req.on('timeout', () => {
-  console.error('Model server check timed out.');
+req.on("timeout", () => {
+  console.error("Model server readiness check timed out.");
   req.destroy();
   process.exit(1);
 });

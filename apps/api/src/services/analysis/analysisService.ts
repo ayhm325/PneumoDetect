@@ -8,11 +8,11 @@ import type {
   RawInferenceResult,
   RunInferenceInput,
 } from "../../types/analysis";
-import { AppError } from "../../lib/errors/appError";
+import { AppError, type ErrorCode } from "../../lib/errors/appError";
 import type { AnalysisResultRepository } from "../../repositories/analysis/analysisResultRepository";
 import type { MedicalRecordRepository } from "../../repositories/analysis/medicalRecordRepository";
 import type { NotificationRepository } from "../../repositories/analysis/notificationRepository";
-import type { PatientRepository } from "../../repositories/analysis/patientRepository";
+import type { PatientIdentity, PatientRepository } from "../../repositories/analysis/patientRepository";
 
 function resolveUploadsDir(): string {
   const cwd = process.cwd();
@@ -20,7 +20,7 @@ function resolveUploadsDir(): string {
   return path.join(repoRoot, "public", "uploads");
 }
 
-function getUploadSigningSecret(): string {
+export function getUploadSigningSecret(): string {
   const secret = process.env.UPLOAD_URL_SIGNING_SECRET || process.env.JWT_SECRET;
   if (secret && secret.trim().length > 0) {
     return secret;
@@ -74,12 +74,12 @@ async function detectFileType(buffer: Buffer): Promise<{ ext?: string; mime?: st
     const fn = fileTypeModule?.fileTypeFromBuffer;
     if (typeof fn === "function") {
       const result = await fn(buffer);
-      return result ?? null;
+      if (result) return result;
     }
   } catch {
+    // fallback to magic-byte signature detection below
   }
 
-  // Fast signature fallback for standard medical images in test/edge runtimes
   if (buffer.length >= 8 && buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4e && buffer[3] === 0x47) {
     return { ext: "png", mime: "image/png" };
   }
@@ -93,15 +93,32 @@ async function detectFileType(buffer: Buffer): Promise<{ ext?: string; mime?: st
 }
 
 function normalizeInferenceResult(raw: RawInferenceResult): NormalizedInferenceResult {
+  const threshold = Number(process.env.MODEL_CONFIDENCE_THRESHOLD) || 0.85;
+  const confidence = typeof raw.confidence === "number" ? raw.confidence : Number(raw.confidence) || 0;
+  const prediction = raw.prediction ?? "Unknown";
+  const needsReview =
+    typeof raw.needs_review === "boolean"
+      ? raw.needs_review
+      : typeof raw.needsReview === "boolean"
+        ? raw.needsReview
+        : confidence < threshold;
+
   return {
     analysisId: raw.analysis_id ?? raw.analysisId ?? null,
-    prediction: raw.prediction ?? "Unknown",
-    confidence: typeof raw.confidence === "number" ? raw.confidence : Number(raw.confidence) || 0,
+    prediction,
+    confidence,
+    probabilities: raw.probabilities ?? null,
+    needsReview,
+    displayLabel:
+      raw.display_label ??
+      raw.displayLabel ??
+      (needsReview ? "Needs Physician Review" : prediction),
     explanation: raw.explanation ?? "",
     heatmapUrl: raw.heatmap_url ?? raw.heatmapUrl ?? null,
     modelVersion: raw.model_version ?? raw.modelVersion ?? "unknown",
     inferenceTimeMs: raw.inference_time_ms ?? raw.inferenceTimeMs ?? 0,
     createdAt: raw.created_at ?? raw.createdAt ?? new Date().toISOString(),
+    isMock: Boolean(raw.is_mock),
   };
 }
 
@@ -121,7 +138,19 @@ export function createAnalysisService(deps: AnalysisServiceDeps): AnalysisServic
   return {
     async analyzeXray(command) {
       const maxSize = Number(process.env.MAX_UPLOAD_BYTES || 10 * 1024 * 1024);
-      const { image, userId } = command;
+      const { image, userId, role, patientId, modality } = command;
+
+      if (modality) {
+        const normModality = String(modality).trim().toLowerCase();
+        if (normModality !== "xray" && normModality !== "chest_xray") {
+          throw new AppError({
+            code: "invalid_modality",
+            message:
+              "Only chest X-ray images (PNG, JPG, JPEG, WEBP) are supported by the current DenseNet121 model",
+            statusCode: 400,
+          });
+        }
+      }
 
       if (!image?.buffer || image.buffer.length === 0) {
         throw new AppError({
@@ -139,16 +168,68 @@ export function createAnalysisService(deps: AnalysisServiceDeps): AnalysisServic
         });
       }
 
-      const allowedExtensions = new Set([
-        ".png",
-        ".jpg",
-        ".jpeg",
-        ".gif",
-        ".bmp",
-        ".webp",
-        ".tif",
-        ".tiff",
-      ]);
+      const rawName = String(image.name || "").toLowerCase();
+      if (rawName.endsWith(".dcm") || String(image.type || "").toLowerCase().includes("dicom")) {
+        throw new AppError({
+          code: "unsupported_dicom",
+          message: "DICOM (.dcm) files are not supported; please upload a chest X-ray PNG, JPG, or WEBP image",
+          statusCode: 400,
+        });
+      }
+
+      // Resolve & authorize target patient before running inference
+      let targetPatient: PatientIdentity | null = null;
+      const normalizedRole = String(role || "").trim().toLowerCase();
+
+      if (normalizedRole === "doctor") {
+        const requestedPatientId = String(patientId || "").trim();
+        if (!requestedPatientId) {
+          throw new AppError({
+            code: "missing_patient_id",
+            message: "Assigned patientId is required for doctor X-ray uploads",
+            statusCode: 400,
+          });
+        }
+        if (typeof deps.patientRepository.findById !== "function") {
+          throw new AppError({
+            code: "server_error",
+            message: "Patient lookup by ID is unavailable",
+            statusCode: 500,
+          });
+        }
+        targetPatient = await deps.patientRepository.findById(requestedPatientId);
+        if (!targetPatient) {
+          throw new AppError({
+            code: "not_found",
+            message: "Patient not found",
+            statusCode: 404,
+          });
+        }
+        if (targetPatient.doctorId !== userId) {
+          throw new AppError({
+            code: "forbidden",
+            message: "You are not assigned to this patient",
+            statusCode: 403,
+          });
+        }
+      } else if (normalizedRole && normalizedRole !== "patient") {
+        throw new AppError({
+          code: "forbidden",
+          message: "Only patients and assigned doctors may submit chest X-ray analyses",
+          statusCode: 403,
+        });
+      } else {
+        targetPatient = await deps.patientRepository.findByUserId(userId);
+        if (patientId && targetPatient && patientId !== targetPatient.id) {
+          throw new AppError({
+            code: "forbidden",
+            message: "Patients may only analyze their own chest X-ray images",
+            statusCode: 403,
+          });
+        }
+      }
+
+      const allowedExtensions = new Set([".png", ".jpg", ".jpeg", ".webp"]);
 
       let safeExt = "";
       let detectedMime = "";
@@ -159,11 +240,10 @@ export function createAnalysisService(deps: AnalysisServiceDeps): AnalysisServic
         detectedMime = detected.mime || "";
       }
 
-      // Do NOT trust client-supplied extensions or MIME types if content validation fails or is unsupported
       if (!safeExt || !detectedMime || !detectedMime.startsWith("image/")) {
         throw new AppError({
           code: "invalid_file_type",
-          message: "Uploaded file is not a supported image type or file content is invalid",
+          message: "Uploaded file is not a supported chest X-ray image (PNG, JPG, JPEG, WEBP)",
           statusCode: 400,
         });
       }
@@ -172,10 +252,9 @@ export function createAnalysisService(deps: AnalysisServiceDeps): AnalysisServic
       if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 
       const signingSecret = getUploadSigningSecret();
-
       const safeFileName = path.basename(`${generateUUID()}${safeExt}`);
       const savedFilePath = path.join(uploadsDir, safeFileName);
-      
+
       try {
         await fs.promises.writeFile(savedFilePath, image.buffer);
       } catch (storageErr) {
@@ -205,10 +284,11 @@ export function createAnalysisService(deps: AnalysisServiceDeps): AnalysisServic
         rawInference = await deps.runInference(inferenceInput);
       } catch (error) {
         await fs.promises.unlink(savedFilePath).catch(() => undefined);
+        const errWithStatus = error as { statusCode?: number; code?: string; message?: string };
         throw new AppError({
-          code: "inference_error",
-          message: "Failed to run AI inference",
-          statusCode: 502,
+          code: (errWithStatus?.code as ErrorCode) || "inference_error",
+          message: errWithStatus?.message || "Failed to run AI inference",
+          statusCode: errWithStatus?.statusCode || 502,
           cause: error,
         });
       }
@@ -216,43 +296,61 @@ export function createAnalysisService(deps: AnalysisServiceDeps): AnalysisServic
       const normalized = normalizeInferenceResult(rawInference);
       const aiResult = toAiResult(normalized.prediction);
 
-      let saved: unknown = null;
+      // Never persist simulated mock results as genuine clinical records
+      if (normalized.isMock) {
+        await fs.promises.unlink(savedFilePath).catch(() => undefined);
+        return {
+          success: true,
+          saved: false,
+          is_mock: true,
+          prediction: normalized.prediction,
+          confidence: normalized.confidence,
+          probabilities: normalized.probabilities,
+          needs_review: normalized.needsReview,
+          display_label: normalized.displayLabel,
+          heatmap_url: normalized.heatmapUrl,
+          model_version: normalized.modelVersion,
+          inference_time_ms: normalized.inferenceTimeMs,
+          data: {
+            id: normalized.analysisId || `mock_${generateUUID()}`,
+            prediction: normalized.prediction,
+            confidence: normalized.confidence,
+            probabilities: normalized.probabilities,
+            needsReview: normalized.needsReview,
+            displayLabel: normalized.displayLabel,
+            explanation: normalized.explanation,
+            heatmapUrl: normalized.heatmapUrl,
+            modelVersion: normalized.modelVersion,
+            inferenceTimeMs: normalized.inferenceTimeMs,
+            createdAt: normalized.createdAt,
+            isMock: true,
+            reviewedByDoctor: false,
+          },
+        };
+      }
+
+      // Attribute AnalysisResult to the patient's userId when uploaded by an assigned doctor
+      const ownerUserId = targetPatient?.userId || userId;
+      let savedRecord: Record<string, unknown> | null = null;
+      let createdMedicalRecord: Record<string, unknown> | null = null;
+
       try {
-        saved = await deps.analysisResultRepository.save({
-          userId,
+        const persisted = await deps.analysisResultRepository.save({
+          userId: ownerUserId,
           imageUrl,
           analysisData: normalized,
         });
+        savedRecord = (persisted as Record<string, unknown>) || null;
 
-        const patient = await deps.patientRepository.findByUserId(userId);
-        if (patient?.id) {
-          await deps.medicalRecordRepository.create({
-            patientId: patient.id,
-            doctorId: patient.doctorId,
+        if (targetPatient?.id) {
+          const med = await deps.medicalRecordRepository.create({
+            patientId: targetPatient.id,
+            doctorId: targetPatient.doctorId,
             aiResult,
             confidenceScore: clamp01(normalized.confidence),
             imageUrl,
           });
-
-          await deps.notificationRepository.createBestEffort({
-            userId,
-            type: "success",
-            message: {
-              ar: "تمت إضافة نتيجة فحص جديدة إلى سجلك.",
-              en: "A new analysis result has been added to your records.",
-            },
-          });
-
-          if (patient.doctorId) {
-            await deps.notificationRepository.createBestEffort({
-              userId: patient.doctorId,
-              type: "info",
-              message: {
-                ar: `تمت إضافة نتيجة فحص جديدة${patient.fullName ? ` للمريض ${patient.fullName}` : " لأحد مرضاك"}.`,
-                en: `A new analysis result was added${patient.fullName ? ` for patient ${patient.fullName}` : " for one of your patients"}.`,
-              },
-            });
-          }
+          createdMedicalRecord = (med as Record<string, unknown>) || null;
         }
       } catch (error) {
         await fs.promises.unlink(savedFilePath).catch(() => undefined);
@@ -265,13 +363,58 @@ export function createAnalysisService(deps: AnalysisServiceDeps): AnalysisServic
         });
       }
 
-      const response: AnalyzeXrayResult = {
-        success: true,
-        data: saved,
-        saved: true,
+      // Best-effort notifications after mandatory DB commit
+      if (targetPatient?.id) {
+        await Promise.allSettled([
+          deps.notificationRepository.createBestEffort({
+            userId: ownerUserId,
+            type: "success",
+            message: {
+              ar: "تمت إضافة نتيجة فحص جديدة إلى سجلك.",
+              en: "A new analysis result has been added to your records.",
+            },
+          }),
+          ...(targetPatient.doctorId
+            ? [
+                deps.notificationRepository.createBestEffort({
+                  userId: targetPatient.doctorId,
+                  type: "info",
+                  message: {
+                    ar: `تمت إضافة نتيجة فحص جديدة${targetPatient.fullName ? ` للمريض ${targetPatient.fullName}` : " لأحد مرضاك"}.`,
+                    en: `A new analysis result was added${targetPatient.fullName ? ` for patient ${targetPatient.fullName}` : " for one of your patients"}.`,
+                  },
+                }),
+              ]
+            : []),
+        ]);
+      }
+
+      const canonicalData = {
+        ...(savedRecord || {}),
+        patientId: targetPatient?.id ?? null,
+        doctorId: targetPatient?.doctorId ?? null,
+        medicalRecordId: (createdMedicalRecord?.id as string | undefined) ?? null,
+        probabilities: normalized.probabilities,
+        needsReview: normalized.needsReview,
+        displayLabel: normalized.displayLabel,
+        reviewedByDoctor: false,
+        isMock: false,
       };
 
-      return response;
+      return {
+        success: true,
+        data: canonicalData,
+        saved: true,
+        prediction: normalized.prediction,
+        confidence: normalized.confidence,
+        probabilities: normalized.probabilities,
+        needs_review: normalized.needsReview,
+        display_label: normalized.displayLabel,
+        heatmap_url: normalized.heatmapUrl,
+        model_version: normalized.modelVersion,
+        inference_time_ms: normalized.inferenceTimeMs,
+        is_mock: false,
+      };
     },
   };
 }

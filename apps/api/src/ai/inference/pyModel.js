@@ -1,38 +1,54 @@
-// ai/inference/pyModel.js
-// محول (Adapter) لاستدعاء خادم النموذج البايثون المحلي عبر /predict
-// الهدف: يسمح لنظام Node.js بالتواصل مع النموذج البايثون بشكل شفاف
-
-import fetch from "node-fetch"; 
-// مكتبة لإجراء طلبات HTTP من Node.js (مثل fetch في المتصفح)
-
-// تحديد عنوان خادم بايثون المحلي، يمكن تغييره عبر متغير البيئة PY_MODEL_URL
-const PY_URL = process.env.PY_MODEL_URL || "http://127.0.0.1:8000/predict";
-
-/**
- * الدالة الأساسية لتشغيل نموذج البايثون
- * @param prepared - كائن الصورة المحضرة (محتوي buffer وخصائص أخرى)
- * @param options - خيارات إضافية مثل طلب heatmap
- * @returns JSON من خادم البايثون يحتوي على نتيجة التحليل
- */
 export async function runPyModel(prepared, options = {}) {
-  // تحويل بيانات الصورة إلى Base64
+  const pyUrl = process.env.PY_MODEL_URL || "http://127.0.0.1:8000/predict";
+  const timeoutMs = Math.max(1000, Number(process.env.PY_MODEL_TIMEOUT_MS || 15000));
+
   const b64 = Buffer.isBuffer(prepared.buffer)
-    ? prepared.buffer.toString("base64") // إذا كانت Buffer مباشرة
-    : Buffer.from(prepared.buffer).toString("base64"); // إذا كانت ArrayBuffer أو غيرها
+    ? prepared.buffer.toString("base64")
+    : Buffer.from(prepared.buffer).toString("base64");
 
-  // تحويل خيار heatmap إلى boolean
-  const with_heatmap = !!options.with_heatmap;
+  const with_heatmap = Boolean(options.with_heatmap);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
 
-  // إرسال طلب POST إلى خادم البايثون مع جسم JSON
-  const res = await fetch(PY_URL, {
-    method: "POST", // نوع الطلب POST
-    headers: { "Content-Type": "application/json" }, // نوع المحتوى JSON
-    body: JSON.stringify({ image_base64: b64, with_heatmap }), // جسم الطلب
-  });
+  let res;
+  try {
+    res = await fetch(pyUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ image_base64: b64, with_heatmap }),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err?.name === "AbortError") {
+      const timeoutErr = new Error(`Python model inference timed out after ${timeoutMs}ms`);
+      timeoutErr.code = "inference_timeout";
+      timeoutErr.statusCode = 504;
+      throw timeoutErr;
+    }
+    const connErr = new Error("Python model server is unreachable");
+    connErr.code = "model_unavailable";
+    connErr.statusCode = 503;
+    throw connErr;
+  } finally {
+    clearTimeout(timer);
+  }
 
-  // التحقق من نجاح الاستجابة
-  if (!res.ok) throw new Error(`Python model server returned ${res.status}`);
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const detail = body?.detail || `Python model server returned ${res.status}`;
+    const err = new Error(detail);
+    if (res.status === 400 || res.status === 413 || res.status === 422) {
+      err.code = "invalid_image";
+      err.statusCode = res.status === 413 ? 413 : 400;
+    } else if (res.status === 503) {
+      err.code = "model_unavailable";
+      err.statusCode = 503;
+    } else {
+      err.code = "inference_error";
+      err.statusCode = 502;
+    }
+    throw err;
+  }
 
-  // إعادة نتيجة التحليل (JSON) مباشرة
-  return await res.json();
+  return body;
 }

@@ -51,18 +51,67 @@ export default function UploadXRayPageContent() {
     loadRecentUploads();
   }, [loadRecentUploads]);
 
+  const [patients, setPatients] = useState([]);
+  const [patientsLoading, setPatientsLoading] = useState(true);
+  const [patientSearch, setPatientSearch] = useState("");
+  const [selectedPatientId, setSelectedPatientId] = useState("");
   const [files, setFiles] = useState([]);
-  const [patientName, setPatientName] = useState("");
-  const [imageType, setImageType] = useState("xray");
   const [notes, setNotes] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [phase, setPhase] = useState("idle");
   const [progress, setProgress] = useState(0);
+  const [perFileOutcomes, setPerFileOutcomes] = useState([]);
   const [toast, setToast] = useState({ open: false, message: "", variant: "info" });
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-  // رفع الملفات عبر FileUpload الموحد
+  useEffect(() => {
+    let mounted = true;
+    fetch("/api/doctor/patients", { credentials: "include" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!mounted) return;
+        const list = Array.isArray(data?.patients) ? data.patients : [];
+        setPatients(list);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (mounted) setPatientsLoading(false);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const filteredPatients = patients.filter((p) => {
+    const q = patientSearch.trim().toLowerCase();
+    if (!q) return true;
+    const name = String(p.fullName || p.user?.fullName || "").toLowerCase();
+    const email = String(p.email || p.user?.email || "").toLowerCase();
+    return name.includes(q) || email.includes(q);
+  });
+
+  // رفع الملفات عبر FileUpload الموحد (PNG/JPG/WEBP فقط)
   const handleFileUpload = (selectedFiles) => {
-    setFiles(Array.isArray(selectedFiles) ? [...files, ...selectedFiles] : [...files, selectedFiles]);
+    const incoming = Array.isArray(selectedFiles) ? selectedFiles : [selectedFiles];
+    const allowed = new Set(["image/png", "image/jpeg", "image/webp"]);
+    const valid = incoming.filter((f) => {
+      const mime = String(f.type || "").toLowerCase();
+      const name = String(f.name || "").toLowerCase();
+      return allowed.has(mime) || /\.(png|jpe?g|webp)$/.test(name);
+    });
+    if (valid.length < incoming.length) {
+      setToast({
+        open: true,
+        message:
+          locale === "ar"
+            ? "يدعم النموذج صور الأشعة السينية بصيغة PNG وJPG وWEBP فقط."
+            : "Only chest X-ray images (PNG, JPG, JPEG, WEBP) are supported.",
+        variant: "error",
+      });
+    }
+    if (valid.length > 0) {
+      setFiles((prev) => [...prev, ...valid]);
+    }
   };
 
   const removeFile = (index) => {
@@ -74,7 +123,8 @@ export default function UploadXRayPageContent() {
       const formData = new FormData();
       formData.append("image", file);
       formData.append("with_heatmap", "true");
-      if (patientName) formData.append("patientName", patientName);
+      formData.append("patientId", selectedPatientId);
+      formData.append("modality", "xray");
       if (notes) formData.append("notes", notes);
 
       const xhr = new XMLHttpRequest();
@@ -83,7 +133,11 @@ export default function UploadXRayPageContent() {
 
       xhr.upload.onprogress = (event) => {
         if (event.lengthComputable) {
-          setProgress(Math.round((event.loaded / event.total) * 100));
+          const pct = Math.round((event.loaded / event.total) * 100);
+          setProgress(pct);
+          if (pct >= 100) {
+            setPhase("analyzing");
+          }
         }
       };
 
@@ -105,7 +159,7 @@ export default function UploadXRayPageContent() {
     });
 
   const handleUpload = async () => {
-    if (!patientName || files.length === 0) {
+    if (!selectedPatientId || files.length === 0) {
       setToast({
         open: true,
         message: t("toast.selectPatient"),
@@ -114,22 +168,53 @@ export default function UploadXRayPageContent() {
       return;
     }
     setUploading(true);
+    setPhase("uploading");
     setProgress(0);
+    setPerFileOutcomes([]);
     try {
       let latest = null;
+      const outcomes = [];
       for (const file of files) {
-        latest = await uploadSingleFile(file);
+        setPhase("uploading");
+        setProgress(0);
+        try {
+          const res = await uploadSingleFile(file);
+          latest = res;
+          outcomes.push({
+            fileName: file.name,
+            ok: true,
+            prediction: res?.prediction || res?.data?.prediction,
+            confidence: res?.confidence ?? res?.data?.confidence,
+            isMock: Boolean(res?.is_mock || res?.data?.isMock),
+          });
+        } catch (fileErr) {
+          outcomes.push({
+            fileName: file.name,
+            ok: false,
+            error: fileErr?.message || "Upload failed",
+          });
+        }
       }
+      setPerFileOutcomes(outcomes);
       setLastResult(latest);
-      setShowSuccessModal(true);
-      setToast({
-        open: true,
-        message: t("upload"),
-        variant: "success",
-      });
-      setFiles([]);
+      if (outcomes.some((o) => o.ok)) {
+        setShowSuccessModal(true);
+        setToast({
+          open: true,
+          message: t("upload"),
+          variant: "success",
+        });
+        setFiles([]);
+        await loadRecentUploads();
+      } else {
+        setToast({
+          open: true,
+          message: outcomes[0]?.error || "Upload failed",
+          variant: "error",
+        });
+      }
       setProgress(0);
-      await loadRecentUploads();
+      setPhase("idle");
     } catch (err) {
       setToast({
         open: true,
@@ -138,6 +223,7 @@ export default function UploadXRayPageContent() {
       });
     } finally {
       setUploading(false);
+      setPhase("idle");
     }
   };
 
@@ -145,32 +231,69 @@ export default function UploadXRayPageContent() {
     <>
       <ContentPageLayout
         title={t("upload")}
-        subtitle={t("fileTypes")}
+        subtitle={
+          locale === "ar"
+            ? "أشعة الصدر السينية فقط (PNG, JPG, JPEG, WEBP) — مرتبطة بسجل المريض المعين"
+            : "Chest X-Ray only (PNG, JPG, JPEG, WEBP) — linked to an assigned patient record"
+        }
         actions={
-          uploading ? <Loader label={`${t("uploading")} ${Math.round(progress)}%`} size="sm" /> : null
+          uploading ? (
+            <Loader
+              label={
+                phase === "analyzing"
+                  ? locale === "ar"
+                    ? "جارٍ التحليل بالذكاء الاصطناعي..."
+                    : "Running AI screening..."
+                  : `${t("uploading")} ${Math.round(progress)}%`
+              }
+              size="sm"
+            />
+          ) : null
         }
       >
         <div className="grid gap-6 lg:grid-cols-3">
           <Card className="space-y-4 lg:col-span-2">
-            <Input
-              label={t("patientNameLabel")}
-              placeholder={t("patientNamePlaceholder")}
-              value={patientName}
-              onChange={(e) => setPatientName(e.target.value)}
-            />
-
             <div className="space-y-2">
-              <label className="text-sm font-medium text-[var(--ui-foreground)]">{t("imageTypeLabel")}</label>
+              <label className="text-sm font-medium text-[var(--ui-foreground)]">
+                {t("patientNameLabel")}
+              </label>
+              <Input
+                placeholder={
+                  locale === "ar" ? "ابحث في قائمة مرضاك المعينين..." : "Search your assigned patients..."
+                }
+                value={patientSearch}
+                onChange={(e) => setPatientSearch(e.target.value)}
+              />
               <select
-                value={imageType}
-                onChange={(e) => setImageType(e.target.value)}
+                value={selectedPatientId}
+                onChange={(e) => setSelectedPatientId(e.target.value)}
+                disabled={patientsLoading}
                 className="ui-native-select ui-future-panel h-11 w-full rounded-xl border border-[var(--ui-border)] px-3 text-sm text-[var(--ui-foreground)] outline-none focus-visible:border-[var(--ui-border-strong)]"
               >
-                <option value="xray">{t("types.xray")}</option>
-                <option value="ct">{t("types.ct")}</option>
-                <option value="mri">{t("types.mri")}</option>
-                <option value="ultrasound">{t("types.ultrasound")}</option>
+                <option value="">
+                  {patientsLoading
+                    ? locale === "ar"
+                      ? "جارٍ تحميل المرضى..."
+                      : "Loading assigned patients..."
+                    : locale === "ar"
+                      ? "اختر المريض المعين"
+                      : "Select an assigned patient"}
+                </option>
+                {filteredPatients.map((p) => {
+                  const name = p.fullName || p.user?.fullName || p.email || p.user?.email || p.id;
+                  return (
+                    <option key={p.id} value={p.id}>
+                      {name}
+                    </option>
+                  );
+                })}
               </select>
+            </div>
+
+            <div className="rounded-xl border border-[var(--ui-border)] bg-[var(--ui-surface-2)]/50 px-3.5 py-2.5 text-xs font-medium text-[var(--ui-muted)]">
+              {locale === "ar"
+                ? "النوع المدعوم: أشعة الصدر السينية (Chest X-Ray) — صيغ PNG وJPG وWEBP فقط."
+                : "Supported Modality: Chest X-Ray (DenseNet121) — PNG, JPG, JPEG, WEBP only."}
             </div>
 
             <div className="space-y-2">
@@ -186,7 +309,7 @@ export default function UploadXRayPageContent() {
 
             <FileUpload
               onUpload={handleFileUpload}
-              accept="image/*,.dcm"
+              accept="image/png,image/jpeg,image/webp"
               multiple
               label={t("selectFiles")}
               className="ui-future-panel rounded-2xl border border-dashed border-[var(--ui-border-strong)] p-8 text-center"
@@ -196,17 +319,45 @@ export default function UploadXRayPageContent() {
                 <p className="text-sm font-medium text-[var(--ui-foreground)]">
                   {t("dragDrop")} {t("orText")} {t("selectFiles")}
                 </p>
-                <p className="text-xs text-[var(--ui-muted)]">{t("fileTypes")}</p>
+                <p className="text-xs text-[var(--ui-muted)]">PNG, JPG, JPEG, WEBP (Max 10MB)</p>
               </div>
             </FileUpload>
 
             <Button
               onClick={handleUpload}
-              disabled={uploading || !patientName || files.length === 0}
+              disabled={uploading || !selectedPatientId || files.length === 0}
               isLoading={uploading}
             >
-              {uploading ? `${t("uploading")} ${Math.round(progress)}%` : t("upload")}
+              {uploading
+                ? phase === "analyzing"
+                  ? locale === "ar"
+                    ? "جارٍ التحليل..."
+                    : "Analyzing..."
+                  : `${t("uploading")} ${Math.round(progress)}%`
+                : t("upload")}
             </Button>
+
+            {perFileOutcomes.length > 0 && (
+              <div className="space-y-2 pt-2">
+                {perFileOutcomes.map((o, idx) => (
+                  <div
+                    key={`${o.fileName}-${idx}`}
+                    className={`rounded-xl border px-3 py-2 text-xs font-medium ${
+                      o.ok
+                        ? "border-[var(--ui-success-border)] bg-[var(--ui-success-bg)] text-[var(--ui-foreground)]"
+                        : "border-[var(--ui-danger-border)] bg-[var(--ui-danger-bg)] text-[var(--ui-danger)]"
+                    }`}
+                  >
+                    <span className="font-bold">{o.fileName}: </span>
+                    {o.ok
+                      ? `${o.prediction || "OK"} (${Math.round(Number(o.confidence || 0) * 100)}%)${
+                          o.isMock ? " [SIMULATED MOCK]" : ""
+                        }`
+                      : o.error}
+                  </div>
+                ))}
+              </div>
+            )}
 
             {uploading ? (
               <progress

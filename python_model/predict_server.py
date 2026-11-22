@@ -1,192 +1,306 @@
-from fastapi import FastAPI, HTTPException  # لإنشاء API سريع ونقاط النهاية ومعالجة الأخطاء
-from fastapi.staticfiles import StaticFiles  # لخدمة الملفات الثابتة مثل الصور والـ heatmaps
-from pydantic import BaseModel  # لإنشاء نماذج البيانات (Request/Response validation)
-from fastapi.middleware.cors import CORSMiddleware  # لتفعيل CORS للسماح بالوصول من أي دومين
-import base64  # لتحويل الصور من/إلى صيغة base64
-from io import BytesIO  # لإنشاء stream من بايتات الصورة لتحويلها لصورة PIL
-from PIL import Image  # للتعامل مع الصور (فتح، تعديل، تحويل، حفظ)
-import torch  # مكتبة PyTorch للتعلم العميق وتشغيل النموذج
-from torchvision import transforms, models  # لتحويل الصور، واستخدام نماذج جاهزة مثل DenseNet
-import os  # للتعامل مع مسارات الملفات وإنشاء المجلدات
-import time  # لقياس زمن تنفيذ التنبؤ
-import uuid  # لإنشاء معرف فريد (UUID) للملفات مثل heatmaps
-import numpy as np  # للتعامل مع المصفوفات ومعالجة الصور بشكل رقمي
-import matplotlib.pyplot as plt  # لإنشاء heatmaps وخرائط الألوان على الصور
+import asyncio
+import base64
+import hashlib
+import os
+import time
+import uuid
+from io import BytesIO
 
-# ============================================
-# تعريف نموذج الطلب المتوقع (Request Model)
-# ============================================
+import anyio
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+import numpy as np
+import torch
+import torch.nn.functional as F
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
+from PIL import Image, ImageOps, UnidentifiedImageError
+from pydantic import BaseModel, Field
+from torchvision import models, transforms
+
+# Decompression bomb protection (max 25MP)
+Image.MAX_IMAGE_PIXELS = 25_000_000
+
+MAX_IMAGE_BYTES = int(os.getenv("MAX_UPLOAD_BYTES", str(10 * 1024 * 1024)))
+MAX_BASE64_LEN = int(MAX_IMAGE_BYTES * 1.4) + 1024
+MAX_CONCURRENT_INFERENCES = max(1, int(os.getenv("MAX_CONCURRENT_INFERENCES", "2")))
+INFERENCE_SEMAPHORE = asyncio.Semaphore(MAX_CONCURRENT_INFERENCES)
+LABELS = {0: "NORMAL", 1: "PNEUMONIA"}
+
+
 class PredictRequest(BaseModel):
-    image_base64: str         # الصورة المرسلة بصيغة base64
-    with_heatmap: bool = False  # هل يريد المستخدم توليد heatmap مع النتيجة؟
+    image_base64: str = Field(..., min_length=1, max_length=MAX_BASE64_LEN)
+    with_heatmap: bool = False
 
-# ============================================
-# إنشاء تطبيق FastAPI
-# ============================================
-app = FastAPI()
 
-# إعداد أصول CORS المصرح بها من البيئة (مع إزالة السماح العام بالوايلدكارد مع بيانات الاعتماد)
-allowed_origins_env = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000")
+app = FastAPI(title="PneumoDetect AI Inference Service")
+
+allowed_origins_env = os.getenv(
+    "ALLOWED_ORIGINS",
+    "http://localhost:4000,http://127.0.0.1:4000,http://localhost:5173,http://127.0.0.1:5173",
+)
 origins = [o.strip() for o in allowed_origins_env.split(",") if o.strip()]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins if origins else ["http://localhost:3000"],
+    allow_origins=origins if origins else ["http://localhost:4000"],
     allow_credentials=True,
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
 
-# ============================================
-# إعداد المسارات والملفات الثابتة
-# ============================================
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# محاولة إيجاد مسار النموذج (model) في عدة أماكن
 FALLBACK_PATHS = [
-    os.path.join(BASE_DIR, '..', 'ai', 'models', 'best_densenet121_xray.pth'),
-    os.path.join(BASE_DIR, '..', 'backend', 'best_densenet121_xray.pth'),
-    os.path.join(BASE_DIR, '..', 'best_densenet121_xray.pth'),
+    os.getenv("MODEL_PATH", ""),
+    os.path.join(BASE_DIR, "..", "ai", "models", "best_densenet121_xray.pth"),
+    os.path.join(BASE_DIR, "..", "apps", "ai", "models", "best_densenet121_xray.pth"),
+    os.path.join(BASE_DIR, "..", "backend", "best_densenet121_xray.pth"),
+    os.path.join(BASE_DIR, "..", "best_densenet121_xray.pth"),
 ]
 
 MODEL_PATH = None
-for p in FALLBACK_PATHS:
-    p = os.path.normpath(p)
-    if os.path.exists(p):
-        MODEL_PATH = p
+for candidate in FALLBACK_PATHS:
+    if not candidate:
+        continue
+    norm = os.path.normpath(candidate)
+    if os.path.exists(norm):
+        MODEL_PATH = norm
         break
 
-# إذا لم يتم العثور على النموذج، استخدم مسار افتراضي وأظهر تحذير
-if MODEL_PATH is None:
-    MODEL_PATH = os.path.join(BASE_DIR, '..', 'backend', 'best_densenet121_xray.pth')
-    print('WARNING: model not found in ai/models; using', MODEL_PATH)
-
-# إعداد مجلد الملفات الثابتة والـ heatmaps
 STATIC_DIR = os.path.join(BASE_DIR, "static")
 HEATMAP_DIR = os.path.join(STATIC_DIR, "heatmaps")
-os.makedirs(HEATMAP_DIR, exist_ok=True)  # إنشاء المجلد إذا لم يكن موجوداً
+os.makedirs(HEATMAP_DIR, exist_ok=True)
 
-# تحديد الجهاز لتشغيل PyTorch (GPU إذا متاح، وإلا CPU)
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+MODEL = None
+MODEL_VERSION = "unavailable"
+MODEL_SHA256 = None
+MODEL_LOAD_ERROR = None
 
-# ============================================
-# دالة لتحميل النموذج
-# ============================================
-def load_model(path):
-    model = models.densenet121(weights=None)  # نموذج DenseNet121 بدون أوزان مسبقة
-    model.classifier = torch.nn.Linear(model.classifier.in_features, 2)  # طبقة إخراج ثنائية
-    state = torch.load(path, map_location=DEVICE)  # تحميل الأوزان
+
+def compute_sha256_prefix(path: str) -> str:
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(65536), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def load_verified_model(path: str):
+    model = models.densenet121(weights=None)
+    model.classifier = torch.nn.Linear(model.classifier.in_features, 2)
+    try:
+        state = torch.load(path, map_location=DEVICE, weights_only=True)
+    except TypeError:
+        state = torch.load(path, map_location=DEVICE)
+
+    if not isinstance(state, dict):
+        raise ValueError("Checkpoint is not a valid state_dict mapping")
+    weight = state.get("classifier.weight")
+    if weight is None or tuple(weight.shape) != (2, 1024):
+        raise ValueError(f"Unexpected classifier.weight shape: {getattr(weight, 'shape', None)}")
+
     model.load_state_dict(state)
     model.to(DEVICE)
-    model.eval()  # ضبط النموذج على وضع التقييم
+    model.eval()
     return model
 
-# تحميل النموذج عند بدء السيرفر
-print("Python model server starting. Loading model from:", MODEL_PATH)
-if not os.path.exists(MODEL_PATH):
-    print("WARNING: model file not found:", MODEL_PATH)
-    MODEL = None
+
+if MODEL_PATH is None:
+    MODEL_LOAD_ERROR = "DenseNet121 checkpoint file not found"
+    print("ERROR:", MODEL_LOAD_ERROR)
 else:
-    MODEL = load_model(MODEL_PATH)
-    print("Model loaded.")
+    try:
+        print(f"Python model server loading DenseNet121 from {MODEL_PATH} on {DEVICE}")
+        MODEL = load_verified_model(MODEL_PATH)
+        MODEL_SHA256 = compute_sha256_prefix(MODEL_PATH)
+        MODEL_VERSION = f"{os.path.basename(MODEL_PATH)}#{MODEL_SHA256[:8]}"
+        print(f"Model loaded successfully: {MODEL_VERSION}")
+    except Exception as exc:
+        MODEL = None
+        MODEL_LOAD_ERROR = f"Failed to load checkpoint: {exc}"
+        print("ERROR:", MODEL_LOAD_ERROR)
 
-# ============================================
-# التحويلات المسبقة (Preprocessing) للصورة
-# ============================================
-prep_transform = transforms.Compose([
-    transforms.Resize((224, 224)),                  # تغيير حجم الصورة لتتناسب مع نموذج DenseNet
-    transforms.Grayscale(num_output_channels=3),   # تحويل الصورة لأبيض وأسود مع 3 قنوات (RGB)
-    transforms.ToTensor(),                         # تحويل الصورة إلى Tensor
-    transforms.Normalize(                           # تطبيع القيم بناءً على mean و std المستخدمة أثناء التدريب
-        mean=[0.485, 0.456, 0.406],
-        std=[0.229, 0.224, 0.225]
-    )
-])
 
-# تسمية الفئات (Labels) الناتجة عن النموذج
-LABELS = {0: "NORMAL", 1: "PNEUMONIA"}
+prep_transform = transforms.Compose(
+    [
+        transforms.Resize((224, 224)),
+        transforms.Grayscale(num_output_channels=3),
+        transforms.ToTensor(),
+        transforms.Normalize(
+            mean=[0.485, 0.456, 0.406],
+            std=[0.229, 0.224, 0.225],
+        ),
+    ]
+)
 
-# تثبيت مسار الملفات الثابتة على السيرفر
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
-# ============================================
-# نقطة النهاية لتنبؤ الصورة (POST /predict)
-# ============================================
-@app.post("/predict")
-async def predict(req: PredictRequest):
-    # تحقق من أن النموذج محمل
+
+@app.get("/health/live")
+async def health_live():
+    return {"status": "alive", "service": "pneumodetect-ai"}
+
+
+@app.get("/health/ready")
+async def health_ready():
     if MODEL is None:
-        raise HTTPException(status_code=503, detail="Model not loaded on server")
+        return JSONResponse(
+            status_code=503,
+            content={
+                "ready": False,
+                "model_loaded": False,
+                "error": MODEL_LOAD_ERROR or "Model unavailable",
+            },
+        )
+    return {
+        "ready": True,
+        "model_loaded": True,
+        "architecture": "DenseNet121",
+        "model_version": MODEL_VERSION,
+        "model_sha256": MODEL_SHA256,
+        "device": str(DEVICE),
+        "input_size": [224, 224],
+        "channels": 3,
+        "labels": LABELS,
+        "modality": "chest_xray",
+    }
 
-    # محاولة قراءة الصورة من الـ base64
+
+def decode_and_validate_image(image_base64: str) -> Image.Image:
     try:
-        img_data = base64.b64decode(req.image_base64)
-        img = Image.open(BytesIO(img_data)).convert("L")  # تحويل الصورة لأبيض وأسود
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Invalid image data: {e}")
+        raw = base64.b64decode(image_base64, validate=True)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid base64 image payload")
 
-    # تحويل الصورة إلى Tensor وتغيير شكلها لتكون batch size = 1
+    if not raw:
+        raise HTTPException(status_code=400, detail="Empty image payload")
+    if len(raw) > MAX_IMAGE_BYTES:
+        raise HTTPException(status_code=413, detail="Image exceeds maximum allowed size")
+
+    try:
+        verify_buf = BytesIO(raw)
+        with Image.open(verify_buf) as probe:
+            probe.verify()
+
+        img_buf = BytesIO(raw)
+        img = Image.open(img_buf)
+        img = ImageOps.exif_transpose(img)
+        w, h = img.size
+        if w < 32 or h < 32:
+            raise HTTPException(status_code=400, detail="Image dimensions too small (min 32x32)")
+        return img.convert("L")
+    except HTTPException:
+        raise
+    except (UnidentifiedImageError, Image.DecompressionBombError, OSError):
+        raise HTTPException(status_code=400, detail="Unsupported or corrupted image file")
+
+
+def generate_gradcam_overlay(tensor: torch.Tensor, orig_gray: Image.Image, target_class: int) -> str:
+    """Compute genuine Grad-CAM from DenseNet121 final convolutional features."""
+    grad_tensor = tensor.detach().clone().requires_grad_(True)
+    MODEL.zero_grad(set_to_none=True)
+
+    with torch.enable_grad():
+        features = MODEL.features(grad_tensor)
+        features.retain_grad()
+        out = F.relu(features, inplace=False)
+        out = F.adaptive_avg_pool2d(out, (1, 1))
+        out = torch.flatten(out, 1)
+        logits = MODEL.classifier(out)
+        score = logits[0, target_class]
+        score.backward()
+
+    if features.grad is None:
+        raise RuntimeError("Grad-CAM gradients unavailable")
+
+    weights = features.grad.mean(dim=(2, 3), keepdim=True)
+    cam = F.relu((weights * features.detach()).sum(dim=1, keepdim=True))
+    cam_np = cam.squeeze().cpu().numpy()
+
+    cam_min, cam_max = float(cam_np.min()), float(cam_np.max())
+    if cam_max - cam_min > 1e-8:
+        cam_norm = (cam_np - cam_min) / (cam_max - cam_min)
+    else:
+        cam_norm = np.zeros_like(cam_np, dtype=np.float32)
+
+    orig_w, orig_h = orig_gray.size
+    cam_resized = np.array(
+        Image.fromarray((cam_norm * 255).astype(np.uint8)).resize((orig_w, orig_h), Image.BILINEAR)
+    ).astype(np.float32) / 255.0
+
+    cmap = plt.get_cmap("jet")
+    heatmap_rgba = cmap(cam_resized)
+    heatmap_rgb = (heatmap_rgba[:, :, :3] * 255).astype(np.uint8)
+    heatmap_img = Image.fromarray(heatmap_rgb).convert("RGBA")
+
+    base_rgba = orig_gray.convert("RGB").convert("RGBA")
+    blended = Image.blend(base_rgba, heatmap_img, alpha=0.45)
+
+    fname = f"gradcam_{uuid.uuid4().hex}.png"
+    out_path = os.path.join(HEATMAP_DIR, fname)
+    blended.save(out_path, format="PNG")
+
+    base_url = os.getenv("PUBLIC_HEATMAP_BASE_URL", "/static/heatmaps").rstrip("/")
+    return f"{base_url}/{fname}"
+
+
+def run_sync_inference(image_base64: str, with_heatmap: bool):
+    img = decode_and_validate_image(image_base64)
     tensor = prep_transform(img).unsqueeze(0).to(DEVICE)
 
-    # توقيت عملية التنبؤ لقياس زمن التنفيذ
     start = time.time()
-    with torch.no_grad():  # تعطيل التتبع الحسابي (للتقييم فقط)
-        out = MODEL(tensor)  # تمرير الصورة للنموذج
-        probs = torch.softmax(out, dim=1).cpu().numpy()[0]  # تحويل المخرجات للاحتمالات
-        pred_idx = int(probs.argmax())  # اختيار الفئة ذات الاحتمال الأعلى
-        pred_label = LABELS.get(pred_idx, "Unknown")  # الحصول على التسمية النهائية
+    with torch.no_grad():
+        logits = MODEL(tensor)
+        probs = torch.softmax(logits, dim=1).cpu().numpy()[0]
+        pred_idx = int(probs.argmax())
+        pred_label = LABELS.get(pred_idx, "Unknown")
     end = time.time()
 
-    # إعداد النتيجة الأساسية
     result = {
         "prediction": pred_label,
         "probabilities": {LABELS[i]: float(probs[i]) for i in range(len(probs))},
-        "model_version": os.path.basename(MODEL_PATH),
+        "model_version": MODEL_VERSION,
         "heatmap_url": None,
+        "explanation": "DenseNet121 chest X-ray screening output. Preliminary AI aid; physician review required.",
         "inference_time_ms": int((end - start) * 1000),
     }
 
-    # ============================================
-    # توليد Heatmap إذا طلب المستخدم ذلك
-    # ============================================
-    if req.with_heatmap:
+    if with_heatmap:
         try:
-            # إنشاء مصفوفة كثافة البكسل من الصورة
-            arr = np.array(img.resize((224, 224))).astype(float)
-            arr = (arr - arr.min()) / (arr.max() - arr.min() + 1e-8)  # تطبيع القيم بين 0 و 1
-
-            cmap = plt.get_cmap('jet')  # استخدام colormap "jet"
-            heatmap_rgba = cmap(arr)
-            heatmap_rgb = (heatmap_rgba[:, :, :3] * 255).astype('uint8')  # تحويل إلى RGB
-
-            heatmap_img = Image.fromarray(heatmap_rgb).convert('RGBA')
-
-            # دمج Heatmap مع الصورة الأصلية
-            base_rgb = img.resize((224, 224)).convert('RGB')
-            base_rgba = base_rgb.convert('RGBA')
-            blended = Image.blend(base_rgba, heatmap_img, alpha=0.5)
-
-            # حفظ الصورة المدمجة (ملاحظة: هذا تمثيل بصري لكثافة البكسل وليس خوارزمية Grad-CAM تدريبية)
-            fname = f"heatmap_{uuid.uuid4().hex}.png"
-            out_path = os.path.join(HEATMAP_DIR, fname)
-            blended.save(out_path)
-
-            # مسار URL للـ heatmap يعتمد على متغير بيئة أو مسار نسبي لتجنب فرض 127.0.0.1
-            base_url = os.getenv("PUBLIC_HEATMAP_BASE_URL", "/static/heatmaps").rstrip("/")
-            if base_url.startswith("http"):
-                result['heatmap_url'] = f"{base_url}/{fname}"
-            else:
-                result['heatmap_url'] = f"{base_url}/{fname}"
-            result['explanation'] = "Intensity-based image highlight visualization."
-        except Exception as e:
-            # لا تفشل التنبؤ إذا حدث خطأ في توليد Heatmap
-            print('Heatmap generation failed:', e)
+            result["heatmap_url"] = generate_gradcam_overlay(tensor, img, pred_idx)
+            result["explanation"] = (
+                "Grad-CAM class activation overlay (DenseNet121 features) — "
+                "AI visual aid only, not a definitive medical explanation."
+            )
+        except Exception as exc:
+            print("Grad-CAM generation failed:", exc)
+            result["heatmap_url"] = None
+            result["explanation"] = (
+                "Prediction completed; Grad-CAM visualization unavailable."
+            )
 
     return result
 
-# ============================================
-# تشغيل السيرفر بشكل مباشر (اختياري عند التشغيل محلياً)
-# ============================================
+
+@app.post("/predict")
+async def predict(req: PredictRequest):
+    if MODEL is None:
+        raise HTTPException(status_code=503, detail="Model is not loaded")
+
+    async with INFERENCE_SEMAPHORE:
+        return await anyio.to_thread.run_sync(
+            run_sync_inference, req.image_base64, req.with_heatmap
+        )
+
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+
+    host = os.getenv("PY_MODEL_HOST", "127.0.0.1")
+    port = int(os.getenv("PY_MODEL_PORT", "8000"))
+    uvicorn.run(app, host=host, port=port)

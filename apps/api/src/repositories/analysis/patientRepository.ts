@@ -3,12 +3,14 @@ import { AppError } from "../../lib/errors/appError";
 
 export type PatientIdentity = {
   id: string;
+  userId?: string;
   doctorId: string | null;
   fullName: string;
 };
 
 export interface PatientRepository {
   findByUserId(userId: string): Promise<PatientIdentity | null>;
+  findById?(id: string): Promise<PatientIdentity | null>;
 }
 
 export function createPatientRepository(
@@ -21,6 +23,28 @@ export function createPatientRepository(
           where: { userId },
           select: {
             id: true,
+            userId: true,
+            doctorId: true,
+            fullName: true,
+          },
+        });
+      } catch (error) {
+        throw new AppError({
+          code: "repository_error",
+          message: "Failed to load patient record",
+          statusCode: 500,
+          cause: error,
+        });
+      }
+    },
+
+    async findById(id) {
+      try {
+        return await db.patient.findUnique({
+          where: { id },
+          select: {
+            id: true,
+            userId: true,
             doctorId: true,
             fullName: true,
           },

@@ -41,6 +41,7 @@ export default function AnalysisPage() {
   const [selectedImage, setSelectedImage] = useState(null); // الصورة المختارة
   const [previewUrl, setPreviewUrl] = useState(null);       // رابط معاينة الصورة
   const [isLoading, setIsLoading] = useState(false);        // حالة التحليل جاري
+  const [phase, setPhase] = useState("idle");               // idle | uploading | analyzing | completed | failed | cancelled
   const [analysisResult, setAnalysisResult] = useState(null); // نتيجة التحليل
   const [savedToHistory, setSavedToHistory] = useState(false); // حفظ التاريخ
   const [showModal, setShowModal] = useState(false);        // عرض مودال التفاصيل
@@ -93,6 +94,10 @@ export default function AnalysisPage() {
     }
 
     setSelectedImage(file);
+    setAnalysisResult(null);
+    setSavedToHistory(false);
+    setResultsVisible(false);
+    setPhase("idle");
 
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     setPreviewUrl(URL.createObjectURL(file));
@@ -182,13 +187,18 @@ export default function AnalysisPage() {
       xhr.open("POST", "/api/analysis/analyze");
       if (token) xhr.setRequestHeader("Authorization", `Bearer ${token}`);
 
+      setPhase("uploading");
       xhr.upload.onprogress = (e) => {
         if (e.lengthComputable) {
           const now = Date.now();
           if (!uploadStartTime) setUploadStartTime(now);
           setUploadLoaded(e.loaded);
           setUploadTotal(e.total);
-          setUploadProgress(Math.round((e.loaded / e.total) * 100));
+          const pct = Math.round((e.loaded / e.total) * 100);
+          setUploadProgress(pct);
+          if (pct >= 100) {
+            setPhase("analyzing");
+          }
         }
       };
 
@@ -199,12 +209,15 @@ export default function AnalysisPage() {
         try {
           const data = JSON.parse(xhr.responseText || "{}");
           if (xhr.status >= 200 && xhr.status < 300) {
-            setAnalysisResult(data.data ?? null);
+            setAnalysisResult(data.data ?? data ?? null);
             setSavedToHistory(Boolean(data.saved));
+            setPhase("completed");
           } else {
+            setPhase("failed");
             setError(data.error || data.message || `HTTP ${xhr.status}`);
           }
         } catch (e) {
+          setPhase("failed");
           setError(String(e));
         }
       };
@@ -251,7 +264,7 @@ export default function AnalysisPage() {
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/png,image/jpeg,image/webp,image/tiff"
+            accept="image/png,image/jpeg,image/webp"
             onChange={handleImageChange}
             className="hidden"
           />
@@ -321,11 +334,14 @@ export default function AnalysisPage() {
                   <progress
                     value={uploadProgress}
                     max={100}
-                    className="absolute inset-0 h-full w-full appearance-none [&::-webkit-progress-bar]:bg-(--ui-surface-2)/40 [&::-webkit-progress-value]:bg-linear-to-r [&::-webkit-progress-value]:from-(--ui-success) [&::-webkit-progress-value]:via-(--ui-warning) [&::-webkit-progress-value]:to-(--ui-danger) [&::-moz-progress-bar]:bg-(--ui-success)"
+                    className="absolute inset-0 h-full w-full appearance-none [&::-webkit-progress-bar]:bg-(--ui-surface-2)/40 [&::-webkit-progress-value]:bg-(--color-primary-500) [&::-moz-progress-bar]:bg-(--color-primary-500)"
                   />
                   <div className="absolute inset-0 flex items-center justify-center text-sm font-semibold text-(--ui-foreground) drop-shadow-sm">
-                    {uploadProgress}% • {formatMB(uploadLoaded)} MB / {formatMB(uploadTotal)} MB{" "}
-                    {formatEta() && `• ${t("analysis.progress.etaLabel")}: ${formatEta()}`}
+                    {phase === "analyzing"
+                      ? t("analysis.actions.analyzing")
+                      : `${uploadProgress}% • ${formatMB(uploadLoaded)} MB / ${formatMB(uploadTotal)} MB${
+                          formatEta() ? ` • ${t("analysis.progress.etaLabel")}: ${formatEta()}` : ""
+                        }`}
                   </div>
                 </div>
                 <div className="mt-2 text-right">
@@ -370,33 +386,34 @@ export default function AnalysisPage() {
             {analysisResult && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* تشخيص */}
-                <div className={`p-6 rounded-3xl shadow-xl hover:scale-102 hover:shadow-2xl transition-transform duration-300 ${
-                  analysisResult?.needs_review
-                    ? "bg-(--ui-warning-bg) border border-(--ui-warning-border)"
-                    : String(analysisResult.prediction).toLowerCase().includes("normal")
-                      ? "bg-green-600 border-green-700 text-white font-bold"
-                      : String(analysisResult.prediction).toLowerCase().includes("pneumonia")
-                        ? "bg-red-600 border-red-700 text-white font-bold"
-                        : "bg-(--ui-danger-bg) border border-(--ui-danger-border) font-bold"
+                <div className={`p-6 rounded-3xl border shadow-sm transition-all ${
+                  (analysisResult?.needsReview ?? analysisResult?.needs_review)
+                    ? "bg-(--ui-warning-bg) border-(--ui-warning-border) text-(--ui-foreground)"
+                    : "bg-(--ui-surface-elevated) border-(--ui-border) text-(--ui-foreground)"
                 }`}>
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-2xl font-bold mb-3 text-white">{t("analysis.results.diagnosis")}</h2>
-                    {analysisResult?.needs_review && (
-                      <span className="ml-2 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-(--ui-warning-bg) text-(--ui-foreground) text-sm font-semibold border border-(--ui-warning-border)">
-                        ⚠ {t("analysis.results.needsReview")}
-                      </span>
-                    )}
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <h2 className="text-xl font-bold mb-2 text-(--ui-foreground)">{t("analysis.results.diagnosis")}</h2>
+                    <div className="flex flex-wrap items-center gap-2">
+                      {(analysisResult?.isMock ?? analysisResult?.is_mock) && (
+                        <span className="inline-flex items-center rounded-full border border-amber-500/40 bg-amber-500/15 px-3 py-1 text-xs font-bold text-amber-700 dark:text-amber-300">
+                          SIMULATED MOCK (DEV ONLY)
+                        </span>
+                      )}
+                      {(analysisResult?.needsReview ?? analysisResult?.needs_review) && (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-(--ui-warning-bg) text-(--ui-warning-foreground) text-xs font-semibold border border-(--ui-warning-border)">
+                          {t("analysis.results.needsReview")}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <p className={`text-white text-center font-bold ${
-                    String(analysisResult.prediction).toLowerCase().includes("normal") ||
-                    String(analysisResult.prediction).toLowerCase().includes("pneumonia")
-                      ? "text-3xl"
-                      : "text-lg"
-                  }`}>
-                    {analysisResult.display_label ?? analysisResult.prediction}
+                  <p className="mt-2 text-center text-2xl font-extrabold text-(--color-primary-500)">
+                    {analysisResult.displayLabel ?? analysisResult.display_label ?? analysisResult.prediction}
+                  </p>
+                  <p className="mt-2 text-center text-xs text-(--ui-muted-foreground)">
+                    {analysisResult.explanation || t("analysis.badge")}
                   </p>
                   {savedToHistory && (
-                    <p className="text-white mt-3 font-bold text-center">
+                    <p className="mt-3 text-center text-xs font-bold text-(--ui-success)">
                       {t("analysis.results.savedToHistory")}
                     </p>
                   )}

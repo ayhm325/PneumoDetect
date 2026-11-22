@@ -65,11 +65,23 @@ analysisRouter.post(
         });
       }
 
-      const buffer = await fs.readFile(uploaded.filepath);
-      await fs.unlink(uploaded.filepath).catch(() => {});
+      let buffer: Buffer;
+      try {
+        buffer = await fs.readFile(uploaded.filepath);
+      } finally {
+        await fs.unlink(uploaded.filepath).catch(() => {});
+      }
+
+      const patientIdField = Array.isArray(fields.patientId) ? fields.patientId[0] : fields.patientId;
+      const modalityField = Array.isArray(fields.modality) ? fields.modality[0] : fields.modality;
+      const notesField = Array.isArray(fields.notes) ? fields.notes[0] : fields.notes;
 
       const result = await analysisService.analyzeXray({
         userId: req.auth!.user.id,
+        role: req.auth!.user.role,
+        patientId: typeof patientIdField === "string" ? patientIdField.trim() : undefined,
+        modality: typeof modalityField === "string" ? modalityField.trim() : undefined,
+        notes: typeof notesField === "string" ? notesField.trim() : undefined,
         image: {
           name: uploaded.originalFilename || "upload",
           type: uploaded.mimetype || "application/octet-stream",
