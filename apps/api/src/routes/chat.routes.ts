@@ -116,10 +116,14 @@ chatRouter.get(
   withRateLimit("GET /api/chat/:chatId/messages"),
   async (req: AuthenticatedRequest, res, next) => {
     try {
+      const limit = req.query.limit ? Number(req.query.limit) : undefined;
+      const before = typeof req.query.before === "string" ? req.query.before : undefined;
       const result = await chatMessageService.listMessages({
         userId: req.auth!.user.id,
         role: req.auth!.user.role || "",
         chatId: String(req.params.chatId),
+        limit,
+        before,
       });
       return res.status(200).json(result);
     } catch (error) {

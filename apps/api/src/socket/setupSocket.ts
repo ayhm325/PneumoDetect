@@ -8,6 +8,8 @@ import { getJwtSecret } from "../legacy-lib/auth/jwtSecret.js";
 import { getJwtVerifyOptions } from "../legacy-lib/auth/jwtClaims.js";
 import { isTokenRevoked } from "../legacy-lib/auth/revocation.server.js";
 import { env } from "../config/env.js";
+import { chatMessageService } from "../services/chat/index.js";
+import { AppError } from "../lib/errors/appError.js";
 
 interface SocketUser {
   id: string;
@@ -41,8 +43,38 @@ export function setupSocket(httpServer: HttpServer): Server {
     },
   });
 
-  const onlineByChat = new Map<string, Set<string>>();
+  const onlineByChat = new Map<string, Map<string, Set<string>>>();
   const onlineUserCounts = new Map<string, number>();
+
+  function addSocketToRoomPresence(chatId: string, userId: string, socketId: string): boolean {
+    let roomMap = onlineByChat.get(chatId);
+    if (!roomMap) {
+      roomMap = new Map<string, Set<string>>();
+      onlineByChat.set(chatId, roomMap);
+    }
+    let sockets = roomMap.get(userId);
+    const wasOffline = !sockets || sockets.size === 0;
+    if (!sockets) {
+      sockets = new Set<string>();
+      roomMap.set(userId, sockets);
+    }
+    sockets.add(socketId);
+    return wasOffline;
+  }
+
+  function removeSocketFromRoomPresence(chatId: string, userId: string, socketId: string): boolean {
+    const roomMap = onlineByChat.get(chatId);
+    if (!roomMap) return false;
+    const sockets = roomMap.get(userId);
+    if (!sockets) return false;
+    sockets.delete(socketId);
+    if (sockets.size === 0) {
+      roomMap.delete(userId);
+      if (roomMap.size === 0) onlineByChat.delete(chatId);
+      return true;
+    }
+    return false;
+  }
   const onlineUsers = new Set<string>();
 
   let redis: Redis | null = null;
@@ -179,19 +211,21 @@ export function setupSocket(httpServer: HttpServer): Server {
 
       const onlineIds = redis
         ? await redis.smembers(`${roomKey}:online`).catch(() => [] as string[])
-        : Array.from(onlineByChat.get(String(chatId)) || []);
+        : Array.from(onlineByChat.get(String(chatId))?.keys() || []);
 
       for (const id of onlineIds) {
         if (!id || String(id) === String(socket.user?.id)) continue;
         socket.emit("presence", { userId: id, online: true });
       }
 
-      if (redis && socket.user?.id) await redis.sadd(`${roomKey}:online`, socket.user.id).catch(() => {});
-      const set = onlineByChat.get(String(chatId)) || new Set<string>();
-      if (socket.user?.id) set.add(String(socket.user.id));
-      onlineByChat.set(String(chatId), set);
-
-      socket.to(roomKey).emit("presence", { userId: socket.user?.id, online: true });
+      if (socket.user?.id) {
+        const uid = String(socket.user.id);
+        const becameOnline = addSocketToRoomPresence(String(chatId), uid, socket.id);
+        if (becameOnline) {
+          if (redis) await redis.sadd(`${roomKey}:online`, uid).catch(() => {});
+          socket.to(roomKey).emit("presence", { userId: uid, online: true });
+        }
+      }
       ack?.({ ok: true });
     });
 
@@ -201,13 +235,14 @@ export function setupSocket(httpServer: HttpServer): Server {
       if (!socket.rooms.has(roomKey)) return;
       socket.leave(roomKey);
 
-      if (redis && socket.user?.id) redis.srem(`${roomKey}:online`, socket.user.id).catch(() => {});
-      const set = onlineByChat.get(String(chatId));
-      if (set && socket.user?.id) {
-        set.delete(String(socket.user.id));
-        if (set.size === 0) onlineByChat.delete(String(chatId));
+      if (socket.user?.id) {
+        const uid = String(socket.user.id);
+        const becameOffline = removeSocketFromRoomPresence(String(chatId), uid, socket.id);
+        if (becameOffline) {
+          if (redis) redis.srem(`${roomKey}:online`, uid).catch(() => {});
+          socket.to(roomKey).emit("presence", { userId: uid, online: false });
+        }
       }
-      socket.to(roomKey).emit("presence", { userId: socket.user?.id, online: false });
     });
 
     socket.on("typing", async ({ chatId, typing }: { chatId?: string; typing?: boolean } = {}) => {
@@ -232,51 +267,31 @@ export function setupSocket(httpServer: HttpServer): Server {
         socket.rate!.timestamps.push(now);
 
         const chatId = typeof payload?.chatId === "string" ? payload.chatId : "";
-        const text = typeof payload?.text === "string" ? payload.text : "";
+        const text = typeof payload?.text === "string" ? payload.text : undefined;
         const clientKey = typeof payload?.clientKey === "string" ? payload.clientKey : undefined;
         const fileUrl = typeof payload?.fileUrl === "string" ? payload.fileUrl : undefined;
         const mimeType = typeof payload?.mimeType === "string" ? payload.mimeType : undefined;
         const fileName = typeof payload?.fileName === "string" ? payload.fileName : undefined;
 
-        if (!chatId || (!text.trim() && !fileUrl)) return ack?.({ error: "invalid_payload" });
-
-        const chat = await prisma.chat.findUnique({ where: { id: chatId } });
-        if (!chat) return ack?.({ error: "chat_not_found" });
-
-        const user = socket.user!;
-        if (user.role === "doctor" && chat.doctorId !== user.id) return ack?.({ error: "forbidden" });
-        if (user.role === "patient") {
-          const patient = await prisma.patient.findUnique({ where: { userId: user.id } });
-          if (!patient || patient.id !== chat.patientId) return ack?.({ error: "forbidden" });
-        }
-
-        const sender = user.role === "doctor" ? "doctor" : "patient";
-
-        if (clientKey) {
-          const existing = await prisma.message.findFirst({ where: { chatId, clientKey } });
-          if (existing) {
-            io.to(`chat:${chatId}`).emit("message", { ...existing, time: existing.createdAt, __scope: "chat" });
-            return ack?.({ ok: true, message: existing, existing: true });
-          }
-        }
-
-        const message = await prisma.message.create({
-          data: {
-            chatId,
-            sender,
-            text: text || null,
-            clientKey,
-            fileUrl: fileUrl || null,
-            mimeType: mimeType || null,
-            fileName: fileName || null,
-          },
+        const result = await chatMessageService.sendMessage({
+          userId: socket.user!.id,
+          role: socket.user!.role || "",
+          chatId,
+          text,
+          clientKey,
+          fileUrl,
+          mimeType,
+          fileName,
         });
 
-        const payloadOut = { ...message, time: message.createdAt };
+        const msg = result.message;
+        const payloadOut = { ...msg, time: msg.createdAt };
         io.to(`chat:${chatId}`).emit("message", { ...payloadOut, __scope: "chat" });
-        await prisma.chat.update({ where: { id: chatId }, data: { updatedAt: new Date() } });
-        ack?.({ ok: true, message: payloadOut });
+        ack?.({ ok: true, message: payloadOut, existing: Boolean(result.existing) });
       } catch (err) {
+        if (err instanceof AppError) {
+          return ack?.({ error: err.message || err.code });
+        }
         console.error("socket message error", err);
         ack?.({ error: "server_error" });
       }
@@ -287,18 +302,22 @@ export function setupSocket(httpServer: HttpServer): Server {
       const user = socket.user;
       if (!user?.id) return ack?.({ error: "unauthenticated" });
 
-      for (const id of messageIds) {
-        const msg = await prisma.message.findUnique({ where: { id }, include: { chat: true } });
-        if (!msg || msg.status !== "sent" || !msg.chat) continue;
-        const isAuthorized = await verifyUserChatAccess(user.id, user.role, msg.chatId);
-        if (!isAuthorized) continue;
-        const userSenderType = user.role === "doctor" ? "doctor" : "patient";
-        if (msg.sender === userSenderType) continue;
+      try {
+        const { updated } = await chatMessageService.markMessagesStatus({
+          userId: user.id,
+          role: user.role || "",
+          messageIds,
+          targetStatus: "delivered",
+        });
 
-        await prisma.message.update({ where: { id }, data: { status: "delivered" } });
-        io.to(`chat:${msg.chatId}`).emit("message_update", { id, status: "delivered" });
+        for (const item of updated) {
+          io.to(`chat:${item.chatId}`).emit("message_update", { id: item.id, status: "delivered" });
+        }
+        ack?.({ ok: true, updatedCount: updated.length });
+      } catch (err) {
+        console.error("socket delivered_ack error", err);
+        ack?.({ ok: false });
       }
-      ack?.({ ok: true });
     });
 
     socket.on("read_ack", async ({ messageIds }: { messageIds?: string[] } = {}, ack?: (res: unknown) => void) => {
@@ -306,35 +325,48 @@ export function setupSocket(httpServer: HttpServer): Server {
       const user = socket.user;
       if (!user?.id) return ack?.({ error: "unauthenticated" });
 
-      for (const id of messageIds) {
-        const msg = await prisma.message.findUnique({ where: { id }, include: { chat: true } });
-        if (!msg || msg.status === "read" || !msg.chat) continue;
-        const isAuthorized = await verifyUserChatAccess(user.id, user.role, msg.chatId);
-        if (!isAuthorized) continue;
-        const userSenderType = user.role === "doctor" ? "doctor" : "patient";
-        if (msg.sender === userSenderType) continue;
+      try {
+        const { updated } = await chatMessageService.markMessagesStatus({
+          userId: user.id,
+          role: user.role || "",
+          messageIds,
+          targetStatus: "read",
+        });
 
-        await prisma.message.update({ where: { id }, data: { status: "read" } });
-        io.to(`chat:${msg.chatId}`).emit("message_update", { id, status: "read" });
-        io.to(`chat:${msg.chatId}`).emit("message_read", { messageId: id, userId: user.id, timestamp: new Date() });
+        const timestamp = new Date();
+        for (const item of updated) {
+          io.to(`chat:${item.chatId}`).emit("message_update", { id: item.id, status: "read" });
+          io.to(`chat:${item.chatId}`).emit("message_read", {
+            messageId: item.id,
+            userId: user.id,
+            timestamp,
+          });
+        }
+        ack?.({ ok: true, updatedCount: updated.length });
+      } catch (err) {
+        console.error("socket read_ack error", err);
+        ack?.({ ok: false });
       }
-      ack?.({ ok: true });
+    });
+
+    socket.on("disconnecting", () => {
+      const rooms = Array.from(socket.rooms || []);
+      for (const r of rooms) {
+        if (!r.startsWith("chat:")) continue;
+        const chatId = r.slice(5);
+        if (socket.user?.id) {
+          const uid = String(socket.user.id);
+          const becameOffline = removeSocketFromRoomPresence(chatId, uid, socket.id);
+          if (becameOffline) {
+            if (redis) redis.srem(`chat:${chatId}:online`, uid).catch(() => {});
+            socket.to(r).emit("presence", { userId: uid, online: false });
+          }
+        }
+      }
     });
 
     socket.on("disconnect", () => {
       markUserOffline(socket).catch(() => {});
-      const rooms = Array.from(socket.rooms || []);
-      rooms.forEach((r) => {
-        if (!r.startsWith("chat:")) return;
-        const chatId = r.split(":")[1];
-        if (redis && socket.user?.id) redis.srem(`chat:${chatId}:online`, socket.user.id).catch(() => {});
-        const set = onlineByChat.get(String(chatId));
-        if (set && socket.user?.id) {
-          set.delete(String(socket.user.id));
-          if (set.size === 0) onlineByChat.delete(String(chatId));
-        }
-        socket.to(r).emit("presence", { userId: socket.user?.id, online: false });
-      });
     });
   });
 

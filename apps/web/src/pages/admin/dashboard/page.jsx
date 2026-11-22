@@ -19,6 +19,7 @@ import {
   FaClock,
 } from "react-icons/fa";
 import NotificationBellButton from "@/components/ui/NotificationBellButton";
+import { Button } from "@/components/ui";
 import { useLocale, useTranslations } from "@/lib/compat/intl";
 import { formatActivityDescription } from "@/lib/activityFormat";
 
@@ -415,7 +416,9 @@ export default function AdminDashboardPage() {
                         </span>
                       </div>
                       <div className="flex gap-2 mt-3">
-                        <button
+                        <Button
+                          size="sm"
+                          fullWidth
                           onClick={async () => {
                             await fetch("/api/admin/doctors", {
                               method: "PATCH",
@@ -430,10 +433,9 @@ export default function AdminDashboardPage() {
                             );
                             showSuccess(t("toast.approved"));
                           }}
-                          className="flex-1 btn-gradient px-3 py-2 rounded-lg text-sm transition-colors"
                         >
                           {t("pendingApprovals.approve")}
-                        </button>
+                        </Button>
                         <button
                           onClick={async () => {
                             await fetch("/api/admin/doctors", {

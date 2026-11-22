@@ -10,7 +10,9 @@ export interface ChatMessageService {
     userId: string;
     role: string;
     chatId: string;
-  }): Promise<{ messages: Array<Record<string, unknown>> }>;
+    limit?: number;
+    before?: string;
+  }): Promise<{ messages: Array<Record<string, unknown>>; hasMore?: boolean }>;
   sendMessage(input: {
     userId: string;
     role: string;
@@ -21,6 +23,12 @@ export interface ChatMessageService {
     mimeType?: string;
     fileName?: string;
   }): Promise<{ message: Record<string, unknown>; existing?: boolean }>;
+  markMessagesStatus(input: {
+    userId: string;
+    role: string;
+    messageIds: string[];
+    targetStatus: "delivered" | "read";
+  }): Promise<{ updated: Array<{ id: string; chatId: string; status: "delivered" | "read" }> }>;
 }
 
 async function resolveChatAccess(
@@ -110,8 +118,12 @@ export function createChatMessageService(deps: {
         ]);
       }
 
-      const recent = await deps.chatPatientRepository.listRecentMessages(chatId, 50);
-      return { messages: [...recent].reverse() };
+      const limit = Math.min(Math.max(Number(input.limit) || 50, 1), 100);
+      const before = typeof input.before === "string" && input.before.trim() ? input.before.trim() : undefined;
+      const recent = await deps.chatPatientRepository.listRecentMessages(chatId, limit + 1, before);
+      const hasMore = recent.length > limit;
+      const page = hasMore ? recent.slice(0, limit) : recent;
+      return { messages: [...page].reverse(), hasMore };
     },
 
     async sendMessage(input) {
@@ -151,15 +163,26 @@ export function createChatMessageService(deps: {
         }
       }
 
-      const message = await deps.chatPatientRepository.createMessage({
-        chatId,
-        sender,
-        text: text || null,
-        clientKey: clientKey || null,
-        fileUrl: fileUrl || null,
-        mimeType: mimeType || null,
-        fileName: fileName || null,
-      });
+      let message: Record<string, unknown>;
+      try {
+        message = await deps.chatPatientRepository.createMessage({
+          chatId,
+          sender,
+          text: text || null,
+          clientKey: clientKey || null,
+          fileUrl: fileUrl || null,
+          mimeType: mimeType || null,
+          fileName: fileName || null,
+        });
+      } catch (err) {
+        if (clientKey) {
+          const existingAfterRace = await deps.chatPatientRepository.findMessageByClientKey(chatId, clientKey);
+          if (existingAfterRace) {
+            return { message: existingAfterRace, existing: true };
+          }
+        }
+        throw err;
+      }
 
       await deps.chatPatientRepository.touchChat(chatId);
 
@@ -216,6 +239,53 @@ export function createChatMessageService(deps: {
       }
 
       return { message };
+    },
+
+    async markMessagesStatus(input) {
+      const userId = String(input.userId || "").trim();
+      const role = String(input.role || "").trim();
+      const ids = Array.from(
+        new Set((input.messageIds || []).map((id) => String(id || "").trim()).filter(Boolean)),
+      );
+      if (!userId || ids.length === 0) return { updated: [] };
+
+      const rows = await deps.chatPatientRepository.findMessagesByIds(ids);
+      if (rows.length === 0) return { updated: [] };
+
+      const userSenderType = role === "doctor" ? "doctor" : "patient";
+      const authorizedChatIds = new Set<string>();
+      const uniqueChatIds = Array.from(new Set(rows.map((r) => r.chatId)));
+
+      await Promise.all(
+        uniqueChatIds.map(async (cid) => {
+          try {
+            await resolveChatAccess(deps.chatPatientRepository, { userId, role, chatId: cid });
+            authorizedChatIds.add(cid);
+          } catch {
+            // Unauthorized chatId is excluded
+          }
+        }),
+      );
+
+      const eligible = rows.filter((msg) => {
+        if (!authorizedChatIds.has(msg.chatId)) return false;
+        if (msg.sender === userSenderType) return false;
+        if (input.targetStatus === "delivered") return msg.status === "sent";
+        return msg.status !== "read";
+      });
+
+      if (eligible.length === 0) return { updated: [] };
+
+      const eligibleIds = eligible.map((m) => m.id);
+      await deps.chatPatientRepository.markMessagesStatusByIds(eligibleIds, input.targetStatus);
+
+      return {
+        updated: eligible.map((m) => ({
+          id: m.id,
+          chatId: m.chatId,
+          status: input.targetStatus,
+        })),
+      };
     },
   };
 }

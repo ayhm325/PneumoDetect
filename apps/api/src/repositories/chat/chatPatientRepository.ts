@@ -16,9 +16,11 @@ export interface ChatPatientRepository {
   groupUnreadDoctorMessages(chatIds: string[]): Promise<Array<{ chatId: string; count: number }>>;
   groupUnreadPatientMessages(chatIds: string[]): Promise<Array<{ chatId: string; count: number }>>;
   groupUnreadAllMessages(chatIds: string[]): Promise<Array<{ chatId: string; count: number }>>;
-  listRecentMessages(chatId: string, take: number): Promise<Array<Record<string, unknown>>>;
+  listRecentMessages(chatId: string, take: number, beforeId?: string): Promise<Array<Record<string, unknown>>>;
   markUnreadNotificationsAsRead(userId: string, chatId: string): Promise<void>;
   markMessagesAsRead(chatId: string, sender: "doctor" | "patient"): Promise<void>;
+  findMessagesByIds(ids: string[]): Promise<Array<{ id: string; chatId: string; sender: string; status: string }>>;
+  markMessagesStatusByIds(ids: string[], status: "delivered" | "read"): Promise<void>;
   findMessageByClientKey(chatId: string, clientKey: string): Promise<Record<string, unknown> | null>;
   createMessage(input: {
     chatId: string;
@@ -410,13 +412,13 @@ export function createChatPatientRepository(
       }
     },
 
-    async listRecentMessages(chatId, take) {
+    async listRecentMessages(chatId, take, beforeId) {
       try {
         const messages = await db.message.findMany({
           where: { chatId },
-          orderBy: { createdAt: "desc" },
+          orderBy: [{ createdAt: "desc" }, { id: "desc" }],
           take,
-          skip: 0,
+          ...(beforeId ? { cursor: { id: beforeId }, skip: 1 } : { skip: 0 }),
         });
 
         return messages as unknown as Array<Record<string, unknown>>;
@@ -468,6 +470,46 @@ export function createChatPatientRepository(
         throw new AppError({
           code: "repository_error",
           message: "Failed to mark messages as read",
+          statusCode: 500,
+          cause: error,
+        });
+      }
+    },
+
+    async findMessagesByIds(ids) {
+      if (!ids.length) return [];
+      try {
+        const rows = await db.message.findMany({
+          where: { id: { in: ids } },
+          select: { id: true, chatId: true, sender: true, status: true },
+        });
+        return rows.map((r: { id: string; chatId: string; sender: string; status: string }) => ({
+          id: String(r.id),
+          chatId: String(r.chatId),
+          sender: String(r.sender),
+          status: String(r.status),
+        }));
+      } catch (error) {
+        throw new AppError({
+          code: "repository_error",
+          message: "Failed to load messages by id",
+          statusCode: 500,
+          cause: error,
+        });
+      }
+    },
+
+    async markMessagesStatusByIds(ids, status) {
+      if (!ids.length) return;
+      try {
+        await db.message.updateMany({
+          where: { id: { in: ids } },
+          data: { status },
+        });
+      } catch (error) {
+        throw new AppError({
+          code: "repository_error",
+          message: "Failed to update message status",
           statusCode: 500,
           cause: error,
         });

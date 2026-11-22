@@ -21,6 +21,7 @@ import {
   FaCalendar,
 } from "react-icons/fa";
 import UnifiedCard from "@/components/ui/UnifiedCard";
+import { Button } from "@/components/ui";
 
 export default function PatientProfilePage() {
   const locale = useLocale();
@@ -233,28 +234,26 @@ export default function PatientProfilePage() {
         </div>
         <div className="flex gap-3">
           {!isEditing ? (
-            <button
-              onClick={() => setIsEditing(true)}
-              className="flex items-center gap-2 px-6 py-3 btn-gradient rounded-xl shadow-lg transition-all hover:-translate-y-1 font-medium"
-            >
+            <Button onClick={() => setIsEditing(true)}>
               <FaEdit /> {t("btnEdit")}
-            </button>
+            </Button>
           ) : (
             <>
-              <button
+              <Button
+                variant="secondary"
                 onClick={handleCancel}
                 disabled={loading}
-                className="flex items-center gap-2 px-6 py-3 bg-(--ui-surface) text-(--ui-muted-foreground) border border-(--ui-border) rounded-xl hover:bg-(--ui-surface-2)/60 transition-all font-medium"
               >
                 <FaTimes /> {t("btnCancel")}
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={handleSave}
                 disabled={loading}
-                className="flex items-center gap-2 px-6 py-3 bg-(--ui-success) hover:bg-(--ui-success)/90 text-(--ui-success-foreground) rounded-xl shadow-lg transition-all hover:-translate-y-1 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                isLoading={loading}
+                loadingText={t("saving")}
               >
-                <FaSave /> {loading ? t("saving") : t("btnSave")}
-              </button>
+                <FaSave /> {t("btnSave")}
+              </Button>
             </>
           )}
         </div>
@@ -543,13 +542,14 @@ function DoctorChangeRequestForm({ t, currentDoctorId }) {
         />
       </div>
       <div className="flex justify-end">
-        <button
+        <Button
           type="submit"
           disabled={submitting}
-          className="btn-gradient flex items-center gap-2 px-6 py-3 text-white rounded-xl shadow-lg transition-all hover:-translate-y-0.5 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          isLoading={submitting}
+          loadingText={t("doctorChange.sending")}
         >
-          {submitting ? t("doctorChange.sending") : <span>{t("doctorChange.submit")}</span>}
-        </button>
+          <span>{t("doctorChange.submit")}</span>
+        </Button>
       </div>
     </form>
   );

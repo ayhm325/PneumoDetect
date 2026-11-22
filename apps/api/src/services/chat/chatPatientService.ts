@@ -264,6 +264,7 @@ export function createChatPatientService(deps: {
 
         const patient = await deps.chatPatientRepository.findPatientById(patientId);
         const patientUserId = String((patient as { userId?: string | null } | null)?.userId || "").trim();
+        const assignedDoctorId = String((patient as { doctorId?: string | null } | null)?.doctorId || "").trim();
         const patientName =
           ((patient as { fullName?: string | null } | null)?.fullName || null) ?? null;
         const isPatientActive =
@@ -277,9 +278,27 @@ export function createChatPatientService(deps: {
           });
         }
 
-        const existing = await deps.chatPatientRepository.findChatByDoctorAndPatient(userId, patientId);
-        const chat = existing || (await deps.chatPatientRepository.createChat({ doctorId: userId, patientId }));
-        const created = !existing;
+        if (assignedDoctorId !== userId) {
+          throw new AppError({
+            code: "forbidden",
+            message: "forbidden",
+            statusCode: 403,
+          });
+        }
+
+        let existing = await deps.chatPatientRepository.findChatByDoctorAndPatient(userId, patientId);
+        let chat = existing;
+        let created = false;
+        if (!chat) {
+          try {
+            chat = await deps.chatPatientRepository.createChat({ doctorId: userId, patientId });
+            created = true;
+          } catch {
+            existing = await deps.chatPatientRepository.findChatByDoctorAndPatient(userId, patientId);
+            if (!existing) throw new AppError({ code: "repository_error", message: "Failed to create chat", statusCode: 500 });
+            chat = existing;
+          }
+        }
 
         if (created) {
           await sendChatCreatedNotification({
