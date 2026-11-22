@@ -17,7 +17,15 @@ export function useTranslations(namespace?: string) {
             return t(key, values as Record<string, string>);
           }
           const res = t(key, values as Record<string, string>);
-          return typeof res === "string" ? res : String(res ?? key);
+          let out = typeof res === "string" ? res : String(res ?? key);
+          if (values && typeof values === "object") {
+            out = out.replace(/\{(\w+)\}/g, (match, k) =>
+              Object.prototype.hasOwnProperty.call(values, k) && values[k] !== undefined
+                ? String(values[k])
+                : match,
+            );
+          }
+          return out;
         },
         {
           raw: (key: string) => t(key, { returnObjects: true }),

@@ -112,10 +112,9 @@ export default function DoctorPatientsPage({ locale }) {
   // Fetch real patients from the API (fallback to translation-based template on error)
   useEffect(() => {
     let mounted = true;
-    const prefix = activeLocale ? `/${activeLocale}` : "";
     (async () => {
       try {
-        const res = await fetch(`${prefix}/api/doctor/patients`);
+        const res = await fetch("/api/doctor/patients", { credentials: "include" });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const json = await res.json();
         // support both direct array and { patients: [] }

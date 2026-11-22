@@ -89,7 +89,7 @@ export default function SignUpForm() {
       setDoctorsLoading(true);
       setDoctorsError("");
       try {
-        const apiPath = `/api/doctor/list${process.env.NEXT_PUBLIC_DEBUG_INCLUDE_PENDING === "true" ? "?includePending=true" : ""}`;
+        const apiPath = `/api/doctor/list${import.meta.env.VITE_DEBUG_INCLUDE_PENDING === "true" ? "?includePending=true" : ""}`;
         const res = await fetch(apiPath);
         const data = await res.json();
         if (data.doctors) {
@@ -155,9 +155,7 @@ export default function SignUpForm() {
     setSuccess("");
     try {
       const apiUrl =
-        form.userType === "doctor"
-          ? "/api/doctor"
-          : withLocale(locale, "/api/patient");
+        form.userType === "doctor" ? "/api/doctor" : "/api/patient";
       const payload =
         form.userType === "doctor"
           ? {

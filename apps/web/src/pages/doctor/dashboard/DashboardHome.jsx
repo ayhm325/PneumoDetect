@@ -244,10 +244,82 @@ export default function DashboardHome({ serverData = {} }) {
     return s;
   };
 
+  const [liveData, setLiveData] = useState({
+    counts: { patients: 0, todayAppointments: 0, pendingScans: 0, newMessages: 0 },
+    todayAppointments: [],
+    pendingScansList: [],
+    recentActivity: [],
+    doctorName: "",
+  });
+
+  const hasServerData = Boolean(serverData && Object.keys(serverData).length > 0);
+
+  useEffect(() => {
+    if (hasServerData) return;
+    let mounted = true;
+    (async () => {
+      try {
+        const [meRes, pRes, aRes, rRes, cRes] = await Promise.all([
+          fetch("/api/doctor/me", { credentials: "include" }),
+          fetch("/api/doctor/patients", { credentials: "include" }),
+          fetch("/api/doctor/appointments", { credentials: "include" }),
+          fetch("/api/doctor/results", { credentials: "include" }),
+          fetch("/api/chat/doctor", { credentials: "include" }),
+        ]);
+        const [meJson, pJson, aJson, rJson, cJson] = await Promise.all([
+          meRes.ok ? meRes.json().catch(() => ({})) : {},
+          pRes.ok ? pRes.json().catch(() => ({})) : {},
+          aRes.ok ? aRes.json().catch(() => ({})) : {},
+          rRes.ok ? rRes.json().catch(() => ({})) : {},
+          cRes.ok ? cRes.json().catch(() => ({})) : {},
+        ]);
+        if (!mounted) return;
+
+        const patients = Array.isArray(pJson) ? pJson : Array.isArray(pJson?.patients) ? pJson.patients : [];
+        const appointments = Array.isArray(aJson?.appointments) ? aJson.appointments : Array.isArray(aJson) ? aJson : [];
+        const results = Array.isArray(rJson?.results) ? rJson.results : Array.isArray(rJson?.data) ? rJson.data : [];
+        const chats = Array.isArray(cJson?.chats) ? cJson.chats : Array.isArray(cJson) ? cJson : [];
+
+        const todayStr = new Date().toDateString();
+        const todayAppts = appointments.filter((a) => a.scheduledAt && new Date(a.scheduledAt).toDateString() === todayStr);
+        const pendingResults = results.filter((r) => !r.reviewedByDoctor && r.status !== "reviewed" && r.status !== "completed");
+        const unreadMsgs = chats.reduce((acc, ch) => acc + Number(ch.unreadCount || 0), 0);
+
+        setLiveData({
+          doctorName: meJson?.profile?.name || meJson?.user?.fullName || meJson?.fullName || "",
+          counts: {
+            patients: patients.length,
+            todayAppointments: todayAppts.length,
+            pendingScans: pendingResults.length,
+            newMessages: unreadMsgs,
+          },
+          todayAppointments: todayAppts.map((a) => ({
+            id: a.id,
+            time: a.scheduledAt,
+            patient: a.patientName || a.patient?.fullName || placeholder,
+            type: a.type || "consult",
+            status: a.status,
+          })),
+          pendingScansList: pendingResults.slice(0, 5),
+          recentActivity: [],
+        });
+        setLiveNewMessages(unreadMsgs);
+      } catch {
+        // Keep zero defaults on fetch error
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, [hasServerData, placeholder]);
+
+  const effectiveData =
+    serverData && Object.keys(serverData).length > 0 ? serverData : liveData;
+
   const stats = [
     {
       title: labels.stats.patients,
-      value: serverData.counts?.patients ?? "156",
+      value: effectiveData.counts?.patients ?? 0,
       icon: FaUsers,
       color: "bg-(--ui-info)",
       bgLight: "bg-(--ui-info-bg)",
@@ -255,7 +327,7 @@ export default function DashboardHome({ serverData = {} }) {
     },
     {
       title: labels.stats.todayAppointments,
-      value: serverData.counts?.todayAppointments ?? "12",
+      value: effectiveData.counts?.todayAppointments ?? 0,
       icon: FaCalendarAlt,
       color: "bg-(--ui-success)",
       bgLight: "bg-(--ui-success-bg)",
@@ -263,7 +335,7 @@ export default function DashboardHome({ serverData = {} }) {
     },
     {
       title: labels.stats.pendingScans,
-      value: serverData.counts?.pendingScans ?? "8",
+      value: effectiveData.counts?.pendingScans ?? 0,
       icon: FaXRay,
       color: "bg-(--ui-warning)",
       bgLight: "bg-(--ui-warning-bg)",
@@ -281,8 +353,8 @@ export default function DashboardHome({ serverData = {} }) {
 
   // Use appointments provided by the server. If none, show an empty array so UI can display a no-data message.
   const todayAppointments =
-    serverData.todayAppointments && serverData.todayAppointments.length
-      ? serverData.todayAppointments.map((a, i) => ({
+    effectiveData.todayAppointments && effectiveData.todayAppointments.length
+      ? effectiveData.todayAppointments.map((a, i) => ({
           id: a.id || i,
           time: formatTime(
             a.time,
@@ -330,8 +402,8 @@ export default function DashboardHome({ serverData = {} }) {
   );
 
   const recentActivity =
-    serverData.recentActivity && serverData.recentActivity.length
-      ? serverData.recentActivity.map((r, i) => ({
+    effectiveData.recentActivity && effectiveData.recentActivity.length
+      ? effectiveData.recentActivity.map((r, i) => ({
           id: r.id || i,
           action: formatActivityDescription(
             { type: r.type, description: r.description, meta: r.meta },
@@ -344,8 +416,8 @@ export default function DashboardHome({ serverData = {} }) {
       : defaultRecentActivity;
 
   const pendingScans =
-    serverData.pendingScansList && serverData.pendingScansList.length
-      ? serverData.pendingScansList.map((s, i) => {
+    effectiveData.pendingScansList && effectiveData.pendingScansList.length
+      ? effectiveData.pendingScansList.map((s, i) => {
           const createdAt = s.createdAt ? new Date(s.createdAt) : null;
           const now = new Date();
           const isSameDay = (a, b) =>
@@ -436,14 +508,15 @@ export default function DashboardHome({ serverData = {} }) {
               </h1>
               <p className="mt-2 text-(--ui-muted-foreground)">
                 {labels.welcome}{" "}
-                {serverData.doctor?.user?.fullName ||
+                {effectiveData.doctorName ||
+                  effectiveData.doctor?.user?.fullName ||
                   labels.ui.sampleDoctorName}{" "}
                 - {formattedDate}
               </p>
             </div>
             <NotificationBellButton
               count={unreadNotificationsCount}
-              onClick={() => router.push(`${basePrefix}/doctor/notifications`)}
+              onClick={() => router.push("/doctor/notifications")}
               title={ui("topbar.notifications")}
             />
           </div>

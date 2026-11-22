@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import Image from "next/image";
+import Image from "@/lib/compat/Image";
 import AnalysisDetailsModal from "@/components/analysis/AnalysisDetailsModal";
 import { useLocale, useTranslations } from "@/lib/compat/intl";
 import { formatDateTime } from "@/lib/date";

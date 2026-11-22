@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import Image from "next/image";
+import Image from "@/lib/compat/Image";
 import AnalysisDetailsModal from "@/components/analysis/AnalysisDetailsModal";
 import { useTranslations } from "@/lib/compat/intl";
 

@@ -145,7 +145,7 @@ export default function useSocket({ url } = {}) {
       const auth = authToken ? { token: authToken } : undefined;
       const defaultUrl =
         typeof window !== "undefined" &&
-        (devToken || process.env.NODE_ENV === "development")
+        (devToken || import.meta.env.DEV)
           ? typeof window !== "undefined" &&
             (window.__DEV_SOCKET_URL || globalThis.__DEV_SOCKET_URL)
             ? window.__DEV_SOCKET_URL || globalThis.__DEV_SOCKET_URL

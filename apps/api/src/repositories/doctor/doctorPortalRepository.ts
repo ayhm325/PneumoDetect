@@ -375,8 +375,7 @@ export function createDoctorPortalRepository(
             select: {
               userId: true,
               phone: true,
-              specialty: true,
-              bio: true,
+              clinic: true,
               licenseNumber: true,
               status: true,
               createdAt: true,
@@ -392,8 +391,9 @@ export function createDoctorPortalRepository(
             ? {
                 userId: doctor.userId,
                 phone: doctor.phone || null,
-                specialty: doctor.specialty || null,
-                bio: doctor.bio || null,
+                clinic: doctor.clinic || null,
+                specialty: null,
+                bio: null,
                 licenseNumber: doctor.licenseNumber,
                 status: doctor.status,
                 createdAt: doctor.createdAt,
