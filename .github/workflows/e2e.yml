@@ -28,8 +28,12 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     env:
+      NODE_ENV: test
+      AI_USE_MOCK: "true"
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/detect
-      PW_BASE_URL: http://localhost:3000
+      JWT_SECRET: ci-e2e-jwt-secret-key-at-least-32-characters
+      PW_BASE_URL: http://localhost:5173
+      PW_STORAGE_STATE: playwright/.auth/patient.json
 
     steps:
       - name: Checkout
@@ -52,32 +56,45 @@ jobs:
           echo "Postgres did not become ready" && exit 1
 
       - name: Push Prisma schema to DB
-        run: npx prisma db push
+        run: npx prisma db push --schema=apps/api/prisma/schema.prisma
 
       - name: Generate Prisma client
-        run: npx prisma generate
+        run: npx prisma generate --schema=apps/api/prisma/schema.prisma
 
       - name: Seed database for E2E
-        run: |
-          if [ -f prisma/seed.cjs ]; then
-            echo "Running prisma/seed.cjs"
-            node prisma/seed.cjs
-          elif [ -f scripts/seed-e2e.js ]; then
-            echo "Running scripts/seed-e2e.js"
-            node scripts/seed-e2e.js
-          elif [ -f scripts/seedAnalysisResult.js ]; then
-            echo "Running scripts/seedAnalysisResult.js"
-            node scripts/seedAnalysisResult.js
-          else
-            echo "No seed script found, skipping"
-          fi
-        shell: bash
+        run: node apps/api/prisma/seed.cjs
 
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps
+        run: npx playwright install --with-deps chromium
+
+      - name: Start API and Web servers
+        run: |
+          nohup npm run dev:api > /tmp/api.log 2>&1 &
+          nohup npm run dev:web > /tmp/web.log 2>&1 &
+          for i in {1..60}; do
+            curl -sf http://localhost:4000/api/health > /dev/null && curl -sf http://localhost:5173 > /dev/null && exit 0
+            sleep 2
+          done
+          echo "Servers did not become ready"
+          cat /tmp/api.log || true
+          cat /tmp/web.log || true
+          exit 1
+        shell: bash
 
       - name: Generate Playwright storage state
         run: node playwright/generate-storage-state.mjs
 
       - name: Run E2E Test
-        run: npm run test:e2e
+        run: npx playwright test playwright-tests/analysis-e2e.spec.js --project=chromium
+
+      - name: Upload Playwright artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-e2e-artifacts
+          path: |
+            playwright-report/
+            test-results/
+            /tmp/api.log
+            /tmp/web.log
+          retention-days: 7

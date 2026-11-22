@@ -47,6 +47,8 @@ uploadsRouter.post(
 
 uploadsRouter.put(
   "/uploads/local-upload",
+  requireAuth,
+  withRateLimit("PUT /api/uploads/local-upload"),
   express.raw({ type: "*/*", limit: "25mb" }),
   async (req, res, next) => {
     try {

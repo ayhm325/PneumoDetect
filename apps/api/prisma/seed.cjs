@@ -5,6 +5,7 @@
 //    node prisma/seed.cjs
 // استدعاء PrismaClient للتعامل مع قاعدة البيانات
 const { PrismaClient } = require("@prisma/client");
+const bcrypt = require("bcryptjs");
 const prisma = new PrismaClient();
 
 /**
@@ -12,16 +13,17 @@ const prisma = new PrismaClient();
  * أي إنشاء بيانات أولية في قاعدة البيانات
  */
 async function main() {
+  const hashedPassword = bcrypt.hashSync("changeme", 10);
+
   // إنشاء أو تحديث المستخدم الإداري (Admin)
   const admin = await prisma.user.upsert({
     // نبحث عن مستخدم موجود بنفس البريد الإلكتروني
     where: { email: "admin@example.com" },
-    // إذا وجدناه، لا نحدث أي شيء (update فارغة)
-    update: {},
+    update: { password: hashedPassword, isActive: true },
     // إذا لم يوجد، نقوم بإنشاء مستخدم جديد بالإعدادات التالية
     create: {
       email: "admin@example.com",
-      password: "changeme",  // يجب تغييرها لاحقًا
+      password: hashedPassword,
       fullName: "Admin User",
       role: "admin",
       isActive: true,
@@ -31,10 +33,10 @@ async function main() {
   // إنشاء أو تحديث مستخدم طبيب (Doctor)
   const doctorUser = await prisma.user.upsert({
     where: { email: "doctor@example.com" },
-    update: {},
+    update: { password: hashedPassword, isActive: true },
     create: {
       email: "doctor@example.com",
-      password: "changeme",
+      password: hashedPassword,
       fullName: "Dr. John Doe",
       role: "doctor",
       isActive: true,
@@ -56,10 +58,10 @@ async function main() {
   // إنشاء أو تحديث مستخدم مريض (Patient)
   const patientUser = await prisma.user.upsert({
     where: { email: "patient@example.com" },
-    update: {},
+    update: { password: hashedPassword, isActive: true },
     create: {
       email: "patient@example.com",
-      password: "changeme",
+      password: hashedPassword,
       fullName: "Patient One",
       role: "patient",
       isActive: true,

@@ -41,16 +41,24 @@ function guessContentType(name: string): string {
 }
 
 function ensureUploadsPath(relPath: string): string {
-  const normalized = path.normalize(relPath).replace(/^([./\\])+/, "");
-  const normalizedSlashes = normalized.replace(/\\/g, "/");
-  if (!normalizedSlashes.startsWith("uploads/")) {
+  const normalized = path.posix.normalize(String(relPath || "").replace(/\\/g, "/")).replace(/^([./])+/, "");
+  if (!normalized.startsWith("uploads/") || normalized.includes("..")) {
     throw new AppError({
       code: "validation_error",
       message: "invalid_upload_path",
       statusCode: 400,
     });
   }
-  return normalizedSlashes;
+  const uploadsRoot = path.resolve(process.cwd(), "public", "uploads");
+  const resolved = path.resolve(process.cwd(), "public", normalized);
+  if (!resolved.startsWith(uploadsRoot + path.sep)) {
+    throw new AppError({
+      code: "validation_error",
+      message: "invalid_upload_path",
+      statusCode: 400,
+    });
+  }
+  return normalized;
 }
 
 export interface UploadService {

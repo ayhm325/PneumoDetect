@@ -52,7 +52,9 @@ export async function authenticateToken(token: string): Promise<{ token: string;
   }
 
   try {
-    const payload = jwt.verify(token, getJwtSecret()) as jwt.JwtPayload;
+    const payload = jwt.verify(token, getJwtSecret(), {
+      algorithms: ["HS256"],
+    }) as jwt.JwtPayload;
     const userId = payload.id as string | undefined;
     if (!userId) {
       throw new AppError({

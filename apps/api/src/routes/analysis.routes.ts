@@ -2,6 +2,7 @@ import { Router } from "express";
 import fs from "fs/promises";
 import formidable from "formidable";
 import { requireAuth, type AuthenticatedRequest } from "../middleware/auth.js";
+import { withRateLimit } from "../middleware/rateLimit.js";
 import { analysisService, analysisHistoryService } from "../services/analysis/index.js";
 import { predictService } from "../services/predict/index.js";
 import { AppError } from "../lib/errors/appError.js";
@@ -17,7 +18,11 @@ function parseWithHeatmap(raw: unknown): boolean {
   return normalized === "true" || normalized === "on" || normalized === "1" || normalized === "yes";
 }
 
-analysisRouter.post("/predict", async (req, res, next) => {
+analysisRouter.post(
+  "/predict",
+  requireAuth,
+  withRateLimit("POST /api/predict"),
+  async (req, res, next) => {
   try {
     const contentType = String(req.headers["content-type"] || "");
     if (!contentType.toLowerCase().includes("application/json")) {

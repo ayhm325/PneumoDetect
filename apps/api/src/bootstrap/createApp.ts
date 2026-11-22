@@ -5,6 +5,7 @@ import helmet from "helmet";
 import path from "path";
 import { fileURLToPath } from "url";
 import { env } from "../config/env.js";
+import { requireAuth } from "../middleware/auth.js";
 import { errorHandler } from "../middleware/errorHandler.js";
 import { healthRouter } from "../routes/health.routes.js";
 import { authRouter } from "../routes/auth.routes.js";
@@ -44,10 +45,11 @@ export function createApp() {
   app.use(express.json({ limit: "10mb" }));
   app.use(express.urlencoded({ extended: true }));
 
-  // Serve static uploaded files & generated AI heatmaps
-  app.use("/uploads", express.static(path.join(repoRoot, "public", "uploads")));
+  // Serve static uploaded files & generated AI heatmaps (authenticated)
+  app.use("/uploads", requireAuth, express.static(path.join(repoRoot, "public", "uploads")));
   app.use(
     "/static/heatmaps",
+    requireAuth,
     express.static(path.join(repoRoot, "python_model", "static", "heatmaps")),
   );
 

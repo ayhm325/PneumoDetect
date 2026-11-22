@@ -30,12 +30,20 @@ const ipHits = new Map();
 // ===============================================
 // Singleton Redis client
 function getRedisClient() {
-  if (globalThis.__rl_redis) return globalThis.__rl_redis;
-  const redisUrl =
-    process.env.REDIS_URL || process.env.REDIS_URI || "redis://127.0.0.1:6379";
-  const client = new Redis(redisUrl);
+  if (globalThis.__rl_redis !== undefined) return globalThis.__rl_redis;
+  const redisUrl = process.env.REDIS_URL || process.env.REDIS_URI;
+  if (!redisUrl) {
+    globalThis.__rl_redis = null;
+    return null;
+  }
+  const client = new Redis(redisUrl, {
+    enableOfflineQueue: false,
+    maxRetriesPerRequest: 1,
+    connectTimeout: 1000,
+    lazyConnect: true,
+  });
   globalThis.__rl_redis = client;
-  client.on("error", (err) => console.error("Redis client error:", err));
+  client.on("error", (err) => console.error("Redis client error:", err?.message || err));
   return client;
 }
 
@@ -103,24 +111,26 @@ export async function rateLimit(request) {
   `;
 
   // Retry عند فشل Redis
-  for (let attempt = 1; attempt <= RATE_LIMIT_REDIS_RETRIES; attempt++) {
-    try {
-      const current = await redis.eval(luaScript, 1, key, RATE_LIMIT_WINDOW_MS);
-      const count = Number(current || 0);
-      if (count > max) {
-        console.info(`Rate limit exceeded for ${key}: ${count} > ${max}`);
-        return { limited: true };
-      }
-      return { limited: false };
-    } catch (err) {
-      console.warn(
-        `Redis attempt ${attempt} failed for key ${key}:`,
-        err.message
-      );
-      if (attempt === RATE_LIMIT_REDIS_RETRIES) {
-        console.error("Redis unavailable, falling back to memory store");
-      } else {
-        await new Promise((res) => setTimeout(res, 50 * attempt)); // backoff صغير
+  if (redis) {
+    for (let attempt = 1; attempt <= RATE_LIMIT_REDIS_RETRIES; attempt++) {
+      try {
+        const current = await redis.eval(luaScript, 1, key, RATE_LIMIT_WINDOW_MS);
+        const count = Number(current || 0);
+        if (count > max) {
+          console.info(`Rate limit exceeded for ${key}: ${count} > ${max}`);
+          return { limited: true };
+        }
+        return { limited: false };
+      } catch (err) {
+        console.warn(
+          `Redis attempt ${attempt} failed for key ${key}:`,
+          err.message
+        );
+        if (attempt === RATE_LIMIT_REDIS_RETRIES) {
+          console.error("Redis unavailable, falling back to memory store");
+        } else {
+          await new Promise((res) => setTimeout(res, 50 * attempt)); // backoff صغير
+        }
       }
     }
   }

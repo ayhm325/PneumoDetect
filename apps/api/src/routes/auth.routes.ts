@@ -86,6 +86,6 @@ authRouter.post("/auth/is-revoked", async (req, res) => {
     return sendJsonNoStore(res, { revoked: Boolean(revoked) }, 200);
   } catch (error) {
     console.error("/api/auth/is-revoked error", error);
-    return sendJsonNoStore(res, { revoked: false }, 500);
+    return sendJsonNoStore(res, { revoked: true, error: "revocation_check_unavailable" }, 500);
   }
 });
