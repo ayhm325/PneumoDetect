@@ -14,8 +14,10 @@ export function PneumoCard({
   return (
     <motion.article
       className={clsx("pd-card", `pd-card--${tone}`, className)}
-      whileHover={hover && !reduceMotion ? { y: -3 } : undefined}
-      transition={{ duration: 0.2, ease: "easeOut" }}
+      initial={reduceMotion ? false : { opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={hover && !reduceMotion ? { y: -4 } : undefined}
+      transition={{ type: "spring", stiffness: 320, damping: 26 }}
     >
       {children}
     </motion.article>

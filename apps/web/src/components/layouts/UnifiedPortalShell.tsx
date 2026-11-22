@@ -56,27 +56,29 @@ function SidebarNavItem({
           aria-label={isCollapsed ? item.label : undefined}
           title={isCollapsed ? item.label : undefined}
           className={({ isActive: linkActive }) =>
-            `group relative flex h-11 items-center rounded-[var(--shape-control)] text-sm font-medium transition-colors ${
+            `group relative flex h-11 items-center rounded-2xl text-sm font-medium transition-colors ${
               isCollapsed ? "justify-center px-0" : "gap-3 px-3.5"
             } ${
               linkActive
-                ? "bg-[var(--pd-crimson)] text-[#faf0e1] shadow-[var(--pd-shadow-sm)]"
+                ? "text-[#faf0e1]"
                 : "text-[var(--pd-text-secondary)] hover:bg-[var(--pd-surface-2)] hover:text-[var(--pd-text-primary)]"
             }`
           }
         >
           {({ isActive: linkActive }) => (
             <>
-              {linkActive && !isCollapsed && (
-                <span
+              {linkActive && (
+                <motion.span
+                  layoutId="portal-active-pill"
+                  transition={{ type: "spring", stiffness: 360, damping: 30 }}
                   aria-hidden="true"
-                  className="absolute inset-y-2 start-0 w-[3px] rounded-full bg-[var(--pd-parchment)]"
+                  className="absolute inset-0 rounded-2xl bg-[var(--pd-red)] shadow-[var(--pd-glow-copper)]"
                 />
               )}
-              <span className="shrink-0 text-base transition-transform duration-150 group-hover:scale-105">
+              <span className="relative z-10 shrink-0 text-base transition-transform duration-150 group-hover:scale-105">
                 {item.icon}
               </span>
-              {!isCollapsed && <span className="truncate">{item.label}</span>}
+              {!isCollapsed && <span className="relative z-10 truncate">{item.label}</span>}
             </>
           )}
         </NavLink>
