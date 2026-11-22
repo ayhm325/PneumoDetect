@@ -591,21 +591,23 @@ export default function DashboardHome({ serverData = {} }) {
             </div>
           </div>
 
-          {/* Recent Activity — Open Editorial List */}
-          <ActivityList
-            title={labels.recentActivityTitle}
-            emptyMessage={
-              locale === "ar"
-                ? "لا يوجد نشاط سريري مسجل حتى الآن."
-                : "No clinical activity recorded yet."
-            }
-            items={recentActivity.map((activity, idx) => ({
-              id: String(activity.id),
-              title: activity.action,
-              timestamp: activity.time,
-              tone: ["red", "cream", "sage", "olive"][idx % 4],
-            }))}
-          />
+          {/* Recent Activity — Anchored Bento Card */}
+          <PneumoCard tone="olive" hover={false}>
+            <ActivityList
+              title={labels.recentActivityTitle}
+              emptyMessage={
+                locale === "ar"
+                  ? "لا يوجد نشاط سريري مسجل حتى الآن."
+                  : "No clinical activity recorded yet."
+              }
+              items={recentActivity.map((activity, idx) => ({
+                id: String(activity.id),
+                title: activity.action,
+                timestamp: activity.time,
+                tone: ["red", "cream", "sage", "olive"][idx % 4],
+              }))}
+            />
+          </PneumoCard>
         </div>
       </div>
     </>

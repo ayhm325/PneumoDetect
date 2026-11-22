@@ -395,53 +395,55 @@ export default function PatientDashboardPage() {
             </PneumoCard>
           </div>
 
-          <div className="pd-span-5 flex flex-col justify-start pt-1">
-            {overviewLoading ? (
-              <div className="space-y-3">
-                {[1, 2].map((i) => (
-                  <div key={i} className="pd-skeleton h-14 rounded-xl" />
-                ))}
-              </div>
-            ) : upcomingAppointments.length === 0 ? (
-              <div className="py-6">
-                <h3 className="mb-3 text-lg font-semibold">
-                  {locale === "ar" ? "المواعيد القادمة" : "Upcoming Appointments"}
-                </h3>
-                <p className="text-sm text-[var(--pd-text-muted)]">
-                  {locale === "ar" ? "لا توجد مواعيد محجوزة حالياً." : "No appointments scheduled yet."}
-                </p>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="mt-4"
-                  onClick={() => router.push(`${basePrefix}/patient/appointments`)}
-                >
-                  {t("dashboard.quickActions.bookAppointment")}
-                </Button>
-              </div>
-            ) : (
-              <ActivityList
-                title={locale === "ar" ? "المواعيد القادمة" : "Upcoming Appointments"}
-                headerAction={
-                  <button
-                    type="button"
+          <div className="pd-span-5">
+            <PneumoCard tone="cream" hover={false} className="h-full">
+              {overviewLoading ? (
+                <div className="space-y-3">
+                  {[1, 2].map((i) => (
+                    <div key={i} className="pd-skeleton h-14 rounded-xl" />
+                  ))}
+                </div>
+              ) : upcomingAppointments.length === 0 ? (
+                <div className="py-6">
+                  <h3 className="mb-3 text-lg font-medium">
+                    {locale === "ar" ? "المواعيد القادمة" : "Upcoming Appointments"}
+                  </h3>
+                  <p className="text-sm opacity-80">
+                    {locale === "ar" ? "لا توجد مواعيد محجوزة حالياً." : "No appointments scheduled yet."}
+                  </p>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="mt-4"
                     onClick={() => router.push(`${basePrefix}/patient/appointments`)}
-                    className="pd-btn pd-btn--link text-xs"
                   >
-                    {locale === "ar" ? "كل المواعيد" : "All appointments"}
-                  </button>
-                }
-                items={upcomingAppointments.map((appt, idx) => ({
-                  id: String(appt.id || idx),
-                  title: appt.doctorName || appt.doctor?.user?.fullName || (locale === "ar" ? "موعد طبي" : "Medical Visit"),
-                  description: appt.status || "scheduled",
-                  timestamp: appt.scheduledAt
-                    ? new Date(appt.scheduledAt).toLocaleDateString(locale === "en" ? "en-US" : "ar-EG")
-                    : placeholder,
-                  tone: idx === 0 ? "red" : "sage",
-                }))}
-              />
-            )}
+                    {t("dashboard.quickActions.bookAppointment")}
+                  </Button>
+                </div>
+              ) : (
+                <ActivityList
+                  title={locale === "ar" ? "المواعيد القادمة" : "Upcoming Appointments"}
+                  headerAction={
+                    <button
+                      type="button"
+                      onClick={() => router.push(`${basePrefix}/patient/appointments`)}
+                      className="text-xs font-medium underline underline-offset-4 opacity-85 hover:opacity-100"
+                    >
+                      {locale === "ar" ? "كل المواعيد" : "All appointments"}
+                    </button>
+                  }
+                  items={upcomingAppointments.map((appt, idx) => ({
+                    id: String(appt.id || idx),
+                    title: appt.doctorName || appt.doctor?.user?.fullName || (locale === "ar" ? "موعد طبي" : "Medical Visit"),
+                    description: appt.status || "scheduled",
+                    timestamp: appt.scheduledAt
+                      ? new Date(appt.scheduledAt).toLocaleDateString(locale === "en" ? "en-US" : "ar-EG")
+                      : placeholder,
+                    tone: idx === 0 ? "red" : "sage",
+                  }))}
+                />
+              )}
+            </PneumoCard>
           </div>
         </div>
 

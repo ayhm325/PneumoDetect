@@ -290,22 +290,24 @@ export default function Page() {
             </div>
           </div>
 
-          {/* Recent Activity — Open Editorial List */}
-          <ActivityList
-            title={t("recentActivityTitle")}
-            items={recentActivity.map((activity, index) => ({
-              id: `doc-act-${index}`,
-              title: activity.actionLabel,
-              description: activity.patient,
-              timestamp: activity.time,
-              tone:
-                activity.status === "completed"
-                  ? "sage"
-                  : activity.status === "pending"
-                    ? "red"
-                    : "cream",
-            }))}
-          />
+          {/* Recent Activity — Anchored Bento Card */}
+          <PneumoCard tone="sage" hover={false}>
+            <ActivityList
+              title={t("recentActivityTitle")}
+              items={recentActivity.map((activity, index) => ({
+                id: `doc-act-${index}`,
+                title: activity.actionLabel,
+                description: activity.patient,
+                timestamp: activity.time,
+                tone:
+                  activity.status === "completed"
+                    ? "olive"
+                    : activity.status === "pending"
+                      ? "red"
+                      : "cream",
+              }))}
+            />
+          </PneumoCard>
         </div>
       </div>
     </DoctorLayout>

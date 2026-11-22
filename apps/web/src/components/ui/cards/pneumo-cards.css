@@ -426,12 +426,12 @@
   gap: 12px;
   margin-bottom: 14px;
   padding-bottom: 12px;
-  border-bottom: 1px solid var(--pd-line-strong, rgba(241, 222, 196, 0.23));
+  border-bottom: 1px solid color-mix(in srgb, currentColor 20%, transparent);
 }
 
 .pd-activity__header h3 {
   font-size: 18px;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .pd-activity__list {
@@ -446,7 +446,7 @@
   align-items: center;
   gap: 14px;
   padding: 15px 4px;
-  border-bottom: 1px solid var(--pd-line, rgba(241, 222, 196, 0.14));
+  border-bottom: 1px solid color-mix(in srgb, currentColor 14%, transparent);
 }
 
 .pd-activity__item:last-child {

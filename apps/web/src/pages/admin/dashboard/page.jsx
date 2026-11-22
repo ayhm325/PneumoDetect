@@ -457,7 +457,7 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* Recent Activities — Open Editorial List */}
+        {/* Recent Activities — Anchored Bento Card */}
         <div className="mt-10">
           {activitiesLoading ? (
             <div className="text-sm text-[var(--pd-text-muted)]">
@@ -466,18 +466,20 @@ export default function AdminDashboardPage() {
           ) : activitiesError ? (
             <div className="text-sm text-[var(--pd-red)]">{activitiesError}</div>
           ) : (
-            <ActivityList
-              title={t("recentActivity.title")}
-              emptyMessage={t("recentActivity.empty")}
-              items={recentActivities.map((activity, idx) => ({
-                id: String(activity.id || idx),
-                title: formatActivityDescription(activity, locale),
-                timestamp: new Date(activity.createdAt).toLocaleString(
-                  locale === "en" ? "en-US" : "ar-EG",
-                ),
-                tone: ["red", "cream", "sage", "olive"][idx % 4],
-              }))}
-            />
+            <PneumoCard tone="sage" hover={false}>
+              <ActivityList
+                title={t("recentActivity.title")}
+                emptyMessage={t("recentActivity.empty")}
+                items={recentActivities.map((activity, idx) => ({
+                  id: String(activity.id || idx),
+                  title: formatActivityDescription(activity, locale),
+                  timestamp: new Date(activity.createdAt).toLocaleString(
+                    locale === "en" ? "en-US" : "ar-EG",
+                  ),
+                  tone: ["red", "cream", "olive", "cream"][idx % 4],
+                }))}
+              />
+            </PneumoCard>
           )}
         </div>
       </div>

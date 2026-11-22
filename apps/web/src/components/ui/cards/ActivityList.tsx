@@ -51,7 +51,7 @@ export function ActivityList({
                     <button
                       type="button"
                       onClick={item.onAction}
-                      className="pd-btn pd-btn--link text-xs"
+                      className="text-xs font-medium underline underline-offset-4 opacity-90 transition-opacity hover:opacity-100"
                     >
                       {item.actionLabel}
                     </button>
