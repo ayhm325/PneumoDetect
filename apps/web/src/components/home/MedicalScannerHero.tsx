@@ -8,6 +8,7 @@ export function MedicalScannerHero() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [scanActive, setScanActive] = useState(true);
+  const [gradCamMode, setGradCamMode] = useState(true);
   const [isReducedMotion, setIsReducedMotion] = useState(false);
 
   useEffect(() => {
@@ -58,7 +59,7 @@ export function MedicalScannerHero() {
 
       // 1. Equal 4-color radial glow (#BD4444, #73976A, #677E61, #F1DEC4)
       const bgGrad = ctx.createRadialGradient(cx, cy, 30, cx, cy, 220);
-      bgGrad.addColorStop(0, "rgba(189, 68, 68, 0.22)");
+      bgGrad.addColorStop(0, gradCamMode ? "rgba(189, 68, 68, 0.28)" : "rgba(115, 151, 106, 0.16)");
       bgGrad.addColorStop(0.45, "rgba(115, 151, 106, 0.18)");
       bgGrad.addColorStop(0.75, "rgba(103, 126, 97, 0.12)");
       bgGrad.addColorStop(1, "rgba(241, 222, 196, 0)");
@@ -191,12 +192,12 @@ export function MedicalScannerHero() {
       cancelAnimationFrame(animationFrameId);
       observer.disconnect();
     };
-  }, [scanActive, isReducedMotion]);
+  }, [scanActive, gradCamMode, isReducedMotion]);
 
   return (
     <div
       ref={containerRef}
-      className="pd-shape-arch relative flex items-center justify-center overflow-hidden border border-[var(--pd-border)] bg-[var(--pd-surface-inset)] p-4 sm:p-6 shadow-[var(--pd-shadow-deep)]"
+      className="relative flex items-center justify-center overflow-hidden rounded-[28px] border border-[var(--pd-line-strong)] bg-[var(--pd-ink-deep)] p-4 shadow-[var(--pd-shadow-deep)] sm:p-6"
     >
       <div className="pd-grid-bg pointer-events-none absolute inset-0" aria-hidden="true" />
 
@@ -221,7 +222,18 @@ export function MedicalScannerHero() {
         <span>{isAr ? "نظام الفرز السريري نشط" : "Clinical Screening Active"}</span>
       </div>
 
-      <div className="absolute bottom-4 end-4 z-20">
+      <div className="absolute bottom-4 end-4 z-20 flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => setGradCamMode((v) => !v)}
+          className={`rounded-full border px-3 py-1 text-[11px] font-medium backdrop-blur-md transition-colors ${
+            gradCamMode
+              ? "border-[var(--pd-red)] bg-[var(--pd-red)]/85 text-[#faf0e1]"
+              : "border-[var(--pd-border-strong)] bg-[var(--pd-bg)]/90 text-[var(--pd-text-secondary)]"
+          }`}
+        >
+          Grad-CAM
+        </button>
         <button
           type="button"
           onClick={() => setScanActive((v) => !v)}

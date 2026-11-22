@@ -16,6 +16,17 @@ export function FeatureCard({
 }: FeatureCardProps) {
   return (
     <PneumoCard tone={tone} className={className ? `pd-feature ${className}` : "pd-feature"}>
+      <svg
+        aria-hidden="true"
+        viewBox="0 0 160 160"
+        fill="none"
+        className="pointer-events-none absolute -end-6 -bottom-6 h-40 w-40 opacity-[0.07]"
+      >
+        <circle cx="80" cy="80" r="68" stroke="currentColor" strokeWidth="1.5" strokeDasharray="4 6" />
+        <circle cx="80" cy="80" r="44" stroke="currentColor" strokeWidth="1.2" />
+        <circle cx="80" cy="80" r="18" stroke="currentColor" strokeWidth="1.2" />
+      </svg>
+
       <div className="pd-feature__top">
         {eyebrow ? <span className="pd-feature__eyebrow">{eyebrow}</span> : <span />}
 
