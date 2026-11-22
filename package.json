@@ -60,6 +60,7 @@
     "@babel/preset-env": "^7.28.5",
     "@babel/preset-react": "^7.28.5",
     "@babel/preset-typescript": "^7.28.5",
+    "@eslint/js": "^9.39.5",
     "@openapitools/openapi-generator-cli": "^2.25.2",
     "@playwright/test": "^1.57.0",
     "@tailwindcss/postcss": "^4",
@@ -70,13 +71,15 @@
     "concurrently": "^8.2.0",
     "cross-env": "^10.1.0",
     "eslint": "^9",
+    "eslint-plugin-react-hooks": "^7.1.1",
     "jest": "^30.2.0",
     "next-test-api-route-handler": "^5.0.3",
     "playwright": "^1.57.0",
     "prisma": "^6.19.1",
     "supertest": "^7.1.4",
     "tailwindcss": "^4.1.18",
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "typescript-eslint": "^8.73.0"
   },
   "eslintConfig": {
     "extends": "next/core-web-vitals",

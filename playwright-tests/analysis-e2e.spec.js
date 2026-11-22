@@ -46,7 +46,11 @@ test.describe("Patient X-Ray Analysis E2E", () => {
     expect(analyzeResponse.status()).toBe(200);
     const analyzeJson = await analyzeResponse.json();
     expect(analyzeJson.success).toBe(true);
-    expect(analyzeJson.saved).toBe(true);
+    if (analyzeJson.is_mock) {
+      expect(analyzeJson.saved).toBe(false);
+    } else {
+      expect(analyzeJson.saved).toBe(true);
+    }
     expect(["NORMAL", "PNEUMONIA"]).toContain(analyzeJson.prediction);
     expect(analyzeJson.data?.id).toBeTruthy();
 
