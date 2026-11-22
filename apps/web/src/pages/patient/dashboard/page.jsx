@@ -14,10 +14,13 @@ import { useRouter } from "@/lib/compat/navigation";
 import { useToast } from "@/components/ui/ToastProvider";
 import {
   FaCalendarAlt,
+  FaComments,
   FaFileAlt,
+  FaFileMedicalAlt,
   FaEnvelope,
   FaHeartbeat,
   FaArrowUp,
+  FaXRay,
 } from "react-icons/fa";
 import { useTranslations, useLocale } from "@/lib/compat/intl";
 import PatientDashboardWrapper from "@/components/PatientDashboardWrapper";
@@ -38,6 +41,9 @@ export default function PatientDashboardPage() {
   const seenMessageKeysRef = useRef(new Set());
 
   const [patientName, setPatientName] = useState("");
+  const [recentAnalyses, setRecentAnalyses] = useState([]);
+  const [upcomingAppointments, setUpcomingAppointments] = useState([]);
+  const [overviewLoading, setOverviewLoading] = useState(true);
 
   const formatClinicalStatus = useCallback(
     (value) => {
@@ -254,30 +260,58 @@ export default function PatientDashboardPage() {
     };
   }, []);
 
+  // Fetch recent analyses & upcoming appointments for patient overview
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const [histRes, apptRes] = await Promise.all([
+          fetch("/api/analysis/history?limit=3", { credentials: "include" }).catch(() => null),
+          fetch("/api/patient/appointments", { credentials: "include" }).catch(() => null),
+        ]);
+        if (!mounted) return;
+        if (histRes?.ok) {
+          const histData = await histRes.json().catch(() => ({}));
+          setRecentAnalyses(Array.isArray(histData?.data) ? histData.data.slice(0, 3) : []);
+        }
+        if (apptRes?.ok) {
+          const apptData = await apptRes.json().catch(() => ({}));
+          const list = Array.isArray(apptData?.appointments) ? apptData.appointments : [];
+          setUpcomingAppointments(list.slice(0, 3));
+        }
+      } finally {
+        if (mounted) setOverviewLoading(false);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   /* ===================== QUICK ACTIONS ===================== */
   const quickActions = [
     {
       title: t("dashboard.quickActions.bookAppointment"),
       desc: t("dashboard.quickActions.desc.bookAppointment"),
-      icon: "📅",
+      Icon: FaCalendarAlt,
       href: "/patient/appointments",
     },
     {
       title: t("dashboard.quickActions.uploadXray"),
       desc: t("dashboard.quickActions.desc.uploadXray"),
-      icon: "🩻",
+      Icon: FaXRay,
       href: "/patient/analysis",
     },
     {
       title: t("dashboard.quickActions.viewReports"),
       desc: t("dashboard.quickActions.desc.viewReports"),
-      icon: "📋",
+      Icon: FaFileMedicalAlt,
       href: "/patient/results",
     },
     {
       title: t("dashboard.quickActions.chatDoctor"),
       desc: t("dashboard.quickActions.desc.chatDoctor"),
-      icon: "💬",
+      Icon: FaComments,
       href: "/patient/chat",
     },
   ];
@@ -312,23 +346,155 @@ export default function PatientDashboardPage() {
           ))}
         </div>
 
+        {/* Recent Analyses & Upcoming Appointments */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <Card>
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="flex items-center gap-2 text-lg font-bold text-(--ui-foreground)">
+                <FaXRay className="text-(--color-primary-500)" />
+                <span>{locale === "ar" ? "أحدث تحليلات الأشعة" : "Recent X-Ray Analyses"}</span>
+              </h2>
+              <button
+                type="button"
+                onClick={() => router.push(`${basePrefix}/patient/analysis/history`)}
+                className="text-xs font-semibold text-(--color-primary-500) hover:underline"
+              >
+                {locale === "ar" ? "عرض السجل" : "View history"}
+              </button>
+            </div>
+
+            {overviewLoading ? (
+              <div className="space-y-3">
+                {[1, 2].map((i) => (
+                  <div key={i} className="h-14 animate-pulse rounded-xl bg-(--ui-surface-2)" />
+                ))}
+              </div>
+            ) : recentAnalyses.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-(--ui-border) bg-(--ui-surface-2)/40 p-6 text-center">
+                <p className="text-sm font-medium text-(--ui-muted-foreground)">
+                  {locale === "ar" ? "لا توجد تحليلات أشعة مسجلة بعد." : "No X-ray analyses recorded yet."}
+                </p>
+                <Button
+                  size="sm"
+                  className="mt-3"
+                  onClick={() => router.push(`${basePrefix}/patient/analysis`)}
+                >
+                  {t("dashboard.quickActions.uploadXray")}
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-2.5">
+                {recentAnalyses.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between rounded-xl border border-(--ui-border) bg-(--ui-surface-2)/50 px-4 py-3"
+                  >
+                    <div>
+                      <p className="text-sm font-bold text-(--ui-foreground)">
+                        {item.prediction || (locale === "ar" ? "نتيجة تحليل" : "Analysis Result")}
+                      </p>
+                      <p className="text-xs text-(--ui-muted-foreground)">
+                        {item.createdAt
+                          ? new Date(item.createdAt).toLocaleDateString(locale === "en" ? "en-US" : "ar-EG")
+                          : placeholder}
+                      </p>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => router.push(`${basePrefix}/patient/results`)}
+                    >
+                      {locale === "ar" ? "التفاصيل" : "Details"}
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
+
+          <Card>
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="flex items-center gap-2 text-lg font-bold text-(--ui-foreground)">
+                <FaCalendarAlt className="text-(--color-secondary-500)" />
+                <span>{locale === "ar" ? "المواعيد القادمة" : "Upcoming Appointments"}</span>
+              </h2>
+              <button
+                type="button"
+                onClick={() => router.push(`${basePrefix}/patient/appointments`)}
+                className="text-xs font-semibold text-(--color-primary-500) hover:underline"
+              >
+                {locale === "ar" ? "كل المواعيد" : "All appointments"}
+              </button>
+            </div>
+
+            {overviewLoading ? (
+              <div className="space-y-3">
+                {[1, 2].map((i) => (
+                  <div key={i} className="h-14 animate-pulse rounded-xl bg-(--ui-surface-2)" />
+                ))}
+              </div>
+            ) : upcomingAppointments.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-(--ui-border) bg-(--ui-surface-2)/40 p-6 text-center">
+                <p className="text-sm font-medium text-(--ui-muted-foreground)">
+                  {locale === "ar" ? "لا توجد مواعيد محجوزة حالياً." : "No appointments scheduled yet."}
+                </p>
+                <Button
+                  size="sm"
+                  className="mt-3"
+                  onClick={() => router.push(`${basePrefix}/patient/appointments`)}
+                >
+                  {t("dashboard.quickActions.bookAppointment")}
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-2.5">
+                {upcomingAppointments.map((appt) => (
+                  <div
+                    key={appt.id}
+                    className="flex items-center justify-between rounded-xl border border-(--ui-border) bg-(--ui-surface-2)/50 px-4 py-3"
+                  >
+                    <div>
+                      <p className="text-sm font-bold text-(--ui-foreground)">
+                        {appt.doctorName || appt.doctor?.user?.fullName || (locale === "ar" ? "موعد طبي" : "Medical Visit")}
+                      </p>
+                      <p className="text-xs text-(--ui-muted-foreground)">
+                        {appt.scheduledAt
+                          ? new Date(appt.scheduledAt).toLocaleString(locale === "en" ? "en-US" : "ar-EG")
+                          : placeholder}
+                      </p>
+                    </div>
+                    <span className="rounded-full bg-(--ui-info-bg) px-2.5 py-1 text-xs font-semibold text-(--ui-info)">
+                      {appt.status || "scheduled"}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
+        </div>
+
         {/* Quick Actions */}
-        <h2 className="text-2xl font-bold mb-4">
-          {t("dashboard.quickActions.title")}
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {quickActions.map((a, i) => (
-            <Button
-              key={i}
-              onClick={() => router.push(`${basePrefix}${a.href}`)}
-              size="lg"
-              className="h-auto min-h-[136px] flex-col items-start rounded-xl p-6 text-start"
-            >
-              <div className="text-4xl mb-3">{a.icon}</div>
-              <h3 className="font-bold">{a.title}</h3>
-              <p className="text-sm opacity-90">{a.desc}</p>
-            </Button>
-          ))}
+        <div>
+          <h2 className="mb-4 text-xl font-bold text-(--ui-foreground)">
+            {t("dashboard.quickActions.title")}
+          </h2>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {quickActions.map((a, i) => {
+              const ActionIcon = a.Icon;
+              return (
+                <Button
+                  key={i}
+                  onClick={() => router.push(`${basePrefix}${a.href}`)}
+                  size="lg"
+                  className="h-auto min-h-[124px] flex-col items-start rounded-xl p-5 text-start"
+                >
+                  <ActionIcon className="mb-3 text-2xl" />
+                  <h3 className="font-bold">{a.title}</h3>
+                  <p className="mt-1 text-xs opacity-90">{a.desc}</p>
+                </Button>
+              );
+            })}
+          </div>
         </div>
       </div>
     </PatientDashboardWrapper>

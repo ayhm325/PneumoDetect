@@ -112,19 +112,19 @@ export default function AdminDashboardPage() {
     {
       title: t("quickActions.users.title"),
       description: t("quickActions.users.desc"),
-      icon: "ðŸ‘¥",
+      Icon: FaUsers,
       action: () => router.push(`${basePrefix}/admin/users`),
     },
     {
       title: t("quickActions.doctors.title"),
       description: t("quickActions.doctors.desc"),
-      icon: "ðŸ‘¨â€âš•ï¸",
+      Icon: FaUserMd,
       action: () => router.push(`${basePrefix}/admin/doctors`),
     },
     {
       title: t("quickActions.patients.title"),
       description: t("quickActions.patients.desc"),
-      icon: "ðŸ¥",
+      Icon: FaUserInjured,
       action: () => router.push(`${basePrefix}/admin/patients`),
     },
   ];
@@ -265,12 +265,14 @@ export default function AdminDashboardPage() {
                 <div className="p-3 rounded-lg brand-gradient shadow-(--shadow-soft)">
                   <stat.icon className="text-2xl text-white" />
                 </div>
-                <div
-                  className={`flex items-center gap-1 text-sm ${stat.trend === "up" ? "text-(--ui-success)" : "text-(--ui-danger)"}`}
-                >
-                  {stat.trend === "up" ? <FaArrowUp /> : <FaArrowDown />}
-                  <span>{stat.changePercent}</span>
-                </div>
+                {stat.changePercent ? (
+                  <div
+                    className={`flex items-center gap-1 text-sm ${stat.trend === "up" ? "text-(--ui-success)" : "text-(--ui-danger)"}`}
+                  >
+                    {stat.trend === "up" ? <FaArrowUp /> : <FaArrowDown />}
+                    <span>{stat.changePercent}</span>
+                  </div>
+                ) : null}
               </div>
               <h3 className="text-(--ui-muted-2) text-sm font-medium mb-2">
                 {stat.title}
@@ -286,27 +288,30 @@ export default function AdminDashboardPage() {
             {t("quickActionsTitle")}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {quickActions.map((action, index) => (
-              <button
-                key={index}
-                onClick={action.action}
-                className="card-glass text-foreground rounded-xl shadow-(--shadow-soft) p-6 border border-(--ui-border) hover:shadow-(--shadow-lift) transition-all hover:-translate-y-0.5 group text-left"
-              >
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl brand-gradient text-white text-2xl shadow-(--shadow-soft) mb-3">
-                  {action.icon}
-                </div>
-                <h3 className="text-lg font-bold mb-2">{action.title}</h3>
-                <p className="text-sm text-(--ui-muted-2)">
-                  {action.description}
-                </p>
-                <div className="mt-4 flex items-center gap-2 text-(--ui-muted-2) group-hover:gap-3 transition-all">
-                  <span className="text-sm">{t("more")}</span>
-                  <span className="group-hover:-translate-x-1 transition-transform">
-                    {locale === "en" ? "â†’" : "â†"}
-                  </span>
-                </div>
-              </button>
-            ))}
+            {quickActions.map((action, index) => {
+              const ActionIcon = action.Icon;
+              return (
+                <button
+                  key={index}
+                  onClick={action.action}
+                  className="card-glass text-foreground rounded-xl shadow-(--shadow-soft) p-6 border border-(--ui-border) hover:shadow-(--shadow-lift) transition-all hover:-translate-y-0.5 group text-start"
+                >
+                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl brand-gradient text-white text-xl shadow-(--shadow-soft) mb-3">
+                    <ActionIcon />
+                  </div>
+                  <h3 className="text-lg font-bold mb-2">{action.title}</h3>
+                  <p className="text-sm text-(--ui-muted-2)">
+                    {action.description}
+                  </p>
+                  <div className="mt-4 flex items-center gap-2 text-(--ui-muted-2) group-hover:gap-3 transition-all">
+                    <span className="text-sm">{t("more")}</span>
+                    <span className="transition-transform group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5">
+                      {locale === "en" ? "→" : "←"}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </div>
 

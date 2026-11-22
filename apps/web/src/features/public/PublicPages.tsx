@@ -1,7 +1,24 @@
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { FaArrowLeft, FaArrowRight, FaCheckCircle, FaChevronDown, FaShieldAlt, FaStethoscope } from "react-icons/fa";
+import {
+  FaArrowLeft,
+  FaArrowRight,
+  FaBolt,
+  FaCalendarCheck,
+  FaChartBar,
+  FaCheckCircle,
+  FaChevronDown,
+  FaComments,
+  FaFileMedicalAlt,
+  FaGlobe,
+  FaLock,
+  FaShieldAlt,
+  FaStethoscope,
+  FaUserMd,
+  FaUserShield,
+  FaXRay,
+} from "react-icons/fa";
 
 export function HomePage() {
   const { i18n } = useTranslation();
@@ -9,70 +26,110 @@ export function HomePage() {
   const { t: hero } = useTranslation("hero");
   const { t: features } = useTranslation("features");
   const { t: workflow } = useTranslation("workflowsection");
-  const { t: content } = useTranslation("content");
-  const { t: testimonialsT } = useTranslation("testimonialssection");
-
-  const [activeTestimonial, setActiveTestimonial] = useState(0);
-
-  const heroStats = useMemo(
-    () => [
-      { value: hero("stats1"), label: hero("statsLabel1") },
-      { value: hero("stats3"), label: hero("statsLabel3") },
-      { value: hero("stats4"), label: hero("statsLabel4") },
-    ],
-    [hero],
-  );
-
-  const featureItems = useMemo(
-    () => [
-      { icon: "/icons/ai.svg", title: features("item1.title"), desc: features("item1.desc") },
-      { icon: "/icons/xray.svg", title: features("item2.title"), desc: features("item2.desc") },
-      { icon: "/icons/result.svg", title: features("item3.title"), desc: features("item3.desc") },
-    ],
-    [features],
-  );
-
-  const extraItems = useMemo(
-    () => [
-      { icon: "🔒", title: features("extra1.title"), desc: features("extra1.desc") },
-      { icon: "⚡", title: features("extra2.title"), desc: features("extra2.desc") },
-      { icon: "📊", title: features("extra3.title"), desc: features("extra3.desc") },
-      { icon: "🌐", title: features("extra4.title"), desc: features("extra4.desc") },
-    ],
-    [features],
-  );
+  const [previewTab, setPreviewTab] = useState<"ai" | "care">("ai");
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   const workflowData = (workflow("content.workflow", { returnObjects: true }) || {}) as {
     title?: string;
     subtitle?: string;
     ctaTitle?: string;
     ctaSubtitle?: string;
-    steps?: Array<{ icon: string; title: string; desc: string }>;
+    steps?: Array<{ icon?: string; title: string; desc: string }>;
   };
   const workflowSteps = Array.isArray(workflowData.steps) ? workflowData.steps : [];
 
-  const statsData = (content("content.stats", { returnObjects: true }) || {}) as {
-    title?: string;
-    subtitle?: string;
-    cards?: Array<{
-      icon: string;
-      number: string | number;
-      suffix?: string;
-      label: string;
-      description: string;
-    }>;
-  };
-  const statsCards = Array.isArray(statsData.cards) ? statsData.cards : [];
+  const capabilities = [
+    {
+      icon: FaXRay,
+      title: features("item1.title"),
+      desc: features("item1.desc"),
+    },
+    {
+      icon: FaFileMedicalAlt,
+      title: features("item2.title"),
+      desc: features("item2.desc"),
+    },
+    {
+      icon: FaUserMd,
+      title: features("item3.title"),
+      desc: features("item3.desc"),
+    },
+  ];
 
-  const testimonialData = (testimonialsT("testimonials", { returnObjects: true }) || {}) as {
-    title?: string;
-    subtitle?: string;
-    items?: Array<{ image?: string; name: string; role: string; text: string }>;
-    badges?: Array<{ icon: string; text: string }>;
-  };
-  const testimonialItems = Array.isArray(testimonialData.items) ? testimonialData.items : [];
-  const testimonialBadges = Array.isArray(testimonialData.badges) ? testimonialData.badges : [];
-  const currentTestimonial = testimonialItems[activeTestimonial] || null;
+  const highlights = [
+    { icon: FaLock, title: features("extra1.title"), desc: features("extra1.desc") },
+    { icon: FaBolt, title: features("extra2.title"), desc: features("extra2.desc") },
+    { icon: FaChartBar, title: features("extra3.title"), desc: features("extra3.desc") },
+    { icon: FaGlobe, title: features("extra4.title"), desc: features("extra4.desc") },
+  ];
+
+  const securityPillars = isAr
+    ? [
+        {
+          icon: FaUserShield,
+          title: "صلاحيات دقيقة حسب الدور",
+          desc: "عزل كامل لبيانات المرضى بحيث يصل كل طبيب فقط إلى مرضاه المرتبطين به.",
+        },
+        {
+          icon: FaLock,
+          title: "جلسات محمية وملفات آمنة",
+          desc: "توثيق عبر HttpOnly Cookies مع إمكانية إلغاء الجلسات الفوري والتحقق من الروابط.",
+        },
+        {
+          icon: FaStethoscope,
+          title: "قرار سريري بيد الطبيب",
+          desc: "الذكاء الاصطناعي أداة مساعدة للفرز البصري، ويظل التشخيص النهائي بيد الطبيب المختص.",
+        },
+      ]
+    : [
+        {
+          icon: FaUserShield,
+          title: "Strict Role-Based Access",
+          desc: "Patient records and conversations are scoped strictly to authorized linked physicians.",
+        },
+        {
+          icon: FaLock,
+          title: "Hardened Session & File Security",
+          desc: "HttpOnly JWT cookies, token revocation checks, and signed upload paths.",
+        },
+        {
+          icon: FaStethoscope,
+          title: "Physician-Led Decisions",
+          desc: "AI screening supports clinical review; final diagnosis always remains with the doctor.",
+        },
+      ];
+
+  const faqPreview = isAr
+    ? [
+        {
+          q: "كيف يساعد نموذج الذكاء الاصطناعي في قراءة الأشعة؟",
+          a: "يحلل نموذج DenseNet121 صورة الأشعة السينية للصدر وينتج خريطة حرارية (Grad-CAM) تبرز المناطق ذات الأهمية لتسريع المراجعة السريرية.",
+        },
+        {
+          q: "هل يغني التحليل الآلي عن مراجعة الطبيب؟",
+          a: "لا. المنصة أداة مساعدة لدعم القرار الطبي وليست بديلاً عن التشخيص الطبي المعتمد من الطبيب.",
+        },
+        {
+          q: "كيف يتواصل المريض مع طبيبه بعد الفحص؟",
+          a: "من خلال بوابة المريض يمكن حجز موعد ومشاركة نتائج الأشعة والتواصل المباشر عبر المحادثة الفورية.",
+        },
+      ]
+    : [
+        {
+          q: "How does the AI model assist with chest X-rays?",
+          a: "DenseNet121 screens uploaded chest X-rays and generates a Grad-CAM heatmap highlighting regions of interest for faster clinical review.",
+        },
+        {
+          q: "Does AI screening replace a doctor's diagnosis?",
+          a: "No. PneumoDetect is a clinical decision-support tool; every result should be reviewed by a qualified physician.",
+        },
+        {
+          q: "How do patients follow up with their doctor?",
+          a: "Patients can review their scan history, book appointments, and message their assigned doctor in real time.",
+        },
+      ];
+
+  const ArrowIcon = isAr ? FaArrowLeft : FaArrowRight;
 
   return (
     <div className="bg-[var(--ui-surface-2)] text-[var(--ui-foreground)]">
@@ -80,13 +137,14 @@ export function HomePage() {
       <section className="relative overflow-hidden border-b border-[var(--ui-border)] bg-[var(--ui-surface)]">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(79,70,229,0.12),transparent_55%),radial-gradient(ellipse_at_bottom_left,_rgba(8,145,178,0.10),transparent_55%)]"
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(53,106,230,0.12),transparent_55%),radial-gradient(ellipse_at_bottom_left,_rgba(19,168,158,0.10),transparent_55%)]"
         />
         <div className="relative mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-20">
           <div className="grid items-center gap-12 lg:grid-cols-12">
-            <div className="space-y-7 lg:col-span-6">
-              <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-primary-500)]/25 bg-[var(--color-primary-100)]/60 px-3.5 py-1.5 text-xs font-bold text-[var(--color-primary-900)] dark:bg-[var(--color-primary-900)]/30 dark:text-[var(--color-primary-100)]">
-                <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
+            {/* Hero Copy */}
+            <div className="space-y-6 lg:col-span-6">
+              <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-primary-500)]/25 bg-[var(--color-primary-100)]/70 px-3.5 py-1.5 text-xs font-bold text-[var(--color-primary-900)] dark:bg-[var(--color-primary-900)]/30 dark:text-[var(--color-primary-100)]">
+                <FaStethoscope className="h-3.5 w-3.5 text-[var(--color-secondary-500)]" />
                 <span>{hero("futuristic.actions.analyzeXray")}</span>
               </div>
 
@@ -94,7 +152,7 @@ export function HomePage() {
                 <h1 className="text-3xl font-black leading-[1.2] tracking-tight text-[var(--ui-foreground)] sm:text-4xl lg:text-5xl">
                   {hero("content.hero.title")}
                 </h1>
-                <p className="text-base font-medium text-[var(--color-primary-500)] sm:text-lg">
+                <p className="text-base font-semibold text-[var(--color-primary-500)] sm:text-lg">
                   {hero("content.hero.subtitle")}
                 </p>
                 <p className="max-w-xl text-sm leading-7 text-[var(--ui-muted)] sm:text-base">
@@ -105,10 +163,10 @@ export function HomePage() {
               <div className="flex flex-wrap items-center gap-3.5">
                 <Link
                   to="/signup"
-                  className="inline-flex items-center gap-2 rounded-xl bg-[var(--color-primary-500)] px-6 py-3.5 text-sm font-bold text-white shadow-md shadow-indigo-500/20 transition hover:bg-[var(--color-primary-900)]"
+                  className="inline-flex items-center gap-2 rounded-xl bg-[var(--color-primary-500)] px-6 py-3.5 text-sm font-bold text-white shadow-md transition hover:bg-[var(--color-primary-900)]"
                 >
                   <span>{hero("content.hero.primaryCta")}</span>
-                  {isAr ? <FaArrowLeft className="text-xs" /> : <FaArrowRight className="text-xs" />}
+                  <ArrowIcon className="h-3.5 w-3.5" />
                 </Link>
                 <Link
                   to="/login"
@@ -118,65 +176,135 @@ export function HomePage() {
                 </Link>
               </div>
 
-              <div className="grid grid-cols-3 gap-3 pt-2">
-                {heroStats.map((item, index) => (
-                  <div
-                    key={`hero-stat-${index}`}
-                    className="rounded-2xl border border-[var(--ui-border)] bg-[var(--ui-surface-2)]/70 p-3.5"
-                  >
-                    <p className="text-xl font-black tabular-nums text-[var(--color-primary-500)] sm:text-2xl">
-                      {item.value}
-                    </p>
-                    <p className="mt-0.5 text-xs font-medium text-[var(--ui-muted)]">{item.label}</p>
-                  </div>
-                ))}
-              </div>
+              <p className="flex items-center gap-2 text-xs font-medium text-[var(--ui-muted)]">
+                <FaShieldAlt className="h-3.5 w-3.5 shrink-0 text-[var(--color-secondary-500)]" />
+                <span>
+                  {isAr
+                    ? "أداة مساعدة لدعم القرار السريري — لا تغني عن استشارة الطبيب المختص."
+                    : "Clinical decision-support platform — designed to assist, never replace, qualified physicians."}
+                </span>
+              </p>
             </div>
 
-            {/* Bento Medical Visual Grid */}
-            <div className="grid grid-cols-2 gap-4 lg:col-span-6">
-              <div className="group relative col-span-2 overflow-hidden rounded-3xl border border-[var(--ui-border)] bg-slate-900 shadow-lg">
-                <img
-                  src="/icons/hero1.jpeg"
-                  alt="AI Chest X-Ray Screening"
-                  className="h-60 w-full object-cover opacity-90 transition duration-500 group-hover:scale-105 sm:h-72"
-                />
-                <div className="absolute inset-x-4 bottom-4 flex items-center justify-between rounded-2xl border border-white/15 bg-slate-950/75 px-4 py-3 text-white backdrop-blur-md">
-                  <div className="flex items-center gap-2.5">
-                    <FaStethoscope className="text-cyan-400" />
-                    <div>
-                      <p className="text-xs font-bold">DenseNet121 + Grad-CAM</p>
-                      <p className="text-[11px] text-slate-300">
-                        {isAr ? "تحليل فوري وخريطة حرارية" : "Instant Screening & Heatmap"}
+            {/* Interactive Product Preview */}
+            <div className="lg:col-span-6">
+              <div className="overflow-hidden rounded-3xl border border-[var(--ui-border)] bg-[var(--ui-surface-elevated)] shadow-xl">
+                <div className="flex items-center justify-between border-b border-[var(--ui-border)] bg-[var(--ui-surface-2)] px-4 py-3">
+                  <div className="flex items-center gap-2">
+                    <span className="h-2.5 w-2.5 rounded-full bg-rose-400" />
+                    <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
+                    <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
+                    <span className="ms-2 text-xs font-semibold text-[var(--ui-muted)]">
+                      {isAr ? "معاينة توضيحية للواجهة" : "Illustrative Interface Preview"}
+                    </span>
+                  </div>
+                  <div className="flex rounded-lg border border-[var(--ui-border)] bg-[var(--ui-surface)] p-0.5 text-xs font-semibold">
+                    <button
+                      type="button"
+                      onClick={() => setPreviewTab("ai")}
+                      className={`rounded-md px-2.5 py-1 transition ${
+                        previewTab === "ai"
+                          ? "bg-[var(--color-primary-500)] text-white"
+                          : "text-[var(--ui-muted)] hover:text-[var(--ui-foreground)]"
+                      }`}
+                    >
+                      {isAr ? "تحليل الأشعة" : "AI Screening"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPreviewTab("care")}
+                      className={`rounded-md px-2.5 py-1 transition ${
+                        previewTab === "care"
+                          ? "bg-[var(--color-primary-500)] text-white"
+                          : "text-[var(--ui-muted)] hover:text-[var(--ui-foreground)]"
+                      }`}
+                    >
+                      {isAr ? "متابعة الطبيب" : "Care Flow"}
+                    </button>
+                  </div>
+                </div>
+
+                {previewTab === "ai" ? (
+                  <div className="space-y-4 p-5">
+                    <div className="grid gap-4 sm:grid-cols-5">
+                      <div className="relative overflow-hidden rounded-2xl border border-[var(--ui-border)] bg-slate-950 sm:col-span-3">
+                        <img
+                          src="/icons/hero1.jpeg"
+                          alt={isAr ? "معاينة تحليل الأشعة السينية" : "Chest X-Ray Screening Preview"}
+                          className="h-48 w-full object-cover opacity-85"
+                        />
+                        <div className="absolute inset-x-3 bottom-3 flex items-center justify-between rounded-xl border border-white/15 bg-slate-950/80 px-3 py-2 text-xs text-white backdrop-blur-sm">
+                          <span className="font-semibold">DenseNet121 + Grad-CAM</span>
+                          <span className="rounded-full bg-[var(--color-secondary-500)]/25 px-2 py-0.5 text-[10px] font-bold text-teal-200">
+                            {isAr ? "خريطة حرارية" : "Heatmap Layer"}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col justify-between gap-3 rounded-2xl border border-[var(--ui-border)] bg-[var(--ui-surface-2)]/70 p-4 sm:col-span-2">
+                        <div>
+                          <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--ui-muted)]">
+                            {isAr ? "مسار الفحص" : "Screening Output"}
+                          </p>
+                          <p className="mt-1 text-sm font-bold text-[var(--ui-foreground)]">
+                            {isAr ? "مؤشر فرز + تفسير بصري" : "Screening Flag + Visual Map"}
+                          </p>
+                        </div>
+                        <div className="space-y-2 text-xs text-[var(--ui-muted)]">
+                          <div className="flex items-center gap-2">
+                            <FaCheckCircle className="shrink-0 text-[var(--ui-success)]" />
+                            <span>{isAr ? "فحص تنسيق الصورة" : "Image integrity check"}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <FaCheckCircle className="shrink-0 text-[var(--ui-success)]" />
+                            <span>{isAr ? "حفظ في السجل الطبي" : "Saved to medical record"}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <FaCheckCircle className="shrink-0 text-[var(--ui-info)]" />
+                            <span>{isAr ? "إشعار للطبيب المعالج" : "Routed for doctor review"}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="grid gap-3 p-5 sm:grid-cols-3">
+                    <div className="rounded-2xl border border-[var(--ui-border)] bg-[var(--ui-surface-2)]/70 p-4">
+                      <FaXRay className="h-5 w-5 text-[var(--color-primary-500)]" />
+                      <h3 className="mt-3 text-sm font-bold">
+                        {isAr ? "1. رفع الأشعة" : "1. Upload Scan"}
+                      </h3>
+                      <p className="mt-1 text-xs leading-relaxed text-[var(--ui-muted)]">
+                        {isAr ? "يرفع المريض أو الطبيب صورة الأشعة السينية." : "Patient or doctor uploads a chest X-ray."}
+                      </p>
+                    </div>
+                    <div className="rounded-2xl border border-[var(--ui-border)] bg-[var(--ui-surface-2)]/70 p-4">
+                      <FaCalendarCheck className="h-5 w-5 text-[var(--color-secondary-500)]" />
+                      <h3 className="mt-3 text-sm font-bold">
+                        {isAr ? "2. المواعيد والنتائج" : "2. Review & Book"}
+                      </h3>
+                      <p className="mt-1 text-xs leading-relaxed text-[var(--ui-muted)]">
+                        {isAr ? "متابعة الحالة وحجز موعد مع الطبيب المختص." : "Track results and schedule follow-up visits."}
+                      </p>
+                    </div>
+                    <div className="rounded-2xl border border-[var(--ui-border)] bg-[var(--ui-surface-2)]/70 p-4">
+                      <FaComments className="h-5 w-5 text-[var(--color-primary-500)]" />
+                      <h3 className="mt-3 text-sm font-bold">
+                        {isAr ? "3. محادثة فورية" : "3. Live Chat"}
+                      </h3>
+                      <p className="mt-1 text-xs leading-relaxed text-[var(--ui-muted)]">
+                        {isAr ? "تواصل مباشر وآمن بين الطبيب والمريض." : "Direct real-time doctor–patient messaging."}
                       </p>
                     </div>
                   </div>
-                  <span className="rounded-full bg-emerald-500/20 px-2.5 py-1 text-[11px] font-bold text-emerald-300">
-                    Active
-                  </span>
-                </div>
-              </div>
-
-              <div className="group overflow-hidden rounded-2xl border border-[var(--ui-border)] bg-[var(--ui-surface)] shadow-sm">
-                <img
-                  src="/icons/hero2.jpeg"
-                  alt="Radiology Review"
-                  className="h-36 w-full object-cover transition duration-500 group-hover:scale-105 sm:h-44"
-                />
-              </div>
-              <div className="group overflow-hidden rounded-2xl border border-[var(--ui-border)] bg-[var(--ui-surface)] shadow-sm">
-                <img
-                  src="/icons/hero3.jpeg"
-                  alt="Doctor Consultation"
-                  className="h-36 w-full object-cover transition duration-500 group-hover:scale-105 sm:h-44"
-                />
+                )}
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Core Features */}
+      {/* Product Capabilities */}
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
@@ -188,39 +316,45 @@ export function HomePage() {
         </div>
 
         <div className="mt-10 grid gap-5 md:grid-cols-3">
-          {featureItems.map((item, index) => (
-            <div
-              key={`feature-${index}`}
-              className="rounded-2xl border border-[var(--ui-border)] bg-[var(--ui-surface)] p-6 shadow-xs transition hover:-translate-y-0.5 hover:border-[var(--color-primary-500)]/40 hover:shadow-md"
-            >
-              <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--color-primary-100)] dark:bg-[var(--color-primary-900)]/40">
-                <img src={item.icon} alt={item.title} width={26} height={26} />
+          {capabilities.map((item, index) => {
+            const Icon = item.icon;
+            return (
+              <div
+                key={`cap-${index}`}
+                className="rounded-2xl border border-[var(--ui-border)] bg-[var(--ui-surface)] p-6 shadow-xs transition hover:-translate-y-0.5 hover:border-[var(--color-primary-500)]/40 hover:shadow-md"
+              >
+                <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--color-primary-100)] text-[var(--color-primary-500)] dark:bg-[var(--color-primary-900)]/40">
+                  <Icon className="h-5 w-5" />
+                </div>
+                <h3 className="mt-4 text-lg font-bold">{item.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-[var(--ui-muted)]">{item.desc}</p>
               </div>
-              <h3 className="mt-4 text-lg font-bold">{item.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-[var(--ui-muted)]">{item.desc}</p>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
-        <div className="mt-5 grid gap-4 sm:grid-cols-2">
-          {extraItems.map((item, index) => (
-            <div
-              key={`extra-${index}`}
-              className="flex items-start gap-4 rounded-2xl border border-[var(--ui-border)] bg-[var(--ui-surface)] p-5"
-            >
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[var(--ui-surface-2)] text-xl">
-                {item.icon}
-              </span>
-              <div>
-                <h4 className="font-bold">{item.title}</h4>
-                <p className="mt-1 text-sm text-[var(--ui-muted)]">{item.desc}</p>
+        <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {highlights.map((item, index) => {
+            const Icon = item.icon;
+            return (
+              <div
+                key={`highlight-${index}`}
+                className="flex items-start gap-3.5 rounded-2xl border border-[var(--ui-border)] bg-[var(--ui-surface)] p-5"
+              >
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--ui-surface-2)] text-[var(--color-secondary-500)]">
+                  <Icon className="h-4 w-4" />
+                </span>
+                <div>
+                  <h4 className="text-sm font-bold">{item.title}</h4>
+                  <p className="mt-1 text-xs leading-relaxed text-[var(--ui-muted)]">{item.desc}</p>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </section>
 
-      {/* Clinical Workflow */}
+      {/* How It Works */}
       <section className="border-y border-[var(--ui-border)] bg-[var(--ui-surface)] py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
@@ -239,11 +373,11 @@ export function HomePage() {
                 className="relative rounded-2xl border border-[var(--ui-border)] bg-[var(--ui-surface-2)]/60 p-6"
               >
                 <div className="flex items-center justify-between">
-                  <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--ui-surface)] shadow-xs">
-                    <img src={step.icon} alt={step.title} width={26} height={26} />
-                  </div>
-                  <span className="rounded-full bg-[var(--color-primary-500)]/10 px-3 py-1 text-xs font-extrabold text-[var(--color-primary-500)]">
+                  <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--color-primary-500)] text-sm font-extrabold text-white shadow-xs">
                     0{index + 1}
+                  </span>
+                  <span className="text-xs font-semibold text-[var(--ui-muted)]">
+                    {isAr ? "خطوة سريرية" : "Workflow Step"}
                   </span>
                 </div>
                 <h3 className="mt-4 text-lg font-bold">{step.title}</h3>
@@ -251,139 +385,108 @@ export function HomePage() {
               </div>
             ))}
           </div>
-
-          {/* CTA Banner */}
-          <div className="mt-10 flex flex-col items-center justify-between gap-6 rounded-3xl bg-gradient-to-r from-[var(--color-primary-500)] via-indigo-600 to-[var(--color-secondary-500)] p-8 text-white shadow-xl sm:flex-row">
-            <div>
-              <h3 className="text-xl font-extrabold">{workflowData.ctaTitle}</h3>
-              <p className="mt-1 text-sm text-indigo-100">{workflowData.ctaSubtitle}</p>
-            </div>
-            <Link
-              to="/signup"
-              className="shrink-0 rounded-xl bg-white px-6 py-3 text-sm font-bold text-[var(--color-primary-900)] shadow-sm transition hover:bg-indigo-50"
-            >
-              {hero("content.hero.primaryCta")}
-            </Link>
-          </div>
         </div>
       </section>
 
-      {/* Impact Stats */}
+      {/* Privacy & Security */}
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
-            {statsData.title}
-          </h2>
-          <p className="mt-2 text-sm text-[var(--ui-muted)] sm:text-base">{statsData.subtitle}</p>
-        </div>
-
-        <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {statsCards.map((stat, index) => (
-            <div
-              key={`stat-${index}`}
-              className="rounded-2xl border border-[var(--ui-border)] bg-[var(--ui-surface)] p-6 shadow-xs"
-            >
-              <span className="text-2xl" aria-hidden="true">
-                {stat.icon}
-              </span>
-              <p className="mt-3 text-3xl font-black tabular-nums text-[var(--color-primary-500)]">
-                {stat.number}
-                {stat.suffix}
-              </p>
-              <p className="mt-1 font-bold">{stat.label}</p>
-              <p className="mt-1 text-xs leading-relaxed text-[var(--ui-muted)]">
-                {stat.description}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
-            {testimonialData.title}
+            {isAr ? "الأمان والخصوصية الطبية" : "Clinical Security & Privacy"}
           </h2>
           <p className="mt-2 text-sm text-[var(--ui-muted)] sm:text-base">
-            {testimonialData.subtitle}
+            {isAr
+              ? "بنية مصممة لحماية بيانات المرضى وصلاحيات الوصول بين الأدوار."
+              : "Designed from the ground up for role isolation and secure medical workflows."}
           </p>
         </div>
 
-        {currentTestimonial && (
-          <div className="mx-auto mt-8 max-w-3xl rounded-3xl border border-[var(--ui-border)] bg-[var(--ui-surface)] p-6 shadow-sm sm:p-8">
-            <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--color-primary-100)] dark:bg-[var(--color-primary-900)]/40">
-                <img
-                  src={currentTestimonial.image || "/icons/ai.svg"}
-                  alt={currentTestimonial.name}
-                  width={28}
-                  height={28}
-                />
-              </div>
-              <div>
-                <p className="font-bold">{currentTestimonial.name}</p>
-                <p className="text-xs text-[var(--ui-muted)]">{currentTestimonial.role}</p>
-              </div>
-            </div>
-
-            <p className="mt-5 text-sm leading-7 text-[var(--ui-foreground)] sm:text-base">
-              “{currentTestimonial.text}”
-            </p>
-
-            <div className="mt-6 flex items-center justify-between">
-              <button
-                type="button"
-                onClick={() =>
-                  setActiveTestimonial(
-                    (prev) => (prev - 1 + testimonialItems.length) % testimonialItems.length,
-                  )
-                }
-                className="rounded-xl border border-[var(--ui-border)] px-4 py-1.5 text-sm font-bold hover:bg-[var(--ui-surface-2)]"
-              >
-                {isAr ? "→" : "←"}
-              </button>
-              <div className="flex items-center gap-2">
-                {testimonialItems.map((_, idx) => (
-                  <button
-                    key={`dot-${idx}`}
-                    type="button"
-                    onClick={() => setActiveTestimonial(idx)}
-                    aria-label={`testimonial-${idx + 1}`}
-                    className={`h-2 rounded-full transition-all ${
-                      idx === activeTestimonial
-                        ? "w-8 bg-[var(--color-primary-500)]"
-                        : "w-2 bg-[var(--ui-border-strong)]"
-                    }`}
-                  />
-                ))}
-              </div>
-              <button
-                type="button"
-                onClick={() =>
-                  setActiveTestimonial((prev) => (prev + 1) % testimonialItems.length)
-                }
-                className="rounded-xl border border-[var(--ui-border)] px-4 py-1.5 text-sm font-bold hover:bg-[var(--ui-surface-2)]"
-              >
-                {isAr ? "←" : "→"}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {testimonialBadges.length > 0 && (
-          <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {testimonialBadges.map((badge, index) => (
+        <div className="mt-10 grid gap-5 md:grid-cols-3">
+          {securityPillars.map((pillar, idx) => {
+            const Icon = pillar.icon;
+            return (
               <div
-                key={`badge-${index}`}
-                className="flex items-center gap-2.5 rounded-2xl border border-[var(--ui-border)] bg-[var(--ui-surface)] px-4 py-3 text-sm font-semibold"
+                key={`sec-${idx}`}
+                className="rounded-2xl border border-[var(--ui-border)] bg-[var(--ui-surface)] p-6 shadow-xs"
               >
-                <span>{badge.icon}</span>
-                <span>{badge.text}</span>
+                <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--ui-info-bg)] text-[var(--ui-info)]">
+                  <Icon className="h-5 w-5" />
+                </div>
+                <h3 className="mt-4 text-base font-bold">{pillar.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-[var(--ui-muted)]">{pillar.desc}</p>
               </div>
-            ))}
+            );
+          })}
+        </div>
+      </section>
+
+      {/* FAQ Preview & Final CTA */}
+      <section className="border-t border-[var(--ui-border)] bg-[var(--ui-surface)] py-16">
+        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-8 flex items-center justify-between gap-4">
+            <h2 className="text-2xl font-extrabold tracking-tight">
+              {isAr ? "الأسئلة الشائعة" : "Frequently Asked Questions"}
+            </h2>
+            <Link
+              to="/faq"
+              className="text-sm font-bold text-[var(--color-primary-500)] hover:underline"
+            >
+              {isAr ? "عرض الكل" : "View all"}
+            </Link>
           </div>
-        )}
+
+          <div className="space-y-3">
+            {faqPreview.map((item, idx) => {
+              const isOpen = openFaq === idx;
+              return (
+                <div
+                  key={`faq-prev-${idx}`}
+                  className="overflow-hidden rounded-2xl border border-[var(--ui-border)] bg-[var(--ui-surface-2)]/50"
+                >
+                  <button
+                    type="button"
+                    onClick={() => setOpenFaq(isOpen ? null : idx)}
+                    className="flex w-full items-center justify-between gap-4 px-5 py-4 text-start text-sm font-bold text-[var(--ui-foreground)]"
+                  >
+                    <span>{item.q}</span>
+                    <FaChevronDown
+                      className={`h-3.5 w-3.5 shrink-0 transition-transform ${
+                        isOpen ? "rotate-180 text-[var(--color-primary-500)]" : ""
+                      }`}
+                    />
+                  </button>
+                  {isOpen && (
+                    <div className="border-t border-[var(--ui-border)] px-5 py-3.5 text-sm leading-relaxed text-[var(--ui-muted)]">
+                      {item.a}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Final CTA Banner */}
+          <div className="mt-12 flex flex-col items-center justify-between gap-6 rounded-3xl bg-gradient-to-r from-[var(--color-accent-900)] via-[var(--color-primary-500)] to-[var(--color-secondary-500)] p-8 text-white shadow-xl sm:flex-row">
+            <div>
+              <h3 className="text-xl font-extrabold">{workflowData.ctaTitle}</h3>
+              <p className="mt-1 text-sm text-sky-100">{workflowData.ctaSubtitle}</p>
+            </div>
+            <div className="flex shrink-0 flex-wrap gap-3">
+              <Link
+                to="/signup"
+                className="rounded-xl bg-white px-5 py-3 text-sm font-bold text-[var(--color-primary-900)] shadow-sm transition hover:bg-sky-50"
+              >
+                {hero("content.hero.primaryCta")}
+              </Link>
+              <Link
+                to="/contact"
+                className="rounded-xl border border-white/30 bg-white/10 px-5 py-3 text-sm font-bold text-white transition hover:bg-white/20"
+              >
+                {isAr ? "تواصل معنا" : "Contact Us"}
+              </Link>
+            </div>
+          </div>
+        </div>
       </section>
     </div>
   );

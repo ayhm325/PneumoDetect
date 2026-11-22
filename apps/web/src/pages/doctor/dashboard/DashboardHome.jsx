@@ -367,40 +367,6 @@ export default function DashboardHome({ serverData = {} }) {
         }))
       : [];
 
-  const defaultRecentActivity = useMemo(
-    () => [
-      {
-        id: 1,
-        action: t("recentActivity.defaults.reviewXray"),
-        time: t("recentActivity.times.min10"),
-        icon: FaCheckCircle,
-        color: "text-(--ui-success)",
-      },
-      {
-        id: 2,
-        action: t("recentActivity.defaults.newAppointment"),
-        time: t("recentActivity.times.min25"),
-        icon: FaCalendarAlt,
-        color: "text-(--ui-info)",
-      },
-      {
-        id: 3,
-        action: t("recentActivity.defaults.newMessage"),
-        time: t("recentActivity.times.min45"),
-        icon: FaComments,
-        color: "text-(--ui-info)",
-      },
-      {
-        id: 4,
-        action: t("recentActivity.defaults.reportReady"),
-        time: t("recentActivity.times.hour1"),
-        icon: FaClipboardList,
-        color: "text-(--ui-warning)",
-      },
-    ],
-    [t],
-  );
-
   const recentActivity =
     effectiveData.recentActivity && effectiveData.recentActivity.length
       ? effectiveData.recentActivity.map((r, i) => ({
@@ -413,7 +379,7 @@ export default function DashboardHome({ serverData = {} }) {
           icon: FaClipboardList,
           color: "text-(--ui-warning)",
         }))
-      : defaultRecentActivity;
+      : [];
 
   const pendingScans =
     effectiveData.pendingScansList && effectiveData.pendingScansList.length
@@ -502,7 +468,7 @@ export default function DashboardHome({ serverData = {} }) {
           {/* Header */}
           <PageHeader
             title={labels.title}
-            description={`${labels.welcome} ${effectiveData.doctorName || effectiveData.doctor?.user?.fullName || labels.ui.sampleDoctorName} - ${formattedDate}`}
+            description={`${labels.welcome}${effectiveData.doctorName || effectiveData.doctor?.user?.fullName ? ` ${effectiveData.doctorName || effectiveData.doctor?.user?.fullName}` : ""} · ${formattedDate}`}
           />
 
           {/* Stats Cards */}
@@ -707,31 +673,39 @@ export default function DashboardHome({ serverData = {} }) {
                 {labels.recentActivityTitle}
               </h2>
             </div>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {recentActivity.map((activity) => {
-                const Icon = activity.icon;
-                return (
-                  <div
-                    key={activity.id}
-                    className="rounded-lg border border-(--ui-border) p-4 transition-all hover:bg-(--ui-surface-2)"
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className={`mt-1 ${activity.color}`}>
-                        <Icon className="text-xl" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-(--ui-foreground) truncate">
-                          {activity.action}
-                        </p>
-                        <p className="text-xs text-(--ui-muted-foreground) mt-1">
-                          {activity.time}
-                        </p>
+            {recentActivity.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-(--ui-border) bg-(--ui-surface-2)/40 px-4 py-8 text-center text-sm text-(--ui-muted-foreground)">
+                {locale === "ar"
+                  ? "لا يوجد نشاط سريري مسجل حتى الآن."
+                  : "No clinical activity recorded yet."}
+              </div>
+            ) : (
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {recentActivity.map((activity) => {
+                  const Icon = activity.icon;
+                  return (
+                    <div
+                      key={activity.id}
+                      className="rounded-lg border border-(--ui-border) p-4 transition-all hover:bg-(--ui-surface-2)"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className={`mt-1 ${activity.color}`}>
+                          <Icon className="text-xl" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-(--ui-foreground) truncate">
+                            {activity.action}
+                          </p>
+                          <p className="text-xs text-(--ui-muted-foreground) mt-1">
+                            {activity.time}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </Card>
         </div>
       </div>
