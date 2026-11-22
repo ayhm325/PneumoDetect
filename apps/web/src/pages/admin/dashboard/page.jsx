@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 export const headers = () => {
   return [["Cache-Control", "no-store"]];
@@ -18,8 +18,8 @@ import {
   FaCheckCircle,
   FaClock,
 } from "react-icons/fa";
-import NotificationBellButton from "@/components/ui/NotificationBellButton";
 import { Button } from "@/components/ui";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { useLocale, useTranslations } from "@/lib/compat/intl";
 import { formatActivityDescription } from "@/lib/activityFormat";
 
@@ -252,20 +252,7 @@ export default function AdminDashboardPage() {
     <>
       <div className="p-6">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-foreground">
-              {t("title")} ðŸ‘¨â€ðŸ’¼
-            </h1>
-            <p className="text-(--ui-muted-2) mt-2">{formattedDate}</p>
-          </div>
-          <NotificationBellButton
-            count={unreadCount}
-            onClick={() => router.push(`${basePrefix}/admin/notifications`)}
-            title={t("notifications")}
-            iconClassName="text-(--ui-muted-2)"
-          />
-        </div>
+        <PageHeader title={t("title")} description={formattedDate} />
 
         {/* Stats Row - always in one line, scrollable on small screens */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 mb-8 w-full">

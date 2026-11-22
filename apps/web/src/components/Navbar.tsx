@@ -89,17 +89,28 @@ export default function Navbar() {
           {user ? (
             <Link
               to={portalPath}
-              className="hidden rounded-xl bg-[var(--color-primary-500)] px-4 py-2 text-xs font-bold text-white shadow-xs transition hover:bg-[var(--color-primary-900)] sm:inline-flex"
+              className="hidden items-center gap-2 rounded-xl bg-[var(--color-primary-500)] px-3.5 py-2 text-xs font-bold text-white shadow-xs transition hover:bg-[var(--color-primary-900)] sm:inline-flex"
             >
-              {t("dashboard", isAr ? "لوحة التحكم" : "Dashboard")}
+              <span className="inline-flex h-5 w-5 items-center justify-center rounded-md bg-white/20 text-[10px] font-bold">
+                {(user.fullName || user.email || "U").slice(0, 2).toUpperCase()}
+              </span>
+              <span>{t("dashboard", isAr ? "لوحة التحكم" : "Dashboard")}</span>
             </Link>
           ) : (
-            <Link
-              to="/login"
-              className="hidden rounded-xl bg-[var(--color-primary-500)] px-4 py-2 text-xs font-bold text-white shadow-xs transition hover:bg-[var(--color-primary-900)] sm:inline-flex"
-            >
-              {t("login", isAr ? "تسجيل الدخول" : "Login")}
-            </Link>
+            <div className="hidden items-center gap-2 sm:flex">
+              <Link
+                to="/login"
+                className="rounded-xl border border-[var(--ui-border)] bg-[var(--ui-surface)] px-3.5 py-2 text-xs font-bold text-[var(--ui-foreground)] transition hover:bg-[var(--ui-surface-2)]"
+              >
+                {t("login", isAr ? "تسجيل الدخول" : "Login")}
+              </Link>
+              <Link
+                to="/signup"
+                className="rounded-xl bg-[var(--color-primary-500)] px-3.5 py-2 text-xs font-bold text-white shadow-xs transition hover:bg-[var(--color-primary-900)]"
+              >
+                {t("signup", isAr ? "إنشاء حساب" : "Sign Up")}
+              </Link>
+            </div>
           )}
 
           <button
@@ -133,15 +144,32 @@ export default function Navbar() {
                 {item.label}
               </NavLink>
             ))}
-            <Link
-              to={user ? portalPath : "/login"}
-              onClick={() => setMobileOpen(false)}
-              className="mt-2 rounded-xl bg-[var(--color-primary-500)] px-4 py-2.5 text-center text-sm font-bold text-white"
-            >
-              {user
-                ? t("dashboard", isAr ? "لوحة التحكم" : "Dashboard")
-                : t("login", isAr ? "تسجيل الدخول" : "Login")}
-            </Link>
+            {user ? (
+              <Link
+                to={portalPath}
+                onClick={() => setMobileOpen(false)}
+                className="mt-2 rounded-xl bg-[var(--color-primary-500)] px-4 py-2.5 text-center text-sm font-bold text-white"
+              >
+                {t("dashboard", isAr ? "لوحة التحكم" : "Dashboard")}
+              </Link>
+            ) : (
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                <Link
+                  to="/login"
+                  onClick={() => setMobileOpen(false)}
+                  className="rounded-xl border border-[var(--ui-border)] bg-[var(--ui-surface)] px-4 py-2.5 text-center text-sm font-bold text-[var(--ui-foreground)]"
+                >
+                  {t("login", isAr ? "تسجيل الدخول" : "Login")}
+                </Link>
+                <Link
+                  to="/signup"
+                  onClick={() => setMobileOpen(false)}
+                  className="rounded-xl bg-[var(--color-primary-500)] px-4 py-2.5 text-center text-sm font-bold text-white"
+                >
+                  {t("signup", isAr ? "إنشاء حساب" : "Sign Up")}
+                </Link>
+              </div>
+            )}
           </nav>
         </div>
       )}

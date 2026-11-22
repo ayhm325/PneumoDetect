@@ -317,12 +317,14 @@ export function UnifiedPortalShell({
         <PortalTopbar
           portalTitle={portalTitle}
           portalBadge={portalBadge}
+          navItems={navItems}
           isAr={isAr}
           isDark={isDark}
           user={user}
           onOpenMobileMenu={() => setMobileOpen(true)}
           onToggleTheme={toggleTheme}
           onToggleLocale={handleToggleLocale}
+          onLogout={handleLogout}
         />
 
         <main className="flex-1 p-4 sm:p-5 lg:p-8">

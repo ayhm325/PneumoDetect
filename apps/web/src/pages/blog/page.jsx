@@ -1,82 +1,58 @@
-"use client";
+import React from "react";
 import Link from "@/lib/compat/Link";
-import { useRouter } from "@/lib/compat/navigation";
-import { useLocale, useTranslations } from "@/lib/compat/intl";
+import { useTranslations } from "@/lib/compat/intl";
+import { ContentPageLayout } from "@/components/layouts/ContentPageLayout";
+import UnifiedCard from "@/components/ui/UnifiedCard";
 
 export default function BlogPage() {
-  const router = useRouter();
-  const locale = useLocale();
   const t = useTranslations("blog");
   const ui = useTranslations("ui");
   const placeholder = ui("placeholder");
-
-  const posts = t.raw("posts");
+  const rawPosts = t.raw("posts");
+  const posts = Array.isArray(rawPosts) ? rawPosts : [];
 
   const safeText = (value) => {
     const v = String(value || "").trim();
     return v ? v : placeholder;
   };
 
-  const toggleLocale = () => {
-    const newLocale = locale === "ar" ? "en" : "ar";
-    router.push(`/${newLocale}/blog`);
-  };
-
   return (
-    <div
-      className="flex min-h-screen items-center justify-center bg-cover bg-center py-20 bg-[url('/icons/blog.jpg')]"
-    >
-      <div className="card-glass relative z-10 mx-auto w-full max-w-4xl rounded-3xl border border-(--ui-border) bg-(--ui-surface)/60 p-8 px-4 backdrop-blur-md shadow-(--shadow-lift)">
-        <div className="mb-4 flex justify-end">
-          <button
-            onClick={toggleLocale}
-            className="px-5 py-2 rounded-full font-bold btn-gradient text-white shadow focus:outline-none focus:ring-2 focus:ring-(--color-primary-500) transition-all"
-            aria-label={t("languageToggleAria")}
-          >
-            {locale === "ar" ? "EN" : "AR"}
-          </button>
-        </div>
-        <h1 className="mb-6 text-center text-4xl font-bold brand-gradient-text">
-          {t("title")}
-        </h1>
-        <p className="mx-auto mb-12 max-w-2xl text-center text-lg text-(--ui-muted-foreground)">
-          {t("description")}
-        </p>
-        <div className="mb-12 grid gap-8">
+    <div className="mx-auto max-w-5xl py-6 sm:py-10">
+      <ContentPageLayout title={t("title")} subtitle={t("description")}>
+        <div className="grid gap-6">
           {posts.map((post, idx) => (
-            <div
+            <UnifiedCard
               key={idx}
-              className="card-glass animate-fadeIn rounded-2xl border border-(--ui-border) bg-(--ui-surface)/60 p-6 backdrop-blur-sm shadow-(--shadow-soft) transition-transform hover:scale-[1.02]"
+              className="rounded-2xl border border-[var(--ui-border)] p-6 transition-all hover:border-[var(--color-primary-500)] hover:shadow-md"
+              glass
             >
-              <div className="mb-2 flex flex-col md:flex-row md:items-center md:justify-between">
-                <h2 className="mb-2 text-2xl font-bold text-(--color-primary-500) md:mb-0">
+              <div className="mb-2 flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
+                <h2 className="text-xl font-bold text-[var(--color-primary-500)]">
                   {safeText(post?.title)}
                 </h2>
-                <span className="text-sm text-(--ui-info)">
+                <span className="text-xs font-semibold text-[var(--ui-muted)]">
                   {safeText(post?.date)}
                 </span>
               </div>
-              <p className="mb-2 text-sm text-(--ui-foreground)">
+              <p className="mb-3 text-sm leading-relaxed text-[var(--ui-foreground)]">
                 {safeText(post?.excerpt)}
               </p>
-              <button
-                className="cursor-not-allowed font-semibold text-(--color-primary-500) hover:underline"
-                disabled
-              >
+              <span className="inline-block rounded-lg bg-[var(--ui-surface-2)] px-3 py-1 text-xs font-semibold text-[var(--color-primary-500)]">
                 {t("comingSoon")}
-              </button>
-            </div>
+              </span>
+            </UnifiedCard>
           ))}
         </div>
-        <div className="flex justify-center">
+
+        <div className="flex justify-center pt-4">
           <Link
-            href={`/${locale}`}
-            className="inline-block rounded-full btn-gradient px-6 py-3 font-semibold text-white shadow transition-opacity hover:opacity-90"
+            href="/"
+            className="inline-flex items-center rounded-xl btn-gradient px-6 py-2.5 text-sm font-semibold text-white shadow-xs transition hover:opacity-95"
           >
             {t("backHome")}
           </Link>
         </div>
-      </div>
+      </ContentPageLayout>
     </div>
   );
 }

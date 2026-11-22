@@ -6,9 +6,9 @@ import { useLocale, useTranslations } from "@/lib/compat/intl";
 import Link from "@/lib/compat/Link";
 import { formatTime } from "@/lib/date";
 import { formatActivityDescription } from "@/lib/activityFormat";
-import NotificationBellButton from "@/components/ui/NotificationBellButton";
 import useSocket from "@/components/chat/useSocket.client";
 import { Button, Card } from "@/components/ui";
+import { PageHeader } from "@/components/ui/PageHeader";
 import {
   FaUserMd,
   FaUsers,
@@ -497,29 +497,13 @@ export default function DashboardHome({ serverData = {} }) {
   return (
     <>
 
-      <div className="min-h-screen bg-(--ui-surface-2) font-bold text-(--ui-foreground) p-6">
+      <div className="space-y-6">
         <div className="mx-auto max-w-7xl space-y-6">
           {/* Header */}
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-bold text-(--ui-foreground) flex items-center gap-3">
-                <FaUserMd className="text-(--ui-info)" />
-                {labels.title}
-              </h1>
-              <p className="mt-2 text-(--ui-muted-foreground)">
-                {labels.welcome}{" "}
-                {effectiveData.doctorName ||
-                  effectiveData.doctor?.user?.fullName ||
-                  labels.ui.sampleDoctorName}{" "}
-                - {formattedDate}
-              </p>
-            </div>
-            <NotificationBellButton
-              count={unreadNotificationsCount}
-              onClick={() => router.push("/doctor/notifications")}
-              title={ui("topbar.notifications")}
-            />
-          </div>
+          <PageHeader
+            title={labels.title}
+            description={`${labels.welcome} ${effectiveData.doctorName || effectiveData.doctor?.user?.fullName || labels.ui.sampleDoctorName} - ${formattedDate}`}
+          />
 
           {/* Stats Cards */}
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">

@@ -21,9 +21,9 @@ import {
 } from "react-icons/fa";
 import { useTranslations, useLocale } from "@/lib/compat/intl";
 import PatientDashboardWrapper from "@/components/PatientDashboardWrapper";
-import NotificationBellButton from "@/components/ui/NotificationBellButton";
 import useSocket from "@/components/chat/useSocket.client";
 import { Button, Card } from "@/components/ui";
+import { PageHeader } from "@/components/ui/PageHeader";
 
 export default function PatientDashboardPage() {
   const router = useRouter();
@@ -284,23 +284,12 @@ export default function PatientDashboardPage() {
 
   return (
     <PatientDashboardWrapper>
-      <div className="min-h-screen bg-(--ui-surface) text-(--ui-foreground) p-6">
+      <div className="space-y-6">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-(--ui-foreground)">
-              {t("dashboard.welcome")}
-              {patientName ? `${commaSpace}${patientName}` : ""} 👋
-            </h1>
-            <p className="text-(--ui-muted-foreground) mt-2">{today}</p>
-          </div>
-
-          <NotificationBellButton
-            count={unreadCount}
-            onClick={() => router.push(`${basePrefix}/patient/notifications`)}
-            title={ui("topbar.notifications")}
-          />
-        </div>
+        <PageHeader
+          title={`${t("dashboard.welcome")}${patientName ? `${commaSpace}${patientName}` : ""}`}
+          description={today}
+        />
 
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
