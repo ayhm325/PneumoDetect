@@ -296,8 +296,13 @@
   --pd-shadow-deep: 0 16px 40px rgba(30, 40, 33, 0.1);
   --pd-shadow-floating: 0 12px 36px rgba(30, 40, 33, 0.09);
 
+  --ui-info: var(--pd-olive);
+  --ui-info-border: rgba(91, 113, 86, 0.34);
   --ui-info-foreground: #1e2821;
+  --ui-success: var(--pd-olive);
+  --ui-success-border: rgba(91, 113, 86, 0.34);
   --ui-success-foreground: #1e2821;
+  --ui-warning: var(--pd-olive);
   --ui-warning-foreground: #1e2821;
   --ui-danger-foreground: #faf2e6;
   --pd-orchid: var(--pd-olive);
