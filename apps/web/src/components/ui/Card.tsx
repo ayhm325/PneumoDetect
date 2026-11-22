@@ -143,11 +143,19 @@ export function ProfileMediaCard({
   className,
   ...props
 }: ProfileMediaCardProps) {
-  const hasPhoto = Boolean(image);
+  const [imgFailed, setImgFailed] = React.useState(false);
+
+  React.useEffect(() => {
+    setImgFailed(false);
+  }, [image]);
+
+  const showPhoto = Boolean(image) && !imgFailed;
+
   return (
     <article
       className={clsx(
-        "pd-card bg-[var(--pd-neutral-surface)] text-[var(--pd-cream)] border-[var(--pd-line)] flex flex-col gap-5 sm:flex-row",
+        "pd-card bg-[var(--pd-neutral-surface)] text-[var(--pd-text-primary)] border-[var(--pd-line)] flex flex-col gap-5",
+        isAvatar && "sm:flex-row",
         featured && "pd-card--olive",
         className,
       )}
@@ -158,28 +166,29 @@ export function ProfileMediaCard({
           className={clsx(
             "shrink-0 overflow-hidden",
             isAvatar
-              ? "h-16 w-16 rounded-full border border-[var(--pd-line-strong)] bg-[var(--pd-neutral-raised)] flex items-center justify-center"
-              : "h-44 w-full sm:h-auto sm:w-44 rounded-2xl bg-[var(--pd-ink-deep)] flex items-center justify-center",
+              ? "flex h-16 w-16 items-center justify-center rounded-full border border-[var(--pd-line-strong)] bg-[var(--pd-surface-2)]"
+              : "flex h-52 w-full items-center justify-center rounded-2xl border border-[var(--pd-line)] bg-[var(--pd-surface-2)]",
           )}
         >
-          {hasPhoto && image ? (
+          {showPhoto && image ? (
             <img
               src={image}
               alt={typeof imageAlt === "string" ? imageAlt : ""}
               loading="lazy"
-              className={isAvatar ? "h-full w-full object-cover" : "h-full w-full object-contain"}
+              onError={() => setImgFailed(true)}
+              className="h-full w-full object-cover"
             />
           ) : (
-            <span className="text-[var(--pd-cream)]/75">{mediaNode}</span>
+            <span className="text-[var(--pd-text-muted)]">{mediaNode}</span>
           )}
         </div>
       )}
 
-      <div className="min-w-0 flex-1 flex flex-col justify-between gap-3">
+      <div className="flex min-w-0 flex-1 flex-col justify-between gap-3">
         <div>
           {(title || badge) && (
             <div className="mb-1.5 flex flex-wrap items-start justify-between gap-2">
-              {title && <h2 className="text-lg font-semibold leading-snug">{title}</h2>}
+              {title && <h2 className="text-lg font-medium leading-snug">{title}</h2>}
               {badge && <div className="shrink-0">{badge}</div>}
             </div>
           )}
@@ -187,7 +196,7 @@ export function ProfileMediaCard({
           {description && <div className="mt-2 text-xs leading-relaxed opacity-80">{description}</div>}
           {children}
         </div>
-        {actions && <div className="mt-2 flex flex-wrap items-center gap-2 pt-2 border-t border-[var(--pd-line)]">{actions}</div>}
+        {actions && <div className="mt-2 flex flex-wrap items-center gap-2 border-t border-[var(--pd-line)] pt-3">{actions}</div>}
       </div>
     </article>
   );
