@@ -15,6 +15,11 @@ import {
   FaHourglassHalf,
 } from "react-icons/fa";
 import { useLocale, useTranslations } from "@/lib/compat/intl";
+import {
+  getReviewStatusLabel,
+  resolveCanonicalReviewStatus,
+  resolveClinicalPriority,
+} from "@/lib/analysisStatus";
 import { Button, Card } from "@/components/ui";
 
 export default function PatientResultsPage() {
@@ -99,10 +104,16 @@ export default function PatientResultsPage() {
             }
           })();
 
-          const status = r.reviewedByDoctor ? "ready" : "pending";
+          const reviewStatus = resolveCanonicalReviewStatus(r);
+          const status =
+            reviewStatus === "reviewed"
+              ? "ready"
+              : reviewStatus === "requires_review"
+                ? "requires_review"
+                : "pending";
           const ai = (r.aiResult || "").toString().toUpperCase();
           const confidence = typeof r.confidenceScore === "number" ? r.confidenceScore : null;
-          const priority = r.needsReview || ai === "POSITIVE" ? "urgent" : "normal";
+          const priority = resolveClinicalPriority(r);
           const aiSummary = (() => {
             if (ai === "POSITIVE") return t("aiSummary.positive", { score: confidence == null ? "" : Math.round(confidence * 100) });
             if (ai === "NEGATIVE") return t("aiSummary.negative", { score: confidence == null ? "" : Math.round(confidence * 100) });
@@ -157,8 +168,8 @@ export default function PatientResultsPage() {
   const getStatusColor = (status) => {
     const normalized = normalizeStatus(status);
     if (normalized === "ready") return "bg-green-600 text-white border-green-700 dark:bg-green-500 dark:text-white dark:border-green-300";
+    if (normalized === "requires_review") return "bg-amber-500 text-black border-amber-700 dark:bg-amber-400 dark:text-black dark:border-amber-600";
     if (normalized === "pending") return "bg-yellow-400 text-black border-yellow-600 dark:bg-yellow-300 dark:text-black dark:border-yellow-500";
-    if (normalized === "urgent") return "bg-red-600 text-white border-red-700 dark:bg-red-500 dark:text-white dark:border-red-300";
     return "bg-gray-200 text-gray-700 border-gray-400 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-500";
   };
   const getPriorityColor = (priority) => {
@@ -191,12 +202,11 @@ export default function PatientResultsPage() {
   const prioritySynonyms = typeof t.raw === "function" ? t.raw("prioritySynonyms") || {} : {};
   const normalizeStatus = (status) => {
     const token = normalizeToken(status);
-    if (token === "ready") return "ready";
-    if (token === "pending") return "pending";
-    if (token === "urgent") return "urgent";
+    if (token === "ready" || token === "reviewed") return "ready";
+    if (token === "requires_review") return "requires_review";
+    if (token === "pending" || token === "pending_review") return "pending";
     if (tokenInList(status, statusSynonyms.ready)) return "ready";
     if (tokenInList(status, statusSynonyms.pending)) return "pending";
-    if (tokenInList(status, statusSynonyms.urgent)) return "urgent";
     return "unknown";
   };
   const normalizePriority = (priority) => {
@@ -209,9 +219,9 @@ export default function PatientResultsPage() {
   };
   const getStatusLabel = (status) => {
     const normalized = normalizeStatus(status);
-    if (normalized === "ready") return labels("statuses.ready");
-    if (normalized === "pending") return labels("statuses.pending");
-    if (normalized === "urgent") return labels("priorities.urgent");
+    if (normalized === "ready") return getReviewStatusLabel("reviewed", locale);
+    if (normalized === "requires_review") return getReviewStatusLabel("requires_review", locale);
+    if (normalized === "pending") return getReviewStatusLabel("pending_review", locale);
     return status;
   };
   const getPriorityLabel = (priority) => {

@@ -23,6 +23,10 @@ import {
   FaPrint,
 } from "react-icons/fa";
 import { formatDate } from "@/lib/date";
+import {
+  getReviewStatusLabel,
+  resolveCanonicalReviewStatus,
+} from "@/lib/analysisStatus";
 import { useLocale, useTranslations } from "@/lib/compat/intl";
 import { useSearchParams } from "@/lib/compat/navigation";
 import { Button, Card } from "@/components/ui";
@@ -110,11 +114,13 @@ export default function DoctorResultsPage() {
           const score = confidence == null ? 0 : Math.round(confidence * 100);
           const ai = (r.aiResult || "").toString().toUpperCase();
 
-          const status = r.reviewedByDoctor
-            ? "completed"
-            : r.needsReview || ai === "POSITIVE"
-              ? "urgent"
-              : "pending";
+          const reviewStatus = resolveCanonicalReviewStatus(r);
+          const status =
+            reviewStatus === "reviewed"
+              ? "completed"
+              : reviewStatus === "requires_review"
+                ? "requires_review"
+                : "pending";
 
           const aiSummary = (() => {
             if (ai === "POSITIVE") return t("aiMessages.positive", { score });
@@ -146,8 +152,12 @@ export default function DoctorResultsPage() {
             date: r.createdAt,
             time: formatTime(r.createdAt),
             status,
+            reviewStatus,
+            needsReview: Boolean(r.needsReview),
             aiSummary,
             thumbnail: r.imageUrl || "/icons/xray-placeholder.png",
+            heatmapUrl: r.heatmapUrl || null,
+            uploadNotes: r.uploadNotes || "",
             findings,
             reviewedByDoctor: Boolean(r.reviewedByDoctor),
             doctorNotes: r.doctorNotes || "",
@@ -169,7 +179,7 @@ export default function DoctorResultsPage() {
   const stats = {
     total: scans.length,
     completed: scans.filter((s) => s.status === "completed").length,
-    pending: scans.filter((s) => s.status === "pending").length,
+    pending: scans.filter((s) => s.status === "pending" || s.status === "requires_review").length,
     today: scans.filter((s) => {
       const today = new Date();
       const scanDate = new Date(s.date);
@@ -183,7 +193,13 @@ export default function DoctorResultsPage() {
 
   const filteredScans = scans.filter((scan) => {
     if (filterType !== "all" && scan.typeKey !== filterType) return false;
-    if (filterStatus !== "all" && scan.status !== filterStatus) return false;
+    if (filterStatus !== "all") {
+      if (filterStatus === "pending") {
+        if (scan.status !== "pending" && scan.status !== "requires_review") return false;
+      } else if (scan.status !== filterStatus) {
+        return false;
+      }
+    }
     if (searchQuery) {
       return (
         (scan.patientName || "")
@@ -241,10 +257,26 @@ export default function DoctorResultsPage() {
           ]
         : selectedScan.findings || [];
 
+      const serverRec = body?.record || null;
+      const nextReviewed = serverRec
+        ? Boolean(serverRec.reviewedByDoctor)
+        : true;
+      const nextReviewStatus = resolveCanonicalReviewStatus(
+        serverRec || { reviewedByDoctor: nextReviewed, needsReview: selectedScan.needsReview },
+      );
+      const nextStatus =
+        nextReviewStatus === "reviewed"
+          ? "completed"
+          : nextReviewStatus === "requires_review"
+            ? "requires_review"
+            : "pending";
+
       const updatedScan = {
         ...selectedScan,
-        status: "completed",
-        reviewedByDoctor: true,
+        status: nextStatus,
+        reviewStatus: nextReviewStatus,
+        reviewedByDoctor: nextReviewed,
+        thumbnail: serverRec?.imageUrl || selectedScan.thumbnail,
         doctorNotes: nextDoctorNotes,
         patientClinicalStatus: reviewClinicalStatus,
         findings: nextFindings,
@@ -269,22 +301,22 @@ export default function DoctorResultsPage() {
   const getStatusBadge = (status) => {
     const config = {
       completed: {
-        label: t("statuses.completed"),
+        label: getReviewStatusLabel("reviewed", locale),
         color:
           "bg-(--ui-success-bg) text-(--ui-success) border-(--ui-success-border)",
         icon: FaCheckCircle,
       },
-      pending: {
-        label: t("statuses.pending"),
+      requires_review: {
+        label: getReviewStatusLabel("requires_review", locale),
         color:
           "bg-(--ui-warning-bg) text-(--ui-warning) border-(--ui-warning-border)",
-        icon: FaHourglassHalf,
-      },
-      urgent: {
-        label: t("statuses.urgent"),
-        color:
-          "bg-(--ui-danger-bg) text-(--ui-danger) border-(--ui-danger-border)",
         icon: FaExclamationTriangle,
+      },
+      pending: {
+        label: getReviewStatusLabel("pending_review", locale),
+        color:
+          "bg-(--ui-info-bg) text-(--ui-info) border-(--ui-info-border)",
+        icon: FaHourglassHalf,
       },
     };
     const c = config[status] || config.pending;

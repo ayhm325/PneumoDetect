@@ -3,6 +3,11 @@ import { clearNotificationCache, getNotificationCache, setNotificationCache } fr
 import { prisma } from "../../db/prisma";
 import { AppError } from "../../lib/errors/appError";
 import type { DoctorPortalRepository } from "../../repositories/doctor/doctorPortalRepository";
+import {
+  computeCanonicalReviewStatus,
+  normalizeUploadStorageReference,
+} from "../analysis/analysisBackfillService";
+import { buildSignedUploadAccessUrl } from "../analysis/analysisService";
 
 export interface DoctorPortalService {
   listAppointments(userId: string): Promise<{ appointments: Array<Record<string, unknown>> }>;
@@ -255,16 +260,18 @@ export function createDoctorPortalService(deps: {
         const analysis = (record.analysisResult as Record<string, unknown> | null | undefined) || null;
         const reviewed = Boolean(record.reviewedByDoctor);
         const needsReview = Boolean(analysis?.needsReview);
-        const reviewStatus = reviewed
-          ? "reviewed"
-          : (typeof analysis?.reviewStatus === "string" && analysis.reviewStatus) ||
-            (needsReview ? "requires_review" : "pending_review");
+        const reviewStatus = computeCanonicalReviewStatus({
+          reviewedByDoctor: reviewed,
+          needsReview,
+        });
+        const rawImageUrl = (record.imageUrl as string | null) || null;
 
         return {
           id: record.id,
           analysisResultId: record.analysisResultId || analysis?.id || null,
           title: record.title || "Chest X-Ray",
-          imageUrl: record.imageUrl || null,
+          imageUrl: buildSignedUploadAccessUrl(rawImageUrl),
+          storageImageUrl: rawImageUrl ? normalizeUploadStorageReference(rawImageUrl) : null,
           heatmapUrl: (analysis?.heatmapUrl as string | null) || null,
           aiResult: record.aiResult || null,
           confidenceScore: record.confidenceScore ?? null,
@@ -386,15 +393,17 @@ export function createDoctorPortalService(deps: {
               const analysis = (record.analysisResult as Record<string, unknown> | null | undefined) || null;
               const reviewed = Boolean(record.reviewedByDoctor);
               const needsReview = Boolean(analysis?.needsReview);
-              const reviewStatus = reviewed
-                ? "reviewed"
-                : (typeof analysis?.reviewStatus === "string" && analysis.reviewStatus) ||
-                  (needsReview ? "requires_review" : "pending_review");
+              const reviewStatus = computeCanonicalReviewStatus({
+                reviewedByDoctor: reviewed,
+                needsReview,
+              });
+              const rawImageUrl = (record.imageUrl as string | null) || null;
               return {
                 id: record.id,
                 analysisResultId: record.analysisResultId || analysis?.id || null,
                 title: record.title || "Chest X-Ray",
-                imageUrl: record.imageUrl || null,
+                imageUrl: buildSignedUploadAccessUrl(rawImageUrl),
+                storageImageUrl: rawImageUrl ? normalizeUploadStorageReference(rawImageUrl) : null,
                 heatmapUrl: (analysis?.heatmapUrl as string | null) || null,
                 aiResult: record.aiResult || null,
                 confidenceScore: record.confidenceScore ?? null,

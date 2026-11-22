@@ -1,11 +1,13 @@
 import asyncio
 import base64
 import hashlib
+import hmac
 import os
 import threading
 import time
 import uuid
 from io import BytesIO
+from typing import Optional
 
 import anyio
 import matplotlib
@@ -14,10 +16,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import torch.nn.functional as F
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from fastapi.staticfiles import StaticFiles
 from PIL import Image, ImageOps, UnidentifiedImageError
 from pydantic import BaseModel, Field
 from torchvision import models, transforms
@@ -32,6 +33,29 @@ INFERENCE_SEMAPHORE = asyncio.Semaphore(MAX_CONCURRENT_INFERENCES)
 GRADCAM_LOCK = threading.Lock()
 LABELS = {0: "NORMAL", 1: "PNEUMONIA"}
 
+# Programmatic model contract metadata.
+# Note: The repository checkpoint (best_densenet121_xray.pth) is a raw OrderedDict state_dict
+# (727 keys, classifier.weight shape [2, 1024]) without embedded class_to_idx, training script,
+# or clinical calibration metadata.
+MODEL_CONTRACT = {
+    "architecture": "DenseNet121",
+    "classifier_out_features": 2,
+    "input_size": [224, 224],
+    "channels": 3,
+    "normalization": {
+        "mean": [0.485, 0.456, 0.406],
+        "std": [0.229, 0.224, 0.225],
+    },
+    "labels": LABELS,
+    "checkpoint_format": "raw_state_dict",
+    "training_contract_verified": False,
+    "clinical_calibration_verified": False,
+    "verification_note": (
+        "Checkpoint is a raw state_dict without embedded class_to_idx or training preprocessing metadata; "
+        "outputs are uncalibrated screening scores requiring physician review."
+    ),
+}
+
 
 class PredictRequest(BaseModel):
     image_base64: str = Field(..., min_length=1, max_length=MAX_BASE64_LEN)
@@ -42,37 +66,41 @@ app = FastAPI(title="PneumoDetect AI Inference Service")
 
 allowed_origins_env = os.getenv(
     "ALLOWED_ORIGINS",
-    "http://localhost:4000,http://127.0.0.1:4000,http://localhost:5173,http://127.0.0.1:5173",
+    "http://localhost:4000,http://127.0.0.1:4000",
 )
 origins = [o.strip() for o in allowed_origins_env.split(",") if o.strip()]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins if origins else ["http://localhost:4000"],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["GET", "POST", "OPTIONS"],
-    allow_headers=["*"],
+    allow_headers=["Content-Type", "X-Internal-Model-Token"],
 )
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-FALLBACK_PATHS = [
-    os.getenv("MODEL_PATH", ""),
-    os.path.join(BASE_DIR, "..", "ai", "models", "best_densenet121_xray.pth"),
-    os.path.join(BASE_DIR, "..", "apps", "ai", "models", "best_densenet121_xray.pth"),
-    os.path.join(BASE_DIR, "..", "backend", "best_densenet121_xray.pth"),
-    os.path.join(BASE_DIR, "..", "best_densenet121_xray.pth"),
-]
 
-MODEL_PATH = None
-for candidate in FALLBACK_PATHS:
-    if not candidate:
-        continue
-    norm = os.path.normpath(candidate)
-    if os.path.exists(norm):
-        MODEL_PATH = norm
-        break
+def resolve_model_path() -> Optional[str]:
+    fallback_paths = [
+        os.getenv("MODEL_PATH", ""),
+        os.path.join(BASE_DIR, "..", "ai", "models", "best_densenet121_xray.pth"),
+        os.path.join(BASE_DIR, "..", "backend", "best_densenet121_xray.pth"),
+        os.path.join(BASE_DIR, "..", "best_densenet121_xray.pth"),
+    ]
+    for candidate in fallback_paths:
+        if not candidate:
+            continue
+        norm = os.path.normpath(candidate)
+        if os.path.exists(norm):
+            return norm
+    return None
 
+
+MODEL_PATH = resolve_model_path()
+
+# Shared disk directory where heatmaps are written by Python and served ONLY via Express API
+# after authentication and record-level authorization (never exposed directly via FastAPI StaticFiles).
 STATIC_DIR = os.path.join(BASE_DIR, "static")
 HEATMAP_DIR = os.path.join(STATIC_DIR, "heatmaps")
 os.makedirs(HEATMAP_DIR, exist_ok=True)
@@ -112,20 +140,55 @@ def load_verified_model(path: str):
     return model
 
 
-if MODEL_PATH is None:
-    MODEL_LOAD_ERROR = "DenseNet121 checkpoint file not found"
-    print("ERROR:", MODEL_LOAD_ERROR)
-else:
+def init_model(force: bool = False) -> bool:
+    global MODEL, MODEL_PATH, MODEL_SHA256, MODEL_VERSION, MODEL_LOAD_ERROR
+    if MODEL is not None and not force:
+        return True
+
+    MODEL_PATH = resolve_model_path()
+    if MODEL_PATH is None:
+        MODEL = None
+        MODEL_VERSION = "unavailable"
+        MODEL_SHA256 = None
+        MODEL_LOAD_ERROR = "DenseNet121 checkpoint file not found"
+        print("ERROR:", MODEL_LOAD_ERROR)
+        return False
+
     try:
         print(f"Python model server loading DenseNet121 from {MODEL_PATH} on {DEVICE}")
         MODEL = load_verified_model(MODEL_PATH)
         MODEL_SHA256 = compute_sha256_prefix(MODEL_PATH)
         MODEL_VERSION = f"{os.path.basename(MODEL_PATH)}#{MODEL_SHA256[:8]}"
+        MODEL_LOAD_ERROR = None
         print(f"Model loaded successfully: {MODEL_VERSION}")
+        return True
     except Exception as exc:
         MODEL = None
+        MODEL_VERSION = "unavailable"
+        MODEL_SHA256 = None
         MODEL_LOAD_ERROR = f"Failed to load checkpoint: {exc}"
         print("ERROR:", MODEL_LOAD_ERROR)
+        return False
+
+
+def set_model_for_testing(
+    model,
+    version: str = "test_fixture#00000000",
+    sha256: Optional[str] = "00000000",
+    load_error: Optional[str] = None,
+):
+    """Test helper to inject a lightweight fixture model or reset MODEL=None without a real .pth checkpoint."""
+    global MODEL, MODEL_VERSION, MODEL_SHA256, MODEL_LOAD_ERROR
+    if os.getenv("NODE_ENV") == "production" or os.getenv("APP_ENV") == "production":
+        raise RuntimeError("set_model_for_testing is forbidden in production")
+    MODEL = model
+    MODEL_VERSION = version if model is not None else "unavailable"
+    MODEL_SHA256 = sha256 if model is not None else None
+    MODEL_LOAD_ERROR = load_error if model is None else None
+
+
+if os.getenv("SKIP_MODEL_LOAD_ON_IMPORT") != "1":
+    init_model()
 
 
 prep_transform = transforms.Compose(
@@ -140,7 +203,14 @@ prep_transform = transforms.Compose(
     ]
 )
 
-app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+def verify_internal_service_token(provided_token: Optional[str]) -> None:
+    expected = (os.getenv("PY_MODEL_INTERNAL_TOKEN") or "").strip()
+    if not expected:
+        return
+    candidate = (provided_token or "").strip()
+    if not candidate or not hmac.compare_digest(candidate.encode("utf-8"), expected.encode("utf-8")):
+        raise HTTPException(status_code=403, detail="Forbidden: invalid internal service token")
 
 
 @app.get("/health/live")
@@ -157,6 +227,7 @@ async def health_ready():
                 "ready": False,
                 "model_loaded": False,
                 "error": MODEL_LOAD_ERROR or "Model unavailable",
+                "contract": MODEL_CONTRACT,
             },
         )
     return {
@@ -170,6 +241,9 @@ async def health_ready():
         "channels": 3,
         "labels": LABELS,
         "modality": "chest_xray",
+        "training_contract_verified": MODEL_CONTRACT["training_contract_verified"],
+        "clinical_calibration_verified": MODEL_CONTRACT["clinical_calibration_verified"],
+        "contract": MODEL_CONTRACT,
     }
 
 
@@ -252,7 +326,15 @@ def generate_gradcam_overlay(tensor: torch.Tensor, orig_gray: Image.Image, targe
 
     fname = f"gradcam_{uuid.uuid4().hex}.png"
     out_path = os.path.join(HEATMAP_DIR, fname)
-    blended.save(out_path, format="PNG")
+    try:
+        blended.save(out_path, format="PNG")
+    except Exception:
+        if os.path.exists(out_path):
+            try:
+                os.remove(out_path)
+            except OSError:
+                pass
+        raise
 
     base_url = os.getenv("PUBLIC_HEATMAP_BASE_URL", "/static/heatmaps").rstrip("/")
     return f"{base_url}/{fname}"
@@ -277,6 +359,8 @@ def run_sync_inference(image_base64: str, with_heatmap: bool):
         "heatmap_url": None,
         "explanation": "DenseNet121 chest X-ray screening output. Preliminary AI aid; physician review required.",
         "inference_time_ms": int((end - start) * 1000),
+        "training_contract_verified": MODEL_CONTRACT["training_contract_verified"],
+        "clinical_calibration_verified": MODEL_CONTRACT["clinical_calibration_verified"],
     }
 
     if with_heatmap:
@@ -297,7 +381,11 @@ def run_sync_inference(image_base64: str, with_heatmap: bool):
 
 
 @app.post("/predict")
-async def predict(req: PredictRequest):
+async def predict(
+    req: PredictRequest,
+    x_internal_model_token: Optional[str] = Header(default=None),
+):
+    verify_internal_service_token(x_internal_model_token)
     if MODEL is None:
         raise HTTPException(status_code=503, detail="Model is not loaded")
 
@@ -310,6 +398,7 @@ async def predict(req: PredictRequest):
 if __name__ == "__main__":
     import uvicorn
 
+    init_model()
     host = os.getenv("PY_MODEL_HOST", "127.0.0.1")
     port = int(os.getenv("PY_MODEL_PORT", "8000"))
     uvicorn.run(app, host=host, port=port)

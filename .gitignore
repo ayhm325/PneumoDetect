@@ -69,3 +69,12 @@ playwright-report/
 playwright/.auth/
 desktop.ini
 logs/
+
+# Runtime medical uploads & AI heatmaps (never commit patient/test images)
+/public/uploads/*
+!/public/uploads/.gitkeep
+/apps/api/public/
+/python_model/static/heatmaps/*
+!/python_model/static/heatmaps/.gitkeep
+**/__pycache__/
+*.pyc

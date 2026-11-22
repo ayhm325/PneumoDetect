@@ -12,6 +12,11 @@ import {
 } from "../../legacy-lib/cache/notificationCache";
 import { AppError } from "../../lib/errors/appError";
 import type { PatientPortalRepository } from "../../repositories/patient/patientPortalRepository";
+import {
+  computeCanonicalReviewStatus,
+  normalizeUploadStorageReference,
+} from "../analysis/analysisBackfillService";
+import { buildSignedUploadAccessUrl } from "../analysis/analysisService";
 
 function toStringOrEmpty(value: unknown): string {
   return typeof value === "string" ? value : "";
@@ -369,15 +374,17 @@ export function createPatientPortalService(deps: {
         const analysis = (record.analysisResult as Record<string, unknown> | null | undefined) || null;
         const reviewed = Boolean(record.reviewedByDoctor);
         const needsReview = Boolean(analysis?.needsReview);
-        const reviewStatus = reviewed
-          ? "reviewed"
-          : (typeof analysis?.reviewStatus === "string" && analysis.reviewStatus) ||
-            (needsReview ? "requires_review" : "pending_review");
+        const reviewStatus = computeCanonicalReviewStatus({
+          reviewedByDoctor: reviewed,
+          needsReview,
+        });
+        const rawImageUrl = (record.imageUrl as string | null) || null;
 
         return {
           id: record.id,
           analysisResultId: record.analysisResultId || analysis?.id || null,
-          imageUrl: record.imageUrl || null,
+          imageUrl: buildSignedUploadAccessUrl(rawImageUrl),
+          storageImageUrl: rawImageUrl ? normalizeUploadStorageReference(rawImageUrl) : null,
           heatmapUrl: (analysis?.heatmapUrl as string | null) || null,
           aiResult: record.aiResult || null,
           confidenceScore: record.confidenceScore ?? null,

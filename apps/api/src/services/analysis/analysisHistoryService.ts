@@ -1,9 +1,44 @@
 import { AppError } from "../../lib/errors/appError";
 import type { AnalysisResultRepository } from "../../repositories/analysis/analysisResultRepository";
+import {
+  computeCanonicalReviewStatus,
+  normalizeUploadStorageReference,
+} from "./analysisBackfillService";
+import { buildSignedUploadAccessUrl } from "./analysisService";
 
 export interface AnalysisHistoryService {
   getHistory(userId: string, options?: { scope?: string; role?: string }): Promise<unknown[]>;
   deleteHistoryItem(userId: string, id: string): Promise<{ count: number }>;
+}
+
+function enrichHistoryRow(row: unknown): Record<string, unknown> {
+  const r = (row && typeof row === "object" ? row : {}) as Record<string, unknown>;
+  const med = (r.medicalRecord as Record<string, unknown> | null | undefined) || null;
+  const patient = (med?.patient as Record<string, unknown> | null | undefined) || null;
+  const rawImg = typeof r.imageUrl === "string" ? r.imageUrl : null;
+  const storageImageUrl = rawImg ? normalizeUploadStorageReference(rawImg) : null;
+  const signedImageUrl = rawImg ? buildSignedUploadAccessUrl(rawImg) : null;
+  const reviewedByDoctor = Boolean(
+    med ? med.reviewedByDoctor : r.reviewStatus === "reviewed",
+  );
+  const needsReview = Boolean(r.needsReview);
+  const reviewStatus = computeCanonicalReviewStatus({
+    reviewedByDoctor,
+    needsReview,
+  });
+
+  return {
+    ...r,
+    imageUrl: signedImageUrl,
+    storageImageUrl,
+    medicalRecordId: (med?.id as string | undefined) || null,
+    patientName: (patient?.fullName as string | undefined) || null,
+    patientEmail: (patient?.email as string | undefined) || null,
+    reviewedByDoctor,
+    reviewStatus,
+    status: reviewStatus,
+    doctorNotes: (med?.doctorNotes as string | null) ?? null,
+  };
 }
 
 export function createAnalysisHistoryService(deps: {
@@ -25,21 +60,11 @@ export function createAnalysisHistoryService(deps: {
 
       if (scope === "doctor" || (role === "doctor" && scope !== "self")) {
         const rows = await deps.analysisResultRepository.findHistoryByUploadedUserId(normalizedUserId);
-        return rows.map((row) => {
-          const r = row as Record<string, unknown>;
-          const med = (r.medicalRecord as Record<string, unknown> | null | undefined) || null;
-          const patient = (med?.patient as Record<string, unknown> | null | undefined) || null;
-          return {
-            ...r,
-            patientName: (patient?.fullName as string | undefined) || null,
-            patientEmail: (patient?.email as string | undefined) || null,
-            reviewedByDoctor: Boolean(med?.reviewedByDoctor),
-            doctorNotes: (med?.doctorNotes as string | null) ?? null,
-          };
-        });
+        return rows.map(enrichHistoryRow);
       }
 
-      return deps.analysisResultRepository.findHistoryByUserId(normalizedUserId);
+      const rows = await deps.analysisResultRepository.findHistoryByUserId(normalizedUserId);
+      return rows.map(enrichHistoryRow);
     },
 
     async deleteHistoryItem(userId, id) {

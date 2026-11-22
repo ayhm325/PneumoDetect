@@ -156,52 +156,65 @@ export default function PatientAnalysisHistoryPage() {
                     >
                       {t("analysisHistory.view")}
                     </Button>
-                    <button
-                      onClick={async () => {
-                        const ok =
-                          typeof window !== "undefined"
-                            ? window.confirm(t("analysisHistory.confirmDelete"))
-                            : true;
-                        if (!ok) return;
-                        const id = item.id;
-                        setDeletingId(id);
-                        try {
-                          const token =
-                            typeof window !== "undefined"
-                              ? localStorage.getItem("token")
-                              : null;
-                          const res = await fetch("/api/analysis/history", {
-                            method: "DELETE",
-                            headers: {
-                              "Content-Type": "application/json",
-                              ...(token
-                                ? { Authorization: `Bearer ${token}` }
-                                : {}),
-                            },
-                            body: JSON.stringify({ id }),
-                          });
-                          const body = await res.json().catch(() => ({}));
-                          if (!res.ok)
-                            throw new Error(
-                              body.error ||
-                                body.message ||
-                                `HTTP ${res.status}`,
-                            );
-                          setRecords((prev) => prev.filter((r) => r.id !== id));
-                          if (selected && selected.id === id) setSelected(null);
-                        } catch (e) {
-                          setError(e.message || String(e));
-                        } finally {
-                          setDeletingId(null);
+                    {item.medicalRecordId ? (
+                      <span
+                        title={
+                          locale === "ar"
+                            ? "سجل طبي رسمي مرتبط بملفك الطبي ولا يمكن حذفه"
+                            : "Official clinical record linked to your medical file; cannot be deleted"
                         }
-                      }}
-                      disabled={deletingId === item.id}
-                      className="px-3 py-1 bg-(--ui-danger) text-(--ui-danger-foreground) rounded-md text-sm hover:opacity-90 disabled:opacity-60"
-                    >
-                      {deletingId === item.id
-                        ? t("analysisHistory.deleting")
-                        : t("analysisHistory.delete")}
-                    </button>
+                        className="px-2.5 py-1 bg-(--ui-surface-2) border border-(--ui-border) text-(--ui-muted-foreground) rounded-md text-xs"
+                      >
+                        {locale === "ar" ? "سجل طبي محفوظ" : "Medical Record"}
+                      </span>
+                    ) : (
+                      <button
+                        onClick={async () => {
+                          const ok =
+                            typeof window !== "undefined"
+                              ? window.confirm(t("analysisHistory.confirmDelete"))
+                              : true;
+                          if (!ok) return;
+                          const id = item.id;
+                          setDeletingId(id);
+                          try {
+                            const token =
+                              typeof window !== "undefined"
+                                ? localStorage.getItem("token")
+                                : null;
+                            const res = await fetch("/api/analysis/history", {
+                              method: "DELETE",
+                              headers: {
+                                "Content-Type": "application/json",
+                                ...(token
+                                  ? { Authorization: `Bearer ${token}` }
+                                  : {}),
+                              },
+                              body: JSON.stringify({ id }),
+                            });
+                            const body = await res.json().catch(() => ({}));
+                            if (!res.ok)
+                              throw new Error(
+                                body.error ||
+                                  body.message ||
+                                  `HTTP ${res.status}`,
+                              );
+                            setRecords((prev) => prev.filter((r) => r.id !== id));
+                            if (selected && selected.id === id) setSelected(null);
+                          } catch (e) {
+                            setError(e.message || String(e));
+                          } finally {
+                            setDeletingId(null);
+                          }
+                        }}
+                        disabled={deletingId === item.id}
+                        className="px-3 py-1 bg-(--ui-danger) text-(--ui-danger-foreground) rounded-md text-sm hover:opacity-90 disabled:opacity-60"
+                      >
+                        {deletingId === item.id
+                          ? t("analysisHistory.deleting")
+                          : t("analysisHistory.delete")}
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>

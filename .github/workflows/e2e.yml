@@ -56,10 +56,10 @@ jobs:
           echo "Postgres did not become ready" && exit 1
 
       - name: Push Prisma schema to DB
-        run: npx prisma db push --schema=apps/api/prisma/schema.prisma
+        run: npx prisma db push --schema=prisma/schema.prisma
 
       - name: Generate Prisma client
-        run: npx prisma generate --schema=apps/api/prisma/schema.prisma
+        run: npx prisma generate --schema=prisma/schema.prisma
 
       - name: Seed database for E2E
         run: node apps/api/prisma/seed.cjs

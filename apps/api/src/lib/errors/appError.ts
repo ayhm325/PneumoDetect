@@ -17,6 +17,7 @@ export type ErrorCode =
   | "forbidden"
   | "not_found"
   | "conflict"
+  | "medical_record_protected"
   | "validation_error"
   | "repository_error"
   | "inference_error"

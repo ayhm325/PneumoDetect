@@ -12,9 +12,14 @@ export async function runPyModel(prepared, options = {}) {
 
   let res;
   try {
+    const internalToken = (process.env.PY_MODEL_INTERNAL_TOKEN || "").trim();
+    const headers = {
+      "Content-Type": "application/json",
+      ...(internalToken ? { "X-Internal-Model-Token": internalToken } : {}),
+    };
     res = await fetch(pyUrl, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify({ image_base64: b64, with_heatmap }),
       signal: controller.signal,
     });

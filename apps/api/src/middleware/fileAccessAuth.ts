@@ -5,44 +5,74 @@ import type { AuthenticatedRequest } from "./auth.js";
 import { prisma } from "../db/prisma.js";
 import { getUploadSigningSecret } from "../services/analysis/analysisService.js";
 
-function verifySignedQuery(req: AuthenticatedRequest): { present: boolean; valid: boolean; reason?: string } {
-  const exp = typeof req.query.exp === "string" ? req.query.exp : "";
-  const sig = typeof req.query.sig === "string" ? req.query.sig : "";
-  if (!exp && !sig) {
-    return { present: false, valid: false };
+export function getSafeFileName(reqPath: string): string | null {
+  try {
+    const raw = typeof reqPath === "string" ? reqPath : "";
+    const trimmed = raw.startsWith("/") ? raw.slice(1) : raw;
+    if (!trimmed) return null;
+    const decoded = decodeURIComponent(trimmed);
+    if (
+      !decoded ||
+      decoded === "." ||
+      decoded === ".." ||
+      decoded.includes("/") ||
+      decoded.includes("\\") ||
+      decoded.includes("..") ||
+      decoded.includes("\0")
+    ) {
+      return null;
+    }
+    const base = path.basename(decoded);
+    if (!base || base !== decoded || base === "." || base === "..") {
+      return null;
+    }
+    return base;
+  } catch {
+    return null;
+  }
+}
+
+export function verifySignedQuery(
+  req: AuthenticatedRequest,
+  fileName: string,
+): { present: boolean; valid: boolean; reason?: string } {
+  const hasExp = req.query.exp !== undefined;
+  const hasSig = req.query.sig !== undefined;
+
+  if (!hasExp && !hasSig) {
+    return { present: false, valid: true };
+  }
+
+  if (!hasExp || !hasSig || typeof req.query.exp !== "string" || typeof req.query.sig !== "string") {
+    return { present: true, valid: false, reason: "Incomplete signed URL parameters" };
+  }
+
+  const exp = req.query.exp.trim();
+  const sig = req.query.sig.trim();
+  if (!exp || !sig) {
+    return { present: true, valid: false, reason: "Incomplete signed URL parameters" };
+  }
+
+  if (!/^\d+$/.test(exp)) {
+    return { present: true, valid: false, reason: "Invalid signed URL expiration" };
   }
 
   const expMs = Number(exp);
-  if (!Number.isFinite(expMs) || expMs < Date.now()) {
+  if (!Number.isSafeInteger(expMs) || expMs < Date.now()) {
     return { present: true, valid: false, reason: "Signed URL expired" };
-  }
-
-  const fileName = path.basename(decodeURIComponent(req.path || ""));
-  if (!fileName) {
-    return { present: true, valid: false, reason: "Invalid file path" };
   }
 
   const expected = crypto
     .createHmac("sha256", getUploadSigningSecret())
     .update(`${fileName}:${exp}`)
     .digest("hex");
-  const sigBuf = Buffer.from(sig);
-  const expBuf = Buffer.from(expected);
+  const sigBuf = Buffer.from(sig, "utf8");
+  const expBuf = Buffer.from(expected, "utf8");
   if (sigBuf.length !== expBuf.length || !crypto.timingSafeEqual(sigBuf, expBuf)) {
     return { present: true, valid: false, reason: "Invalid signed URL signature" };
   }
 
   return { present: true, valid: true };
-}
-
-function getSafeFileName(reqPath: string): string | null {
-  try {
-    const base = path.basename(decodeURIComponent(reqPath || ""));
-    if (!base || base === "." || base === "..") return null;
-    return base;
-  } catch {
-    return null;
-  }
 }
 
 export async function authorizeUploadAccess(
@@ -56,14 +86,14 @@ export async function authorizeUploadAccess(
       return res.status(401).json({ error: "Unauthorized" });
     }
 
-    const signed = verifySignedQuery(req);
-    if (signed.present && !signed.valid) {
-      return res.status(403).json({ error: signed.reason || "Invalid signed URL" });
-    }
-
     const fileName = getSafeFileName(req.path);
     if (!fileName) {
       return res.status(400).json({ error: "Invalid file path" });
+    }
+
+    const signed = verifySignedQuery(req, fileName);
+    if (signed.present && !signed.valid) {
+      return res.status(403).json({ error: signed.reason || "Invalid signed URL" });
     }
 
     if (String(authUser.role || "").toLowerCase() === "admin") {
@@ -82,6 +112,7 @@ export async function authorizeUploadAccess(
       },
       select: {
         userId: true,
+        patientId: true,
         uploadedByUserId: true,
         medicalRecord: {
           select: {

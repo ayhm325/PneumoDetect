@@ -253,15 +253,27 @@ export function createDoctorPortalRepository(
             where: { id: input.id, doctorId: input.doctorId },
             select: {
               analysisResultId: true,
+              analysisResult: {
+                select: {
+                  id: true,
+                  needsReview: true,
+                },
+              },
               patient: { select: { id: true } },
             },
           });
 
           if (targetRecord?.analysisResultId) {
+            const needsReview = Boolean(targetRecord.analysisResult?.needsReview);
+            const nextReviewStatus = input.reviewedByDoctor
+              ? "reviewed"
+              : needsReview
+                ? "requires_review"
+                : "pending_review";
             await tx.analysisResult.update({
               where: { id: targetRecord.analysisResultId },
               data: {
-                reviewStatus: input.reviewedByDoctor ? "reviewed" : "pending_review",
+                reviewStatus: nextReviewStatus,
               },
             });
           }

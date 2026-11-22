@@ -14,11 +14,50 @@ import type { AnalysisResultRepository } from "../../repositories/analysis/analy
 import type { MedicalRecordRepository } from "../../repositories/analysis/medicalRecordRepository";
 import type { NotificationRepository } from "../../repositories/analysis/notificationRepository";
 import type { PatientIdentity, PatientRepository } from "../../repositories/analysis/patientRepository";
+import {
+  computeCanonicalReviewStatus,
+  normalizeUploadStorageReference,
+} from "./analysisBackfillService";
 
-function resolveUploadsDir(): string {
+function getRepoRoot(): string {
   const cwd = process.cwd();
-  const repoRoot = fs.existsSync(path.join(cwd, "apps")) ? cwd : path.resolve(cwd, "../..");
-  return path.join(repoRoot, "public", "uploads");
+  return fs.existsSync(path.join(cwd, "apps")) ? cwd : path.resolve(cwd, "../..");
+}
+
+export function resolveUploadsDir(): string {
+  return path.join(getRepoRoot(), "public", "uploads");
+}
+
+export function resolveHeatmapsDir(): string {
+  return path.join(getRepoRoot(), "python_model", "static", "heatmaps");
+}
+
+export function resolveHeatmapDiskPath(heatmapUrl: string | null | undefined): string | null {
+  const raw = typeof heatmapUrl === "string" ? heatmapUrl.trim() : "";
+  if (!raw) return null;
+  const clean = raw.split("?")[0];
+  const prefix = "/static/heatmaps/";
+  const idx = clean.indexOf(prefix);
+  if (idx === -1) return null;
+  const rest = clean.slice(idx + prefix.length);
+  if (!rest || rest.includes("/") || rest.includes("\\") || rest.includes("..") || rest.includes("\0")) {
+    return null;
+  }
+  const base = path.basename(rest);
+  if (!base || base === "." || base === "..") return null;
+  return path.join(resolveHeatmapsDir(), base);
+}
+
+export function resolveUploadDiskPath(imageUrl: string | null | undefined): string | null {
+  const norm = normalizeUploadStorageReference(imageUrl);
+  if (!norm.startsWith("/uploads/")) return null;
+  const rest = norm.slice("/uploads/".length);
+  if (!rest || rest.includes("/") || rest.includes("\\") || rest.includes("..") || rest.includes("\0")) {
+    return null;
+  }
+  const base = path.basename(rest);
+  if (!base || base === "." || base === "..") return null;
+  return path.join(resolveUploadsDir(), base);
 }
 
 export function getUploadSigningSecret(): string {
@@ -36,6 +75,70 @@ export function getUploadSigningSecret(): string {
   return "pneumo-detect-dev-signing-secret";
 }
 
+/**
+ * Generates a fresh signed access URL from a stored canonical /uploads/<filename> reference
+ * (or legacy signed URL). The database stores the permanent storage path without expiry,
+ * while API read responses issue a fresh signed access URL.
+ */
+export function buildSignedUploadAccessUrl(
+  rawUrlOrPath: string | null | undefined,
+  expiresAtMs?: number,
+): string | null {
+  if (!rawUrlOrPath || typeof rawUrlOrPath !== "string") return null;
+  const normalized = normalizeUploadStorageReference(rawUrlOrPath);
+  if (!normalized.startsWith("/uploads/")) {
+    return rawUrlOrPath;
+  }
+  const fileName = normalized.slice("/uploads/".length);
+  if (!fileName || fileName.includes("/") || fileName.includes("\\") || fileName.includes("..")) {
+    return normalized;
+  }
+  const ttlMs = Number(process.env.UPLOAD_URL_EXP_MS) || 24 * 60 * 60 * 1000;
+  const expires = typeof expiresAtMs === "number" && Number.isFinite(expiresAtMs)
+    ? expiresAtMs
+    : Date.now() + ttlMs;
+  const sig = crypto
+    .createHmac("sha256", getUploadSigningSecret())
+    .update(`${fileName}:${expires}`)
+    .digest("hex");
+  return `/uploads/${encodeURIComponent(fileName)}?exp=${expires}&sig=${sig}`;
+}
+
+/**
+ * Tracks files created during a single analysis operation (original uploaded image + generated heatmap)
+ * and guarantees cleanup if any subsequent validation, inference, or transaction step fails.
+ */
+export class AnalysisArtifacts {
+  private createdPaths = new Set<string>();
+  private committed = false;
+
+  registerFile(filePath: string | null | undefined): void {
+    if (filePath && typeof filePath === "string") {
+      this.createdPaths.add(filePath);
+    }
+  }
+
+  registerHeatmapUrl(heatmapUrl: string | null | undefined): void {
+    const diskPath = resolveHeatmapDiskPath(heatmapUrl);
+    if (diskPath) {
+      this.createdPaths.add(diskPath);
+    }
+  }
+
+  markCommitted(): void {
+    this.committed = true;
+  }
+
+  async cleanupOnAbort(): Promise<void> {
+    if (this.committed) return;
+    const paths = Array.from(this.createdPaths);
+    this.createdPaths.clear();
+    await Promise.allSettled(
+      paths.map((p) => fs.promises.unlink(p).catch(() => undefined)),
+    );
+  }
+}
+
 function generateUUID() {
   if (globalThis.crypto && typeof globalThis.crypto.randomUUID === "function") {
     return globalThis.crypto.randomUUID();
@@ -48,7 +151,7 @@ function generateUUID() {
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 }
 
-function toAiResult(prediction: string): "POSITIVE" | "NEGATIVE" {
+export function toAiResult(prediction: string): "POSITIVE" | "NEGATIVE" {
   const value = String(prediction || "").trim().toUpperCase();
   if (value === "NORMAL" || value === "NEGATIVE" || value === "NO FINDING") {
     return "NEGATIVE";
@@ -69,7 +172,18 @@ function clamp01(input: number) {
   return Math.max(0, Math.min(1, num));
 }
 
-async function detectFileType(buffer: Buffer): Promise<{ ext?: string; mime?: string } | null> {
+export async function detectFileType(buffer: Buffer): Promise<{ ext?: string; mime?: string } | null> {
+  // Check for DICOM magic bytes ("DICM" at offset 128)
+  if (
+    buffer.length >= 132 &&
+    buffer[128] === 0x44 &&
+    buffer[129] === 0x49 &&
+    buffer[130] === 0x43 &&
+    buffer[131] === 0x4d
+  ) {
+    return { ext: "dcm", mime: "application/dicom" };
+  }
+
   try {
     const fileTypeModule = await import("file-type");
     const fn = fileTypeModule?.fileTypeFromBuffer;
@@ -179,6 +293,15 @@ export function createAnalysisService(deps: AnalysisServiceDeps): AnalysisServic
         });
       }
 
+      const detected = await detectFileType(image.buffer);
+      if (detected?.ext === "dcm" || detected?.mime === "application/dicom") {
+        throw new AppError({
+          code: "unsupported_dicom",
+          message: "DICOM (.dcm) files are not supported; please upload a chest X-ray PNG, JPG, or WEBP image",
+          statusCode: 400,
+        });
+      }
+
       // Resolve & authorize target patient before running inference
       let targetPatient: PatientIdentity | null = null;
       const normalizedRole = String(role || "").trim().toLowerCase();
@@ -235,7 +358,6 @@ export function createAnalysisService(deps: AnalysisServiceDeps): AnalysisServic
 
       let safeExt = "";
       let detectedMime = "";
-      const detected = await detectFileType(image.buffer);
       if (detected?.ext) {
         const ext = `.${String(detected.ext).toLowerCase()}`;
         if (allowedExtensions.has(ext)) safeExt = ext;
@@ -253,12 +375,13 @@ export function createAnalysisService(deps: AnalysisServiceDeps): AnalysisServic
       const uploadsDir = resolveUploadsDir();
       if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 
-      const signingSecret = getUploadSigningSecret();
       const safeFileName = path.basename(`${generateUUID()}${safeExt}`);
       const savedFilePath = path.join(uploadsDir, safeFileName);
+      const artifacts = new AnalysisArtifacts();
 
       try {
         await fs.promises.writeFile(savedFilePath, image.buffer);
+        artifacts.registerFile(savedFilePath);
       } catch (storageErr) {
         console.error("Failed to write uploaded image to disk", storageErr);
         throw new AppError({
@@ -269,9 +392,10 @@ export function createAnalysisService(deps: AnalysisServiceDeps): AnalysisServic
         });
       }
 
-      const expires = Date.now() + (Number(process.env.UPLOAD_URL_EXP_MS) || 24 * 60 * 60 * 1000);
-      const sig = crypto.createHmac("sha256", signingSecret).update(`${safeFileName}:${expires}`).digest("hex");
-      const imageUrl = `/uploads/${encodeURIComponent(safeFileName)}?exp=${expires}&sig=${sig}`;
+      // Permanent storage reference stored in DB (never expires)
+      const storageImageUrl = `/uploads/${safeFileName}`;
+      // Fresh signed access URL returned to client
+      const signedAccessUrl = buildSignedUploadAccessUrl(storageImageUrl) || storageImageUrl;
 
       const inferenceInput: RunInferenceInput = {
         buffer: image.buffer,
@@ -284,8 +408,9 @@ export function createAnalysisService(deps: AnalysisServiceDeps): AnalysisServic
       let rawInference: RawInferenceResult;
       try {
         rawInference = await deps.runInference(inferenceInput);
+        artifacts.registerHeatmapUrl(rawInference?.heatmap_url ?? rawInference?.heatmapUrl ?? null);
       } catch (error) {
-        await fs.promises.unlink(savedFilePath).catch(() => undefined);
+        await artifacts.cleanupOnAbort();
         const errWithStatus = error as { statusCode?: number; code?: string; message?: string };
         throw new AppError({
           code: (errWithStatus?.code as ErrorCode) || "inference_error",
@@ -295,12 +420,19 @@ export function createAnalysisService(deps: AnalysisServiceDeps): AnalysisServic
         });
       }
 
-      const normalized = normalizeInferenceResult(rawInference);
-      const aiResult = toAiResult(normalized.prediction);
+      let normalized: NormalizedInferenceResult;
+      let aiResult: "POSITIVE" | "NEGATIVE";
+      try {
+        normalized = normalizeInferenceResult(rawInference);
+        aiResult = toAiResult(normalized.prediction);
+      } catch (validationErr) {
+        await artifacts.cleanupOnAbort();
+        throw validationErr;
+      }
 
       // Never persist simulated mock results as genuine clinical records
       if (normalized.isMock) {
-        await fs.promises.unlink(savedFilePath).catch(() => undefined);
+        await artifacts.cleanupOnAbort();
         return {
           success: true,
           saved: false,
@@ -335,6 +467,10 @@ export function createAnalysisService(deps: AnalysisServiceDeps): AnalysisServic
       const ownerUserId = targetPatient?.userId || userId;
       const rawNotes = typeof command.notes === "string" ? command.notes.trim() : "";
       const uploadNotes = rawNotes ? rawNotes.slice(0, 2000) : null;
+      const reviewStatus = computeCanonicalReviewStatus({
+        reviewedByDoctor: false,
+        needsReview: normalized.needsReview,
+      });
       const runTx =
         deps.runInTransaction ||
         (<T>(fn: (tx: PrismaClientLike) => Promise<T>) => prisma.$transaction(fn));
@@ -351,8 +487,8 @@ export function createAnalysisService(deps: AnalysisServiceDeps): AnalysisServic
               uploadedByUserId: userId,
               uploadedByRole: normalizedRole || null,
               uploadNotes,
-              reviewStatus: normalized.needsReview ? "requires_review" : "pending_review",
-              imageUrl,
+              reviewStatus,
+              imageUrl: storageImageUrl,
               analysisData: normalized,
             },
             tx,
@@ -364,11 +500,11 @@ export function createAnalysisService(deps: AnalysisServiceDeps): AnalysisServic
             const med = await deps.medicalRecordRepository.create(
               {
                 patientId: targetPatient.id,
-                doctorId: targetPatient.doctorId,
+                doctorId: targetPatient.doctorId ?? null,
                 analysisResultId: (saved?.id as string | undefined) ?? null,
                 aiResult,
                 confidenceScore: clamp01(normalized.confidence),
-                imageUrl,
+                imageUrl: storageImageUrl,
                 uploadNotes,
               },
               tx,
@@ -380,8 +516,9 @@ export function createAnalysisService(deps: AnalysisServiceDeps): AnalysisServic
         });
         savedRecord = txResult.saved;
         createdMedicalRecord = txResult.medRecord;
+        artifacts.markCommitted();
       } catch (error) {
-        await fs.promises.unlink(savedFilePath).catch(() => undefined);
+        await artifacts.cleanupOnAbort();
         console.error("analysisService: mandatory persistence failed", error);
         throw new AppError({
           code: "server_error",
@@ -419,12 +556,15 @@ export function createAnalysisService(deps: AnalysisServiceDeps): AnalysisServic
 
       const canonicalData = {
         ...(savedRecord || {}),
+        imageUrl: signedAccessUrl,
+        storageImageUrl,
         patientId: targetPatient?.id ?? null,
         doctorId: targetPatient?.doctorId ?? null,
         medicalRecordId: (createdMedicalRecord?.id as string | undefined) ?? null,
         uploadNotes,
         probabilities: normalized.probabilities,
         needsReview: normalized.needsReview,
+        reviewStatus,
         displayLabel: normalized.displayLabel,
         reviewedByDoctor: false,
         isMock: false,
