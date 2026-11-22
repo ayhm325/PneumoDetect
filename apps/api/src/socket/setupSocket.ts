@@ -9,6 +9,7 @@ import { getJwtVerifyOptions } from "../legacy-lib/auth/jwtClaims.js";
 import { isTokenRevoked } from "../legacy-lib/auth/revocation.server.js";
 import { env } from "../config/env.js";
 import { chatMessageService } from "../services/chat/index.js";
+import { setChatRealtimeServer } from "../services/chat/chatRealtimePublisher.js";
 import { AppError } from "../lib/errors/appError.js";
 
 interface SocketUser {
@@ -42,6 +43,7 @@ export function setupSocket(httpServer: HttpServer): Server {
       credentials: true,
     },
   });
+  setChatRealtimeServer(io);
 
   const onlineByChat = new Map<string, Map<string, Set<string>>>();
   const onlineUserCounts = new Map<string, number>();
@@ -286,7 +288,6 @@ export function setupSocket(httpServer: HttpServer): Server {
 
         const msg = result.message;
         const payloadOut = { ...msg, time: msg.createdAt };
-        io.to(`chat:${chatId}`).emit("message", { ...payloadOut, __scope: "chat" });
         ack?.({ ok: true, message: payloadOut, existing: Boolean(result.existing) });
       } catch (err) {
         if (err instanceof AppError) {
@@ -310,9 +311,6 @@ export function setupSocket(httpServer: HttpServer): Server {
           targetStatus: "delivered",
         });
 
-        for (const item of updated) {
-          io.to(`chat:${item.chatId}`).emit("message_update", { id: item.id, status: "delivered" });
-        }
         ack?.({ ok: true, updatedCount: updated.length });
       } catch (err) {
         console.error("socket delivered_ack error", err);
@@ -333,15 +331,6 @@ export function setupSocket(httpServer: HttpServer): Server {
           targetStatus: "read",
         });
 
-        const timestamp = new Date();
-        for (const item of updated) {
-          io.to(`chat:${item.chatId}`).emit("message_update", { id: item.id, status: "read" });
-          io.to(`chat:${item.chatId}`).emit("message_read", {
-            messageId: item.id,
-            userId: user.id,
-            timestamp,
-          });
-        }
         ack?.({ ok: true, updatedCount: updated.length });
       } catch (err) {
         console.error("socket read_ack error", err);

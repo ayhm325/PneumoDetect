@@ -1,11 +1,24 @@
 import { Router } from "express";
 import fs from "fs/promises";
 import formidable from "formidable";
+import { z } from "zod";
 import { requireAuth, requireRole, type AuthenticatedRequest } from "../middleware/auth.js";
 import { withRateLimit } from "../middleware/rateLimit.js";
 import { chatMessageService, chatPatientService, chatUploadService } from "../services/chat/index.js";
 import { AppError } from "../lib/errors/appError.js";
 import { env } from "../config/env.js";
+
+const sendMessageBodySchema = z.object({
+  text: z.string().max(4000).optional(),
+  clientKey: z.string().max(128).optional(),
+  fileUrl: z.string().max(2048).optional(),
+  mimeType: z.string().max(255).optional(),
+  fileName: z.string().max(255).optional(),
+});
+
+const markReadBodySchema = z.object({
+  messageIds: z.array(z.string().min(1)).max(100),
+});
 
 export const chatRouter = Router();
 
@@ -135,16 +148,59 @@ chatRouter.get(
 chatRouter.post(
   "/chat/:chatId/messages",
   requireAuth,
+  requireRole("doctor", "patient"),
   withRateLimit("POST /api/chat/:chatId/messages"),
   async (req: AuthenticatedRequest, res, next) => {
     try {
+      const parsed = sendMessageBodySchema.safeParse(req.body || {});
+      if (!parsed.success) {
+        throw new AppError({
+          code: "validation_error",
+          message: "invalid_message_payload",
+          statusCode: 400,
+        });
+      }
+
       const result = await chatMessageService.sendMessage({
         userId: req.auth!.user.id,
-        role: req.auth!.user.role,
+        role: req.auth!.user.role || "",
         chatId: String(req.params.chatId),
-        ...(req.body || {}),
+        text: parsed.data.text,
+        clientKey: parsed.data.clientKey,
+        fileUrl: parsed.data.fileUrl,
+        mimeType: parsed.data.mimeType,
+        fileName: parsed.data.fileName,
       });
       return res.status(200).json(result);
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+chatRouter.post(
+  "/chat/:chatId/read",
+  requireAuth,
+  requireRole("doctor", "patient"),
+  withRateLimit("POST /api/chat/:chatId/read"),
+  async (req: AuthenticatedRequest, res, next) => {
+    try {
+      const parsed = markReadBodySchema.safeParse(req.body || {});
+      if (!parsed.success) {
+        throw new AppError({
+          code: "validation_error",
+          message: "invalid_read_payload",
+          statusCode: 400,
+        });
+      }
+
+      const result = await chatMessageService.markMessagesStatus({
+        userId: req.auth!.user.id,
+        role: req.auth!.user.role || "",
+        messageIds: parsed.data.messageIds,
+        targetStatus: "read",
+      });
+      return res.status(200).json({ ok: true, updated: result.updated });
     } catch (error) {
       next(error);
     }

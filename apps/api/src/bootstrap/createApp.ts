@@ -1,9 +1,9 @@
 import express from "express";
+import fs from "fs";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import path from "path";
-import { fileURLToPath } from "url";
 import { env } from "../config/env.js";
 import { requireAuth } from "../middleware/auth.js";
 import { errorHandler } from "../middleware/errorHandler.js";
@@ -17,8 +17,8 @@ import { chatRouter } from "../routes/chat.routes.js";
 import { uploadsRouter } from "../routes/uploads.routes.js";
 import { cronRouter } from "../routes/cron.routes.js";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const repoRoot = path.resolve(__dirname, "../../../..");
+const cwd = process.cwd();
+const repoRoot = fs.existsSync(path.join(cwd, "apps")) ? cwd : path.resolve(cwd, "../..");
 
 export function createApp() {
   const app = express();

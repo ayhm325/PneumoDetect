@@ -1,5 +1,6 @@
 import { AppError } from "../../lib/errors/appError";
 import type { ChatPatientRepository } from "../../repositories/chat/chatPatientRepository";
+import type { ChatRealtimePublisher } from "./chatRealtimePublisher";
 import { sanitizeText, shouldSendChatNotification } from "../../legacy-lib/chatUtils.js";
 import { prisma } from "../../db/prisma";
 
@@ -96,6 +97,7 @@ async function resolveChatAccess(
 
 export function createChatMessageService(deps: {
   chatPatientRepository: ChatPatientRepository;
+  realtimePublisher?: ChatRealtimePublisher;
 }): ChatMessageService {
   return {
     async listMessages(input) {
@@ -162,6 +164,20 @@ export function createChatMessageService(deps: {
         });
       }
 
+      if (fileUrl) {
+        const isSafeUrl =
+          fileUrl.startsWith("/uploads/") ||
+          fileUrl.startsWith("https://") ||
+          fileUrl.startsWith("http://");
+        if (!isSafeUrl) {
+          throw new AppError({
+            code: "validation_error",
+            message: "invalid_file_url",
+            statusCode: 400,
+          });
+        }
+      }
+
       const sender = role;
 
       if (clientKey) {
@@ -194,55 +210,64 @@ export function createChatMessageService(deps: {
 
       await deps.chatPatientRepository.touchChat(chatId);
 
-      const { sendUnifiedNotification } = await import("../../legacy-lib/notificationsUnified.js");
+      // Resolve recipient user ID for user-scoped conversation updates & notifications
+      let recipientUserId: string | null = null;
+      try {
+        recipientUserId =
+          sender === "doctor"
+            ? await deps.chatPatientRepository.findPatientUserIdByPatientId(
+                String((chat as { patientId?: string }).patientId || ""),
+              )
+            : await deps.chatPatientRepository.findDoctorUserIdByDoctorId(
+                String((chat as { doctorId?: string }).doctorId || ""),
+              );
+      } catch (lookupErr) {
+        console.error("chatMessageService: recipient lookup failed", lookupErr);
+      }
 
-      if (sender === "doctor") {
-        const patientUserId = await deps.chatPatientRepository.findPatientUserIdByPatientId(
-          String((chat as { patientId?: string }).patientId || ""),
-        );
-        if (patientUserId) {
+      // Publish real-time message event immediately after DB commit (before optional notifications)
+      try {
+        deps.realtimePublisher?.publishNewMessage({
+          chatId,
+          message,
+          senderUserId: userId,
+          recipientUserId,
+        });
+      } catch (publishErr) {
+        console.error("chatMessageService: realtime publish failed", publishErr);
+      }
+
+      // Best-effort notification side effect: must never fail or suppress persisted message delivery
+      if (recipientUserId) {
+        try {
+          const { sendUnifiedNotification } = await import("../../legacy-lib/notificationsUnified.js");
           const shouldSend = await shouldSendChatNotification(prisma, {
-            userId: patientUserId,
+            userId: recipientUserId,
             chatId,
           });
           if (shouldSend) {
             await sendUnifiedNotification(prisma, {
-              userId: patientUserId,
+              userId: recipientUserId,
               type: "info",
-              message: {
-                ar: "لديك رسالة جديدة من طبيبك.",
-                en: "You have a new message from your doctor.",
-                meta: { kind: "chat_message", chatId },
-              },
+              message:
+                sender === "doctor"
+                  ? {
+                      ar: "لديك رسالة جديدة من طبيبك.",
+                      en: "You have a new message from your doctor.",
+                      meta: { kind: "chat_message", chatId },
+                    }
+                  : {
+                      ar: "لديك رسالة جديدة من مريضك.",
+                      en: "You have a new message from your patient.",
+                      meta: { kind: "chat_message", chatId },
+                    },
               viaWS: true,
               viaDB: true,
               wsPayload: { kind: "chat_message", chatId },
             });
           }
-        }
-      } else if (sender === "patient") {
-        const doctorUserId = await deps.chatPatientRepository.findDoctorUserIdByDoctorId(
-          String((chat as { doctorId?: string }).doctorId || ""),
-        );
-        if (doctorUserId) {
-          const shouldSend = await shouldSendChatNotification(prisma, {
-            userId: doctorUserId,
-            chatId,
-          });
-          if (shouldSend) {
-            await sendUnifiedNotification(prisma, {
-              userId: doctorUserId,
-              type: "info",
-              message: {
-                ar: "لديك رسالة جديدة من مريضك.",
-                en: "You have a new message from your patient.",
-                meta: { kind: "chat_message", chatId },
-              },
-              viaWS: true,
-              viaDB: true,
-              wsPayload: { kind: "chat_message", chatId },
-            });
-          }
+        } catch (notifErr) {
+          console.error("chatMessageService: notification side-effect failed", notifErr);
         }
       }
 
@@ -252,15 +277,23 @@ export function createChatMessageService(deps: {
     async markMessagesStatus(input) {
       const userId = String(input.userId || "").trim();
       const role = String(input.role || "").trim();
+      if (role !== "doctor" && role !== "patient") {
+        throw new AppError({
+          code: "forbidden",
+          message: "forbidden",
+          statusCode: 403,
+        });
+      }
+
       const ids = Array.from(
         new Set((input.messageIds || []).map((id) => String(id || "").trim()).filter(Boolean)),
-      );
+      ).slice(0, 100);
       if (!userId || ids.length === 0) return { updated: [] };
 
       const rows = await deps.chatPatientRepository.findMessagesByIds(ids);
       if (rows.length === 0) return { updated: [] };
 
-      const userSenderType = role === "doctor" ? "doctor" : "patient";
+      const userSenderType = role;
       const authorizedChatIds = new Set<string>();
       const uniqueChatIds = Array.from(new Set(rows.map((r) => r.chatId)));
 
@@ -286,6 +319,27 @@ export function createChatMessageService(deps: {
 
       const eligibleIds = eligible.map((m) => m.id);
       await deps.chatPatientRepository.markMessagesStatusByIds(eligibleIds, input.targetStatus);
+
+      const timestamp = new Date();
+      for (const m of eligible) {
+        try {
+          deps.realtimePublisher?.publishMessageUpdate({
+            chatId: m.chatId,
+            id: m.id,
+            status: input.targetStatus,
+          });
+          if (input.targetStatus === "read") {
+            deps.realtimePublisher?.publishMessageRead({
+              chatId: m.chatId,
+              messageId: m.id,
+              userId,
+              timestamp,
+            });
+          }
+        } catch (pubErr) {
+          console.error("chatMessageService: status publish failed", pubErr);
+        }
+      }
 
       return {
         updated: eligible.map((m) => ({

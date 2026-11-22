@@ -1,12 +1,13 @@
 import dotenv from "dotenv";
+import fs from "fs";
 import path from "path";
-import { fileURLToPath } from "url";
 import { z } from "zod";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const cwd = process.cwd();
+const repoRoot = fs.existsSync(path.join(cwd, "apps")) ? cwd : path.resolve(cwd, "../..");
 // Load root .env if present (monorepo root) or local apps/api/.env
-dotenv.config({ path: path.resolve(__dirname, "../../../../.env") });
-dotenv.config({ path: path.resolve(__dirname, "../../.env") });
+dotenv.config({ path: path.resolve(repoRoot, ".env") });
+dotenv.config({ path: path.resolve(repoRoot, "apps/api/.env") });
 
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
