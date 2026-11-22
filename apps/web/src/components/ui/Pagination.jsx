@@ -21,7 +21,7 @@ export default function Pagination({
   const nextDisabled = page >= pageCount;
 
   const btnClass =
-    "h-9 px-3 rounded-md border border-[var(--ui-border)] bg-[var(--ui-surface)] text-[var(--ui-foreground)] hover:bg-[var(--ui-surface-2)] disabled:opacity-50";
+    "h-9 px-3.5 rounded-lg border border-[var(--ui-border)] bg-[var(--ui-surface-elevated)] text-xs font-semibold text-[var(--ui-foreground)] transition hover:bg-[var(--ui-table-hover)] disabled:cursor-not-allowed disabled:opacity-50";
 
   const containerClass = [
     "mt-4 flex items-center justify-center gap-2",

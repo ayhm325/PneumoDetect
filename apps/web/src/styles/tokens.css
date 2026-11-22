@@ -1,137 +1,115 @@
 /* Map design tokens to CSS variables for global use */
 :root {
-  --color-primary: #4f46e5;
-  --color-secondary: #0891b2;
-  --color-accent: #7c3aed;
-  --color-bright: #f59e0b;
-  --color-dark: #dc2626;
-  --color-neutral: #0f172a;
-  --color-text: #0f172a;
-  --color-background: #f8fafc;
+  /* Enterprise SaaS Palette */
+  --color-primary: #356ae6;
+  --color-primary-hover: #2858ca;
+  --color-secondary: #13a89e;
+  --color-accent: #356ae6;
+  --color-bright: #d99128;
+  --color-dark: #d94f5c;
+  --color-neutral: #182b45;
+  --color-text: #172338;
+  --color-background: #f3f6fb;
 
   /* Dark defaults (for pre-hydration / prefers-color-scheme) */
-  --color-background-dark: #0b1020;
-  --color-text-dark: #e6ecff;
+  --color-background-dark: #0b1220;
+  --color-text-dark: #e6edf7;
 
-  --color-primary-100: #e0e7ff;
-  --color-primary-500: #4f46e5;
-  --color-primary-900: #3730a3;
+  --color-primary-100: #e9f0ff;
+  --color-primary-500: #356ae6;
+  --color-primary-900: #2858ca;
 
-  --color-secondary-100: #cffafe;
-  --color-secondary-500: #0891b2;
-  --color-secondary-900: #155e75;
+  --color-secondary-100: #e0f5f3;
+  --color-secondary-500: #13a89e;
+  --color-secondary-900: #0e7c75;
 
-  --color-accent-100: #ede9fe;
-  --color-accent-500: #7c3aed;
-  --color-accent-900: #4c1d95;
+  --color-accent-100: #e9f0ff;
+  --color-accent-500: #3984c6;
+  --color-accent-900: #203b60;
 
-  --color-bright-100: #fef3c7;
-  --color-bright-500: #f59e0b;
-  --color-bright-900: #92400e;
+  --color-bright-100: #fdf3e1;
+  --color-bright-500: #d99128;
+  --color-bright-900: #9a6212;
 
-  --color-dark-100: #fee2e2;
-  --color-dark-500: #b91c1c;
-  --color-dark-900: #7f1d1d;
+  --color-dark-100: #fbe9eb;
+  --color-dark-500: #d94f5c;
+  --color-dark-900: #b23340;
 
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
-  --radius-xl: 24px;
+  --radius-xl: 20px;
 
-  --shadow-soft: 0 8px 24px rgba(15, 23, 42, 0.1);
-  --shadow-lift: 0 14px 36px rgba(15, 23, 42, 0.18);
-  --shadow-glow: 0 0 0 1px color-mix(in srgb, var(--color-primary-500) 30%, transparent),
-    0 18px 42px color-mix(in srgb, var(--color-primary-500) 22%, transparent);
+  --shadow-soft: 0 2px 10px rgba(23, 35, 56, 0.05), 0 1px 3px rgba(23, 35, 56, 0.04);
+  --shadow-lift: 0 10px 28px rgba(23, 35, 56, 0.1), 0 2px 8px rgba(23, 35, 56, 0.06);
+  --shadow-glow: 0 0 0 1px rgba(53, 106, 230, 0.14),
+    0 8px 24px rgba(53, 106, 230, 0.12);
 
-  /* ↓↓↓ شفافية أقل */
-  --opacity-glass: 0.85;
-  --opacity-sheen: 0.15;
+  --opacity-glass: 0.94;
+  --opacity-sheen: 0.08;
 
-  /* Derived UI tokens (based on palette above) */
-  --ui-foreground: var(--color-text);
-  --ui-muted-foreground: var(--ui-muted);
-  --ui-border: color-mix(in srgb, var(--color-text) 18%, transparent);
-  --ui-border-strong: color-mix(in srgb, var(--color-text) 26%, transparent);
-  --ui-muted: color-mix(in srgb, var(--color-text) 70%, transparent);
-  --ui-muted-2: color-mix(in srgb, var(--color-text) 55%, transparent);
-  --ui-surface: color-mix(
-    in srgb,
-    var(--color-background) 97%,
-    var(--color-primary-100)
-  );
-  --ui-surface-2: color-mix(
-    in srgb,
-    var(--color-background) 94%,
-    var(--color-secondary-100)
-  );
-  --ui-surface-elevated: color-mix(
-    in srgb,
-    var(--color-background) 90%,
-    var(--color-secondary-100)
-  );
-  --ui-ring: var(--color-primary-500);
-  --ui-accent-glow: color-mix(in srgb, var(--color-primary-500) 36%, transparent);
-  --ui-grid-line: color-mix(in srgb, var(--color-primary-500) 10%, transparent);
+  /* Layout & Surface Tokens */
+  --ui-foreground: #172338;
+  --ui-muted: #63738a;
+  --ui-muted-2: #8996a8;
+  --ui-muted-foreground: #63738a;
+  --ui-border: rgba(23, 35, 56, 0.11);
+  --ui-border-strong: rgba(23, 35, 56, 0.2);
+  --ui-surface: #f9fafd;
+  --ui-surface-2: #eaf0f7;
+  --ui-surface-elevated: #ffffff;
+  --ui-topbar-bg: #203b60;
+  --ui-footer-bg: #e9eff6;
+  --ui-table-bg: #edf2f8;
+  --ui-table-header: #e1e9f3;
+  --ui-table-hover: #e5edf8;
+  --ui-ring: #356ae6;
+  --ui-accent-glow: rgba(53, 106, 230, 0.22);
+  --ui-grid-line: rgba(53, 106, 230, 0.06);
 
-  /* Semantic UI tokens (derived from palette above; no new colors introduced) */
-  --ui-info: var(--color-accent-500);
-  --ui-info-bg: color-mix(
-    in srgb,
-    var(--color-accent-500) 10%,
-    var(--color-background)
-  );
-  --ui-info-border: color-mix(
-    in srgb,
-    var(--color-accent-500) 22%,
-    transparent
-  );
-  --ui-info-foreground: var(--color-background);
+  /* Semantic UI tokens */
+  --ui-info: #3984c6;
+  --ui-info-bg: rgba(57, 132, 198, 0.12);
+  --ui-info-border: rgba(57, 132, 198, 0.26);
+  --ui-info-foreground: #205c93;
 
-  --ui-success: var(--color-primary-500);
-  --ui-success-bg: color-mix(
-    in srgb,
-    var(--color-primary-500) 10%,
-    var(--color-background)
-  );
-  --ui-success-border: color-mix(
-    in srgb,
-    var(--color-primary-500) 22%,
-    transparent
-  );
-  --ui-success-foreground: var(--color-background);
+  --ui-success: #159a72;
+  --ui-success-bg: rgba(21, 154, 114, 0.12);
+  --ui-success-border: rgba(21, 154, 114, 0.26);
+  --ui-success-foreground: #0e7254;
 
-  --ui-warning: var(--color-bright-500);
-  --ui-warning-bg: color-mix(
-    in srgb,
-    var(--color-bright-500) 14%,
-    var(--color-background)
-  );
-  --ui-warning-border: color-mix(
-    in srgb,
-    var(--color-bright-500) 26%,
-    transparent
-  );
-  --ui-warning-foreground: var(--color-neutral);
+  --ui-warning: #d99128;
+  --ui-warning-bg: rgba(217, 145, 40, 0.13);
+  --ui-warning-border: rgba(217, 145, 40, 0.28);
+  --ui-warning-foreground: #945f12;
 
-  --ui-danger: var(--color-dark-500);
-  --ui-danger-bg: color-mix(
-    in srgb,
-    var(--color-dark-500) 12%,
-    var(--color-background)
-  );
-  --ui-danger-border: color-mix(
-    in srgb,
-    var(--color-dark-500) 24%,
-    transparent
-  );
-  --ui-danger-foreground: var(--color-background);
+  --ui-danger: #d94f5c;
+  --ui-danger-bg: rgba(217, 79, 92, 0.12);
+  --ui-danger-border: rgba(217, 79, 92, 0.28);
+  --ui-danger-foreground: #a82e3a;
 }
 
-/* Dark mode (data-theme) overrides */
-[data-theme="dark"] {
+/* Dark mode (data-theme & .dark) overrides */
+[data-theme="dark"],
+:root.dark {
   --color-background: var(--color-background-dark);
   --color-text: var(--color-text-dark);
-
-  --ui-info-foreground: var(--color-text);
-  --ui-danger-foreground: var(--color-text);
+  --ui-foreground: #e6edf7;
+  --ui-muted: #9aa8bd;
+  --ui-muted-2: #76859b;
+  --ui-muted-foreground: #9aa8bd;
+  --ui-border: rgba(230, 237, 247, 0.12);
+  --ui-border-strong: rgba(230, 237, 247, 0.24);
+  --ui-surface: #111a2e;
+  --ui-surface-2: #182338;
+  --ui-surface-elevated: #1c2942;
+  --ui-topbar-bg: #15243b;
+  --ui-footer-bg: #10192b;
+  --ui-table-bg: #141f35;
+  --ui-table-header: #1a2843;
+  --ui-table-hover: #203152;
+  --ui-info-foreground: #7bc0fa;
+  --ui-success-foreground: #4cd9ac;
+  --ui-warning-foreground: #f2be6b;
+  --ui-danger-foreground: #f28a94;
 }

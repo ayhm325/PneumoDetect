@@ -1,9 +1,14 @@
 export function Table({ children, className = "", ...props }) {
-  const classes = ["overflow-x-auto", className].filter(Boolean).join(" ");
+  const classes = [
+    "overflow-x-auto rounded-[14px] border border-[var(--ui-border)] bg-[var(--ui-table-bg)] shadow-[var(--shadow-soft)]",
+    className,
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <div className={classes} {...props}>
-      <table className="min-w-full rounded-lg bg-(--color-background) border border-(--ui-border)">
+      <table className="min-w-full border-collapse text-[13.5px]">
         {children}
       </table>
     </div>
@@ -11,7 +16,10 @@ export function Table({ children, className = "", ...props }) {
 }
 
 export function THead({ children, className = "", ...props }) {
-  const classes = ["bg-[var(--ui-surface)]", className]
+  const classes = [
+    "bg-[var(--ui-table-header)] border-b border-[var(--ui-border)]",
+    className,
+  ]
     .filter(Boolean)
     .join(" ");
   return (
@@ -22,7 +30,10 @@ export function THead({ children, className = "", ...props }) {
 }
 
 export function TRow({ children, className = "", ...props }) {
-  const classes = ["border-t border-[var(--ui-border)]", className]
+  const classes = [
+    "border-t border-[var(--ui-border)] transition-colors duration-150 hover:bg-[var(--ui-table-hover)]",
+    className,
+  ]
     .filter(Boolean)
     .join(" ");
   return (
@@ -34,7 +45,7 @@ export function TRow({ children, className = "", ...props }) {
 
 export function TH({ children, className = "", ...props }) {
   const classes = [
-    "py-3 px-4 text-[var(--color-text)] text-start font-bold",
+    "h-12 px-4 text-start text-[13px] font-semibold text-[var(--ui-foreground)] whitespace-nowrap",
     className,
   ]
     .filter(Boolean)
@@ -48,7 +59,12 @@ export function TH({ children, className = "", ...props }) {
 }
 
 export function TD({ children, className = "", ...props }) {
-  const classes = ["py-2 px-4 text-start", className].filter(Boolean).join(" ");
+  const classes = [
+    "h-[54px] px-4 text-start text-[13.5px] text-[var(--ui-foreground)]",
+    className,
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <td className={classes} {...props}>

@@ -10,11 +10,11 @@ export interface StatCardProps {
 }
 
 const TONE_MAP: Record<NonNullable<StatCardProps["tone"]>, string> = {
-  primary: "text-[var(--color-primary-500)]",
-  secondary: "text-[var(--color-secondary-500)]",
-  success: "text-emerald-600 dark:text-emerald-400",
-  warning: "text-amber-600 dark:text-amber-400",
-  danger: "text-red-600 dark:text-red-400",
+  primary: "text-[var(--color-primary)]",
+  secondary: "text-[var(--color-secondary)]",
+  success: "text-[var(--ui-success)]",
+  warning: "text-[var(--ui-warning)]",
+  danger: "text-[var(--ui-danger)]",
 };
 
 export function StatCard({

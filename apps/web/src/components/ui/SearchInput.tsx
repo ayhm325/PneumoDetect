@@ -10,7 +10,7 @@ export function SearchInput({ label, className = "", ...props }: SearchInputProp
       {label && <label className="sr-only">{label}</label>}
       <input
         type="search"
-        className={`w-full rounded-xl border border-[var(--ui-border)] bg-[var(--ui-surface)] py-2 ps-9 pe-3 text-sm text-[var(--ui-foreground)] outline-none transition focus:border-[var(--color-primary-500)] focus:ring-2 focus:ring-[var(--color-primary-500)]/20 ${className}`}
+        className={`h-11 w-full rounded-[10px] border border-[var(--ui-border)] bg-[var(--ui-surface-elevated)] ps-10 pe-3.5 text-sm text-[var(--ui-foreground)] outline-none transition placeholder:text-[var(--ui-muted-2)] focus:border-[var(--ui-ring)] focus:ring-2 focus:ring-[var(--ui-accent-glow)] ${className}`}
         {...props}
       />
       <svg

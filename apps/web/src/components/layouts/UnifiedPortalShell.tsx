@@ -315,17 +315,17 @@ export function UnifiedPortalShell({
 
       {/* Main Content Area */}
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-[var(--ui-border)] bg-[var(--ui-surface)]/90 px-4 backdrop-blur-md sm:px-6">
+        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-white/10 bg-[var(--ui-topbar-bg)] px-4 text-white shadow-xs sm:px-6">
           <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={() => setMobileOpen(true)}
               aria-label="Open navigation menu"
-              className="rounded-lg p-2 text-[var(--ui-foreground)] hover:bg-[var(--ui-surface-2)] md:hidden"
+              className="rounded-lg p-2 text-white/90 transition hover:bg-white/10 md:hidden"
             >
               <FaBars />
             </button>
-            <h2 className="text-sm font-bold text-[var(--ui-foreground)] sm:text-base">
+            <h2 className="text-sm font-semibold tracking-wide text-white sm:text-base">
               {portalTitle}
             </h2>
           </div>
@@ -335,22 +335,22 @@ export function UnifiedPortalShell({
               type="button"
               onClick={toggleTheme}
               aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-              className="flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--ui-border)] bg-[var(--ui-surface)] text-[var(--ui-foreground)] transition hover:bg-[var(--ui-surface-2)]"
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/15 bg-white/10 text-white transition hover:bg-white/20"
             >
-              {isDark ? <FaSun className="text-amber-400" /> : <FaMoon />}
+              {isDark ? <FaSun className="text-amber-300" /> : <FaMoon />}
             </button>
 
             <button
               type="button"
               onClick={handleToggleLocale}
-              className="rounded-xl border border-[var(--ui-border)] bg-[var(--ui-surface)] px-3 py-1.5 text-xs font-bold text-[var(--ui-foreground)] transition hover:bg-[var(--ui-surface-2)]"
+              className="rounded-lg border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-white/20"
             >
               {isAr ? "EN" : "AR"}
             </button>
 
             {user && (
-              <div className="hidden items-center gap-2 rounded-xl border border-[var(--ui-border)] bg-[var(--ui-surface-2)] px-3 py-1.5 sm:flex">
-                <span className="max-w-[140px] truncate text-xs font-semibold">
+              <div className="hidden items-center gap-2 rounded-lg border border-white/15 bg-white/10 px-3 py-1.5 sm:flex">
+                <span className="max-w-[160px] truncate text-xs font-semibold text-white">
                   {user.fullName || user.email}
                 </span>
               </div>
@@ -358,9 +358,16 @@ export function UnifiedPortalShell({
           </div>
         </header>
 
-        <main className="flex-1 p-4 sm:p-6">
+        <main className="flex-1 p-4 sm:p-5 lg:p-8">
           <div className="mx-auto max-w-7xl">{children}</div>
         </main>
+
+        <footer className="border-t border-[var(--ui-border)] bg-[var(--ui-footer-bg)] px-4 py-3 text-xs text-[var(--ui-muted)] sm:px-6">
+          <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2">
+            <span>PneumoDetect</span>
+            <span>{isAr ? "منصة تشخيص الأشعة بالذكاء الاصطناعي" : "AI Chest X-Ray Diagnostic Platform"}</span>
+          </div>
+        </footer>
       </div>
     </div>
     </PortalShellContext.Provider>
