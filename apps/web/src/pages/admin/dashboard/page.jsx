@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 export const headers = () => {
   return [["Cache-Control", "no-store"]];

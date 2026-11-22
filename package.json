@@ -8,7 +8,7 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "node scripts/ensure-postgres.mjs && concurrently \"npm run dev:api\" \"npm run dev:web\" \"npm run dev:model\"",
+    "dev": "concurrently \"npm run dev:api\" \"npm run dev:web\" \"npm run dev:model\"",
     "dev:api": "npm --workspace=@pneumodetect/api run dev",
     "dev:web": "npm --workspace=@pneumodetect/web run dev",
     "dev:model": "node scripts/start-python-model.mjs",
