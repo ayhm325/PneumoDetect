@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "@/lib/compat/intl";
+import { GlideSelect } from "@/components/ui";
 
 export default function UserFormModal({ open, onClose, onSave, user }) {
   const t = useTranslations("adminUsers");
@@ -37,15 +38,17 @@ export default function UserFormModal({ open, onClose, onSave, user }) {
           onChange={(e) => setEmail(e.target.value)}
           required
         />
-        <select
-          className="border border-(--ui-border) rounded-xl px-4 py-3 bg-(--ui-surface-2) text-foreground focus:ring-4 focus:ring-(--ui-ring)/20 focus:border-transparent transition-all outline-none"
+        <GlideSelect
+          fullWidth
+          size="lg"
           value={role}
-          onChange={(e) => setRole(e.target.value)}
-        >
-          <option value="admin">{t("roles.admin")}</option>
-          <option value="doctor">{t("roles.doctor")}</option>
-          <option value="patient">{t("roles.patient")}</option>
-        </select>
+          onChange={(val) => setRole(val)}
+          options={[
+            { value: "admin", label: t("roles.admin") },
+            { value: "doctor", label: t("roles.doctor") },
+            { value: "patient", label: t("roles.patient") },
+          ]}
+        />
         <div className="flex gap-3 mt-4">
           <button
             type="submit"

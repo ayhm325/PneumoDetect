@@ -8,7 +8,7 @@ import { FaBed, FaEye, FaEyeSlash, FaStethoscope } from "react-icons/fa";
 import { LoginRequestSchema, type LoginRequest } from "@pneumodetect/contracts";
 import { useAuth } from "@/stores/authStore";
 import { apiRequest, ApiClientError } from "@/lib/apiClient";
-import { Button } from "@/components/ui";
+import { Button, GlideSelect } from "@/components/ui";
 
 interface AuthSplitCardProps {
   initialMode?: "login" | "register";
@@ -315,32 +315,34 @@ export function AuthSplitCard({ initialMode = "login" }: AuthSplitCardProps) {
                     <label className="mb-1 block text-xs font-semibold">
                       {isAr ? "اختر الطبيب المشرف" : "Select Supervising Doctor"}
                     </label>
-                    <select
-                      required
+                    <GlideSelect
+                      fullWidth
+                      size="lg"
                       value={doctorId}
-                      onChange={(e) => setDoctorId(e.target.value)}
-                      className={inputClass}
-                    >
-                      <option value="">
-                        {doctorsLoading
-                          ? isAr
-                            ? "جاري تحميل الأطباء..."
-                            : "Loading doctors..."
-                          : doctors.length === 0
+                      onChange={(val) => setDoctorId(val)}
+                      options={[
+                        {
+                          value: "",
+                          label: doctorsLoading
                             ? isAr
-                              ? "لا يوجد أطباء متاحون حالياً"
-                              : "No active doctors available"
-                            : isAr
-                              ? "— اختر طبيباً —"
-                              : "— Select a doctor —"}
-                      </option>
-                      {doctors.map((doc) => (
-                        <option key={doc.id} value={doc.id}>
-                          {doc.fullName || doc.name || doc.email}
-                          {doc.specialty ? ` (${doc.specialty})` : ""}
-                        </option>
-                      ))}
-                    </select>
+                              ? "جاري تحميل الأطباء..."
+                              : "Loading doctors..."
+                            : doctors.length === 0
+                              ? isAr
+                                ? "لا يوجد أطباء متاحون حالياً"
+                                : "No active doctors available"
+                              : isAr
+                                ? "— اختر طبيباً —"
+                                : "— Select a doctor —",
+                        },
+                        ...doctors.map((doc) => ({
+                          value: String(doc.id),
+                          label: `${doc.fullName || doc.name || doc.email}${
+                            doc.specialty ? ` (${doc.specialty})` : ""
+                          }`,
+                        })),
+                      ]}
+                    />
                   </div>
                 )}
 

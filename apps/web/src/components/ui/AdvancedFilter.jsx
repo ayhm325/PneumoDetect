@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { FaSlidersH, FaTimes } from "react-icons/fa6";
 import { useTranslations } from "@/lib/compat/intl";
+import { GlideSelect } from "./GlideSelect";
 
 const AdvancedFilter = ({
   fields = [],
@@ -69,18 +70,18 @@ const AdvancedFilter = ({
                 </label>
 
                 {field.type === "select" && (
-                  <select
+                  <GlideSelect
+                    fullWidth
                     value={filters[field.name] || ""}
-                    onChange={(e) => handleChange(field.name, e.target.value)}
-                    className="w-full px-3 py-2 border border-[var(--ui-border)] bg-[var(--ui-surface-2)] text-[var(--ui-foreground)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--ui-ring)]"
-                  >
-                    <option value="">{ui("filters.all")}</option>
-                    {field.options?.map((opt) => (
-                      <option key={opt} value={opt}>
-                        {opt}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(val) => handleChange(field.name, val)}
+                    options={[
+                      { value: "", label: ui("filters.all") },
+                      ...(field.options?.map((opt) => ({
+                        value: String(opt),
+                        label: String(opt),
+                      })) || []),
+                    ]}
+                  />
                 )}
 
                 {field.type === "date" && (

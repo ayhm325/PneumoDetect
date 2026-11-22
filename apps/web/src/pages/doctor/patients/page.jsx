@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "@/lib/compat/navigation";
 import {
   FaUsers,
+  FaUser,
   FaSearch,
   FaFilter,
   FaEye,
@@ -24,7 +25,7 @@ import {
 } from "react-icons/fa";
 import { useLocale, useTranslations } from "@/lib/compat/intl";
 import { formatDate } from "@/lib/date";
-import { Button, Card } from "@/components/ui";
+import { Button, Card, GlideSelect, ProfileMediaCard, StatCard } from "@/components/ui";
 
 // You may need to get locale and labels from props or context, adjust as needed
 export default function DoctorPatientsPage({ locale }) {
@@ -245,61 +246,30 @@ export default function DoctorPatientsPage({ locale }) {
 
           {/* Stats Cards */}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <Card size="sm">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-(--ui-muted-foreground)">
-                    {t("stats.total")}
-                  </p>
-                  <p className="mt-1 text-3xl font-bold text-(--ui-foreground)">
-                    {stats.total}
-                  </p>
-                </div>
-                <FaUsers className="text-3xl text-(--ui-info)" />
-              </div>
-            </Card>
-
-            <Card size="sm">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-(--ui-muted-foreground)">
-                    {t("stats.stable")}
-                  </p>
-                  <p className="mt-1 text-3xl font-bold text-(--ui-success)">
-                    {stats.stable}
-                  </p>
-                </div>
-                <FaCheckCircle className="text-3xl text-(--ui-success)" />
-              </div>
-            </Card>
-
-            <Card size="sm">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-(--ui-muted-foreground)">
-                    {t("stats.critical")}
-                  </p>
-                  <p className="mt-1 text-3xl font-bold text-(--ui-danger)">
-                    {stats.critical}
-                  </p>
-                </div>
-                <FaExclamationTriangle className="text-3xl text-(--ui-danger)" />
-              </div>
-            </Card>
-
-            <Card size="sm">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-(--ui-muted-foreground)">
-                    {t("stats.recovering")}
-                  </p>
-                  <p className="mt-1 text-3xl font-bold text-(--ui-warning)">
-                    {stats.recovering}
-                  </p>
-                </div>
-                <FaClock className="text-3xl text-(--ui-warning)" />
-              </div>
-            </Card>
+            <StatCard
+              label={t("stats.total")}
+              value={stats.total}
+              icon={<FaUsers />}
+              tone="info"
+            />
+            <StatCard
+              label={t("stats.stable")}
+              value={stats.stable}
+              icon={<FaCheckCircle />}
+              tone="success"
+            />
+            <StatCard
+              label={t("stats.critical")}
+              value={stats.critical}
+              icon={<FaExclamationTriangle />}
+              tone="danger"
+            />
+            <StatCard
+              label={t("stats.recovering")}
+              value={stats.recovering}
+              icon={<FaClock />}
+              tone="warning"
+            />
           </div>
 
           {/* Filters */}
@@ -322,16 +292,16 @@ export default function DoctorPatientsPage({ locale }) {
               {/* Status Filter */}
               <div className="flex items-center gap-2">
                 <FaFilter className="text-(--ui-muted-foreground)" />
-                <select
+                <GlideSelect
                   value={filterStatus}
-                  onChange={(e) => setFilterStatus(e.target.value)}
-                  className="rounded-lg border border-(--ui-border) bg-(--ui-surface) px-4 py-2 text-sm font-medium text-(--ui-foreground) focus:border-(--ui-ring) focus:outline-none focus:ring-2 focus:ring-(--ui-ring)/20"
-                >
-                  <option value="all">{t("filters.all")}</option>
-                  <option value="stable">{t("statuses.stable")}</option>
-                  <option value="critical">{t("statuses.critical")}</option>
-                  <option value="recovering">{t("statuses.recovering")}</option>
-                </select>
+                  onChange={(val) => setFilterStatus(val)}
+                  options={[
+                    { value: "all", label: t("filters.all") },
+                    { value: "stable", label: t("statuses.stable") },
+                    { value: "critical", label: t("statuses.critical") },
+                    { value: "recovering", label: t("statuses.recovering") },
+                  ]}
+                />
               </div>
             </div>
           </Card>
@@ -339,47 +309,62 @@ export default function DoctorPatientsPage({ locale }) {
           {/* Patients Grid */}
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {filteredPatients.map((patient) => (
-              <Card
+              <ProfileMediaCard
                 key={patient.id}
-                variant="interactive"
-                className="group"
+                isAvatar
+                mediaNode={<FaUser className="text-xl" />}
+                title={patient.name}
+                subtitle={`${patient.age} ${t("ageSuffix")}${
+                  patient.gender ? ` • ${getGenderLabel(patient.gender)}` : ""
+                }`}
+                badge={getStatusBadge(patient.status)}
+                actions={
+                  <>
+                    <Button
+                      onClick={() => handleViewDetails(patient)}
+                      size="sm"
+                      className="flex items-center justify-center gap-2"
+                    >
+                      <FaEye />
+                      {t("actions.view")}
+                    </Button>
+                    <Button
+                      onClick={() => handleViewResults(patient)}
+                      variant="secondary"
+                      fullWidth={false}
+                      size="sm"
+                      className="px-3.5"
+                      title={t("actions.results")}
+                    >
+                      <FaFileAlt />
+                    </Button>
+                    <Button
+                      onClick={() => handleStartChat(patient)}
+                      fullWidth={false}
+                      size="sm"
+                      className="px-3.5"
+                      title={t("actions.chat")}
+                    >
+                      <FaComments />
+                    </Button>
+                  </>
+                }
               >
-                {/* Header */}
-                <div className="mb-4 flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-(--ui-info-bg) text-(--ui-info-foreground) text-3xl">
-                      {patient.avatar}
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-bold text-(--ui-foreground)">
-                        {patient.name}
-                      </h3>
-                      <p className="text-sm text-(--ui-muted-foreground)">
-                        {patient.age} {t("ageSuffix")}
-                        {patient.gender
-                          ? ` • ${getGenderLabel(patient.gender)}`
-                          : ""}
-                      </p>
-                    </div>
-                  </div>
-                  {getStatusBadge(patient.status)}
-                </div>
-
                 {/* Patient Info */}
-                <div className="mb-4 space-y-2">
-                  <div className="flex items-center gap-2 text-sm">
+                <div className="mb-3 space-y-1.5">
+                  <div className="flex items-center gap-2 text-xs">
                     <FaPhone className="text-(--ui-muted-foreground)" />
                     <span className="text-(--ui-foreground)">
                       {patient.phone}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm">
+                  <div className="flex items-center gap-2 text-xs">
                     <FaEnvelope className="text-(--ui-muted-foreground)" />
-                    <span className="text-(--ui-foreground)">
+                    <span className="text-(--ui-foreground) truncate">
                       {patient.email}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm">
+                  <div className="flex items-center gap-2 text-xs">
                     <FaCalendarAlt className="text-(--ui-muted-foreground)" />
                     <span className="text-(--ui-muted-foreground)">
                       {t("labels.lastVisit")}
@@ -388,36 +373,27 @@ export default function DoctorPatientsPage({ locale }) {
                       {formatDate(patient.lastVisit, locale, placeholder)}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <FaCalendarAlt className="text-(--ui-muted-foreground)" />
-                    <span className="text-(--ui-muted-foreground)">
-                      {t("labels.nextAppointment")}
-                    </span>
-                    <span className="font-medium text-(--ui-foreground)">
-                      {formatDate(patient.nextAppointment, locale, placeholder)}
-                    </span>
-                  </div>
                 </div>
 
                 {/* Diagnosis */}
                 {!!(patient.diagnosis && patient.diagnosis.trim()) && (
-                  <div className="mb-4 rounded-lg bg-(--ui-surface-2) border border-(--ui-border) p-3">
-                    <p className="text-xs font-medium text-(--ui-muted-foreground) mb-1">
+                  <div className="mb-3 rounded-xl bg-(--ui-surface-2) border border-(--ui-border) p-2.5">
+                    <p className="text-xs font-medium text-(--ui-muted-foreground) mb-0.5">
                       {t("labels.diagnosis")}
                     </p>
-                    <p className="text-sm text-(--ui-foreground)">
+                    <p className="text-xs text-(--ui-foreground)">
                       {patient.diagnosis}
                     </p>
                   </div>
                 )}
 
                 {/* Medical Info */}
-                <div className="mb-4 flex items-center justify-between text-sm">
+                <div className="flex items-center justify-between text-xs">
                   <div>
                     <span className="text-(--ui-muted-foreground)">
                       {t("labels.bloodType")}
                     </span>
-                    <span className="ml-2 font-bold text-(--ui-danger)">
+                    <span className="ms-1.5 font-bold text-(--ui-danger)">
                       {patient.bloodType}
                     </span>
                   </div>
@@ -425,43 +401,12 @@ export default function DoctorPatientsPage({ locale }) {
                     <span className="text-(--ui-muted-foreground)">
                       {t("labels.scans")}
                     </span>
-                    <span className="ml-2 font-bold text-(--ui-info)">
+                    <span className="ms-1.5 font-bold text-(--ui-info)">
                       {patient.scansCount}
                     </span>
                   </div>
                 </div>
-
-                {/* Actions */}
-                <div className="flex gap-2">
-                  <Button
-                    onClick={() => handleViewDetails(patient)}
-                    size="sm"
-                    className="flex items-center justify-center gap-2"
-                  >
-                    <FaEye />
-                    {t("actions.view")}
-                  </Button>
-                  <Button
-                    onClick={() => handleViewResults(patient)}
-                    variant="secondary"
-                    fullWidth={false}
-                    size="sm"
-                    className="px-3"
-                    title={t("actions.results")}
-                  >
-                    <FaFileAlt />
-                  </Button>
-                  <Button
-                    onClick={() => handleStartChat(patient)}
-                    fullWidth={false}
-                    size="sm"
-                    className="px-3"
-                    title={t("actions.chat")}
-                  >
-                    <FaComments />
-                  </Button>
-                </div>
-              </Card>
+              </ProfileMediaCard>
             ))}
           </div>
 

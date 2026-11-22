@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import Image from "@/lib/compat/Image";
 import AnalysisDetailsModal from "@/components/analysis/AnalysisDetailsModal";
-import { Button } from "@/components/ui";
+import { Button, ProfileMediaCard } from "@/components/ui";
 import { useLocale, useTranslations } from "@/lib/compat/intl";
 import { formatDateTime } from "@/lib/date";
 import ARABIC_MONTHS from "@/lib/arabicMonths";
@@ -93,132 +93,111 @@ export default function PatientAnalysisHistoryPage() {
           </div>
         ) : (
           records.map((item) => (
-            <article
+            <ProfileMediaCard
               key={item.id}
-              className="card-glass rounded-2xl shadow hover:shadow-md transition-shadow overflow-hidden"
-            >
-              <div className="relative h-44 bg-(--ui-surface-2)/40">
-                <Image
-                  src={item.imageUrl || item.image_url || "/icons/xray.svg"}
-                  alt={item.prediction || t("analysisHistory.imageAltFallback")}
-                  fill
-                  sizes="(max-width: 768px) 100vw, 33vw"
-                  className="object-cover rounded-t-2xl"
-                />
-              </div>
-              <div className="p-4 flex flex-col gap-3">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1">
-                    <h3 className="text-sm font-semibold truncate">
-                      {item.prediction || item.prediction_label || placeholder}
-                    </h3>
-                    <div className="text-xs text-(--ui-muted-foreground) mt-1">
-                      {locale === "ar"
-                        ? (() => {
-                            const d = new Date(
-                              item.createdAt || item.created_at,
-                            );
-                            const month = ARABIC_MONTHS[d.getMonth()];
-                            const day = d.getDate();
-                            const year = d.getFullYear();
-                            const hour = d.getHours();
-                            const minute = d.getMinutes();
-                            const isAM = hour < 12;
-                            let hour12 = hour % 12;
-                            if (hour12 === 0) hour12 = 12;
-                            const toWestern = (n) =>
-                              n.toLocaleString("en-US", { useGrouping: false });
-                            return `${toWestern(day)} ${month} ${toWestern(year)} في ${toWestern(hour12)}:${toWestern(minute.toString().padStart(2, "0"))} ${isAM ? "ص" : "م"}`;
-                          })()
-                        : formatDateTime(
-                            item.createdAt || item.created_at,
-                            dateLocale,
-                            placeholder,
-                          )}
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-end gap-2">
-                    <div className="text-xs text-(--ui-muted-foreground)">
-                      {t("analysisHistory.confidence")}
-                    </div>
-                    <div className="px-2 py-1 bg-(--ui-success-bg) border border-(--ui-success-border) text-(--ui-foreground) rounded-full text-sm font-medium">
-                      {(Number(item.confidence || 0) * 100).toFixed(1)}%
-                    </div>
-                  </div>
+              image={item.imageUrl || item.image_url || "/icons/xray.svg"}
+              imageAlt={item.prediction || t("analysisHistory.imageAltFallback")}
+              title={item.prediction || item.prediction_label || placeholder}
+              subtitle={
+                locale === "ar"
+                  ? (() => {
+                      const d = new Date(
+                        item.createdAt || item.created_at,
+                      );
+                      const month = ARABIC_MONTHS[d.getMonth()];
+                      const day = d.getDate();
+                      const year = d.getFullYear();
+                      const hour = d.getHours();
+                      const minute = d.getMinutes();
+                      const isAM = hour < 12;
+                      let hour12 = hour % 12;
+                      if (hour12 === 0) hour12 = 12;
+                      const toWestern = (n) =>
+                        n.toLocaleString("en-US", { useGrouping: false });
+                      return `${toWestern(day)} ${month} ${toWestern(year)} في ${toWestern(hour12)}:${toWestern(minute.toString().padStart(2, "0"))} ${isAM ? "ص" : "م"}`;
+                    })()
+                  : formatDateTime(
+                      item.createdAt || item.created_at,
+                      dateLocale,
+                      placeholder,
+                    )
+              }
+              badge={
+                <div className="px-3 py-1 bg-(--ui-success-bg) border border-(--ui-success-border) text-(--ui-foreground) rounded-full text-xs font-semibold">
+                  {t("analysisHistory.confidence")}: {(Number(item.confidence || 0) * 100).toFixed(1)}%
                 </div>
-
-                <div className="flex items-center justify-between">
-                  {/* Removed saved-to-history text as requested */}
-                  <div className="flex items-center gap-2">
-                    <Button
-                      size="sm"
-                      onClick={() => setSelected(item)}
+              }
+              actions={
+                <>
+                  <Button
+                    size="sm"
+                    onClick={() => setSelected(item)}
+                  >
+                    {t("analysisHistory.view")}
+                  </Button>
+                  {item.medicalRecordId ? (
+                    <span
+                      title={
+                        locale === "ar"
+                          ? "سجل طبي رسمي مرتبط بملفك الطبي ولا يمكن حذفه"
+                          : "Official clinical record linked to your medical file; cannot be deleted"
+                      }
+                      className="px-3 py-1.5 bg-(--ui-surface-2) border border-(--ui-border) text-(--ui-muted-foreground) rounded-full text-xs font-medium"
                     >
-                      {t("analysisHistory.view")}
-                    </Button>
-                    {item.medicalRecordId ? (
-                      <span
-                        title={
-                          locale === "ar"
-                            ? "سجل طبي رسمي مرتبط بملفك الطبي ولا يمكن حذفه"
-                            : "Official clinical record linked to your medical file; cannot be deleted"
-                        }
-                        className="px-2.5 py-1 bg-(--ui-surface-2) border border-(--ui-border) text-(--ui-muted-foreground) rounded-md text-xs"
-                      >
-                        {locale === "ar" ? "سجل طبي محفوظ" : "Medical Record"}
-                      </span>
-                    ) : (
-                      <button
-                        onClick={async () => {
-                          const ok =
+                      {locale === "ar" ? "سجل طبي محفوظ" : "Medical Record"}
+                    </span>
+                  ) : (
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      onClick={async () => {
+                        const ok =
+                          typeof window !== "undefined"
+                            ? window.confirm(t("analysisHistory.confirmDelete"))
+                            : true;
+                        if (!ok) return;
+                        const id = item.id;
+                        setDeletingId(id);
+                        try {
+                          const token =
                             typeof window !== "undefined"
-                              ? window.confirm(t("analysisHistory.confirmDelete"))
-                              : true;
-                          if (!ok) return;
-                          const id = item.id;
-                          setDeletingId(id);
-                          try {
-                            const token =
-                              typeof window !== "undefined"
-                                ? localStorage.getItem("token")
-                                : null;
-                            const res = await fetch("/api/analysis/history", {
-                              method: "DELETE",
-                              headers: {
-                                "Content-Type": "application/json",
-                                ...(token
-                                  ? { Authorization: `Bearer ${token}` }
-                                  : {}),
-                              },
-                              body: JSON.stringify({ id }),
-                            });
-                            const body = await res.json().catch(() => ({}));
-                            if (!res.ok)
-                              throw new Error(
-                                body.error ||
-                                  body.message ||
-                                  `HTTP ${res.status}`,
-                              );
-                            setRecords((prev) => prev.filter((r) => r.id !== id));
-                            if (selected && selected.id === id) setSelected(null);
-                          } catch (e) {
-                            setError(e.message || String(e));
-                          } finally {
-                            setDeletingId(null);
-                          }
-                        }}
-                        disabled={deletingId === item.id}
-                        className="px-3 py-1 bg-(--ui-danger) text-(--ui-danger-foreground) rounded-md text-sm hover:opacity-90 disabled:opacity-60"
-                      >
-                        {deletingId === item.id
-                          ? t("analysisHistory.deleting")
-                          : t("analysisHistory.delete")}
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </article>
+                              ? localStorage.getItem("token")
+                              : null;
+                          const res = await fetch("/api/analysis/history", {
+                            method: "DELETE",
+                            headers: {
+                              "Content-Type": "application/json",
+                              ...(token
+                                ? { Authorization: `Bearer ${token}` }
+                                : {}),
+                            },
+                            body: JSON.stringify({ id }),
+                          });
+                          const body = await res.json().catch(() => ({}));
+                          if (!res.ok)
+                            throw new Error(
+                              body.error ||
+                                body.message ||
+                                `HTTP ${res.status}`,
+                            );
+                          setRecords((prev) => prev.filter((r) => r.id !== id));
+                          if (selected && selected.id === id) setSelected(null);
+                        } catch (e) {
+                          setError(e.message || String(e));
+                        } finally {
+                          setDeletingId(null);
+                        }
+                      }}
+                      disabled={deletingId === item.id}
+                    >
+                      {deletingId === item.id
+                        ? t("analysisHistory.deleting")
+                        : t("analysisHistory.delete")}
+                    </Button>
+                  )}
+                </>
+              }
+            />
           ))
         )}
       </div>

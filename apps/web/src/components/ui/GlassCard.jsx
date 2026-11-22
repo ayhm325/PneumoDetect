@@ -6,7 +6,7 @@ export default function GlassCard({
   className = "",
   ...props
 }) {
-  const classes = ["relative rounded-xl card-glass p-6", className]
+  const classes = ["relative rounded-[24px] card-glass p-6", className]
     .filter(Boolean)
     .join(" ");
 

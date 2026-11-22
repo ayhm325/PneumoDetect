@@ -6,7 +6,7 @@ import { useSearchParams } from "@/lib/compat/navigation";
 import DoctorDetailsCard from "@/components/admin/DoctorDetailsCard";
 import DoctorsTable from "@/components/admin/DoctorsTable";
 import { useToast } from "@/components/ui/ToastProvider";
-import { Button } from "@/components/ui";
+import { Button, GlideSelect } from "@/components/ui";
 import { FaMagnifyingGlass, FaPlus, FaX, FaFloppyDisk, FaEye, FaEyeSlash } from "react-icons/fa6";
 
 function DoctorsPage() {
@@ -360,16 +360,18 @@ function DoctorsPage() {
               />
             </div>
 
-            <select
+            <GlideSelect
+              fullWidth
+              size="lg"
               value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="w-full px-4 py-3 border border-(--ui-border) rounded-lg bg-(--ui-surface-2) text-foreground focus:ring-2 focus:ring-(--ui-ring) focus:border-transparent"
-            >
-              <option value="all">{tDoctors("filters.statusAll")}</option>
-              <option value="active">{tDoctors("statuses.active")}</option>
-              <option value="suspended">{tDoctors("statuses.suspended")}</option>
-              <option value="banned">{tDoctors("statuses.banned")}</option>
-            </select>
+              onChange={(val) => setFilterStatus(val)}
+              options={[
+                { value: "all", label: tDoctors("filters.statusAll") },
+                { value: "active", label: tDoctors("statuses.active") },
+                { value: "suspended", label: tDoctors("statuses.suspended") },
+                { value: "banned", label: tDoctors("statuses.banned") },
+              ]}
+            />
           </div>
         </div>
 

@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import useSWR from "swr";
 import { useToast } from "@/components/ui/ToastProvider";
-import { Button } from "@/components/ui";
+import { Button, GlideSelect } from "@/components/ui";
 import useLocale from "@/lib/compat/intl";
 import { useTranslations } from "@/lib/compat/intl";
 import {
@@ -529,25 +529,27 @@ export default function PatientsPage() {
                 className="w-full pr-12 pl-4 py-3.5 bg-(--ui-surface-2) border border-(--ui-border) rounded-2xl focus:ring-4 focus:ring-(--ui-ring)/20 focus:border-transparent text-foreground placeholder:text-(--ui-muted-2) transition-all outline-none"
               />
             </div>
-            <div className="flex gap-3 w-full md:w-auto overflow-x-auto pb-1 md:pb-0 scrollbar-hide">
-              <select
-                value={filterGender ?? ""}
-                onChange={(e) => setFilterGender(e.target.value)}
-                className="flex-1 min-w-30 px-5 py-3.5 bg-(--ui-surface-2) border border-(--ui-border) rounded-2xl focus:ring-4 focus:ring-(--ui-ring)/20 focus:border-transparent text-foreground transition-all outline-none appearance-none cursor-pointer font-medium hover:bg-(--ui-surface)"
-              >
-                <option value="all">{tPatients("filters.genderAll")}</option>
-                <option value="male">{gendersMap.male}</option>
-                <option value="female">{gendersMap.female}</option>
-              </select>
-              <select
-                value={filterStatus ?? ""}
-                onChange={(e) => setFilterStatus(e.target.value)}
-                className="flex-1 min-w-30 px-5 py-3.5 bg-(--ui-surface-2) border border-(--ui-border) rounded-2xl focus:ring-4 focus:ring-(--ui-ring)/20 focus:border-transparent text-foreground transition-all outline-none appearance-none cursor-pointer font-medium hover:bg-(--ui-surface)"
-              >
-                <option value="all">{tPatients("filters.statusAll")}</option>
-                <option value="active">{statusesMap.active}</option>
-                <option value="suspended">{statusesMap.suspended}</option>
-              </select>
+            <div className="flex flex-wrap gap-3 w-full md:w-auto">
+              <GlideSelect
+                size="lg"
+                value={filterGender ?? "all"}
+                onChange={(val) => setFilterGender(val)}
+                options={[
+                  { value: "all", label: tPatients("filters.genderAll") },
+                  { value: "male", label: gendersMap.male },
+                  { value: "female", label: gendersMap.female },
+                ]}
+              />
+              <GlideSelect
+                size="lg"
+                value={filterStatus ?? "all"}
+                onChange={(val) => setFilterStatus(val)}
+                options={[
+                  { value: "all", label: tPatients("filters.statusAll") },
+                  { value: "active", label: statusesMap.active },
+                  { value: "suspended", label: statusesMap.suspended },
+                ]}
+              />
             </div>
           </div>
 
@@ -816,16 +818,18 @@ export default function PatientsPage() {
                       <label className="text-sm font-bold text-(--ui-muted-2) uppercase tracking-wider">
                         {tPatients("modals.gender")}
                       </label>
-                      <select
+                      <GlideSelect
+                        fullWidth
+                        size="lg"
                         value={formData.gender}
-                        onChange={(e) =>
-                          setFormData({ ...formData, gender: e.target.value })
+                        onChange={(val) =>
+                          setFormData({ ...formData, gender: val })
                         }
-                        className="w-full px-4 py-3 bg-(--ui-surface-2) border border-(--ui-border) rounded-2xl focus:ring-4 focus:ring-(--ui-ring)/20 outline-none transition-all text-foreground appearance-none"
-                      >
-                        <option value="male">{gendersMap.male}</option>
-                        <option value="female">{gendersMap.female}</option>
-                      </select>
+                        options={[
+                          { value: "male", label: gendersMap.male },
+                          { value: "female", label: gendersMap.female },
+                        ]}
+                      />
                     </div>
                     <div className="space-y-2">
                       <label className="text-sm font-bold text-(--ui-muted-2) uppercase tracking-wider">
@@ -849,22 +853,27 @@ export default function PatientsPage() {
                     <label className="text-sm font-bold text-(--ui-muted-2) uppercase tracking-wider">
                       {tPatients("modals.doctor")}
                     </label>
-                    <select
+                    <GlideSelect
+                      fullWidth
+                      size="lg"
                       value={formData.doctorId ?? ""}
-                      onChange={(e) =>
-                        setFormData({ ...formData, doctorId: e.target.value })
+                      onChange={(val) =>
+                        setFormData({ ...formData, doctorId: val })
                       }
-                      className="w-full px-4 py-3 bg-(--ui-surface-2) border border-(--ui-border) rounded-2xl focus:ring-4 focus:ring-(--ui-ring)/20 outline-none transition-all text-foreground appearance-none"
-                    >
-                      <option value="">
-                        {tPatients("selectDoctorPlaceholder")}
-                      </option>
-                      {doctorsList.map((d) => (
-                        <option key={d.id} value={d.id}>
-                          {(d.user && d.user.fullName) || d.fullName || d.email}
-                        </option>
-                      ))}
-                    </select>
+                      options={[
+                        {
+                          value: "",
+                          label: tPatients("selectDoctorPlaceholder"),
+                        },
+                        ...doctorsList.map((d) => ({
+                          value: String(d.id),
+                          label:
+                            (d.user && d.user.fullName) ||
+                            d.fullName ||
+                            d.email,
+                        })),
+                      ]}
+                    />
                   </div>
 
                   <div className="grid grid-cols-2 gap-6">
@@ -888,18 +897,18 @@ export default function PatientsPage() {
                       <label className="text-sm font-bold text-(--ui-muted-2) uppercase tracking-wider">
                         {safeT("modals.status")}
                       </label>
-                      <select
+                      <GlideSelect
+                        fullWidth
+                        size="lg"
                         value={formData.status}
-                        onChange={(e) =>
-                          setFormData({ ...formData, status: e.target.value })
+                        onChange={(val) =>
+                          setFormData({ ...formData, status: val })
                         }
-                        className="w-full px-4 py-3 bg-(--ui-surface-2) border border-(--ui-border) rounded-2xl focus:ring-4 focus:ring-(--ui-ring)/20 outline-none transition-all text-foreground appearance-none"
-                      >
-                        <option value="active">{statusesMap.active}</option>
-                        <option value="suspended">
-                          {statusesMap.suspended}
-                        </option>
-                      </select>
+                        options={[
+                          { value: "active", label: statusesMap.active },
+                          { value: "suspended", label: statusesMap.suspended },
+                        ]}
+                      />
                     </div>
                   </div>
                 </div>

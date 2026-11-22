@@ -1,30 +1,39 @@
 "use client";
 
 import React from "react";
+import {
+  FaCheckCircle,
+  FaClock,
+  FaExclamationTriangle,
+  FaMicrochip,
+  FaXRay,
+} from "react-icons/fa";
 import Image from "@/lib/compat/Image";
 import { useTranslations } from "@/lib/compat/intl";
 
 function ConfidenceBar({ value, t }) {
   const pct = Math.round((Number(value) || 0) * 100);
 
-  let color = "from-red-500 to-yellow-400";
-  if (pct >= 75) color = "from-green-400 to-green-600";
-  else if (pct >= 50) color = "from-yellow-300 to-yellow-500";
+  let barColor = "bg-[var(--ui-warning)]";
+  if (pct >= 75) barColor = "bg-[var(--ui-success)]";
+  else if (pct < 50) barColor = "bg-[var(--ui-danger)]";
 
   return (
-    <div>
-      <div className="w-full bg-gray-100 rounded h-3 overflow-hidden">
+    <div className="rounded-xl border border-(--ui-border) bg-(--ui-surface-2) p-3.5">
+      <div className="mb-2 flex items-center justify-between text-xs">
+        <span className="font-semibold text-(--ui-muted-foreground)">
+          {t("analysisDetails.confidenceScore")}
+        </span>
+        <span className="text-sm font-extrabold text-(--ui-foreground)">
+          {pct}%
+        </span>
+      </div>
+      <div className="h-2.5 w-full overflow-hidden rounded-full bg-(--ui-surface)">
         <div
-          className={`h-3 bg-linear-to-r ${color} transition-all duration-300`}
+          className={`h-full rounded-full ${barColor} transition-all duration-300`}
           style={{ width: `${pct}%` }}
           aria-hidden
         />
-      </div>
-      <div className="mt-2 flex items-center justify-between text-sm">
-        <div className="font-medium">{pct}%</div>
-        <div className="text-xs text-gray-500">
-          {t("analysisDetails.confidenceScore")}
-        </div>
       </div>
     </div>
   );
@@ -32,8 +41,6 @@ function ConfidenceBar({ value, t }) {
 
 export default function AnalysisResultCard({
   result,
-  saved = false,
-  saveError = null,
   t: tProp,
 }) {
   const tHook = useTranslations("patient");
@@ -44,83 +51,86 @@ export default function AnalysisResultCard({
     typeof result.confidence === "number" ? result.confidence : 0;
   const prediction = result.prediction || "—";
   const model = result.model_version || result.modelVersion || "unknown";
-  const timeMs =
-    result.inference_time_ms ?? result.inferenceTimeMs ?? 0;
+  const timeMs = result.inference_time_ms ?? result.inferenceTimeMs ?? 0;
 
   const isNormal = String(prediction).toLowerCase().includes("normal");
 
   return (
     <div
-      className="p-4 bg-white border rounded-lg shadow-sm max-w-full hover:shadow-lg transition-transform hover:-translate-y-0.5"
+      className="max-w-full rounded-[22px] border border-(--ui-border) bg-(--ui-surface-elevated) p-5 text-(--ui-foreground) shadow-(--shadow-card)"
       dir="auto"
       role="group"
       aria-label={t("analysisDetails.analysisResult")}
     >
       {/* Header */}
-      <div className="flex items-center justify-between mb-3">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-(--ui-border) pb-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-linear-to-br from-indigo-500 to-pink-500 text-white rounded-full flex items-center justify-center shadow-md">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              aria-hidden
-            >
-              <path d="M2 5a2 2 0 012-2h8a2 2 0 012 2v2h2a1 1 0 010 2h-2v2h2a1 1 0 010 2h-2v2a2 2 0 01-2 2H4a2 2 0 01-2-2V5z" />
-            </svg>
+          <div
+            className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border text-lg ${
+              isNormal
+                ? "border-(--ui-success-border) bg-(--ui-success-bg) text-(--ui-success)"
+                : "border-(--ui-warning-border) bg-(--ui-warning-bg) text-(--ui-warning)"
+            }`}
+          >
+            {isNormal ? <FaCheckCircle /> : <FaExclamationTriangle />}
           </div>
 
           <div>
-            <div className="text-sm text-gray-500">
+            <div className="text-xs font-semibold uppercase tracking-wider text-(--ui-muted-foreground)">
               {t("analysisDetails.analysis")}
             </div>
-            <div className="text-base font-semibold">{prediction}</div>
+            <div className="text-lg font-extrabold tracking-tight text-(--ui-foreground)">
+              {prediction}
+            </div>
           </div>
         </div>
 
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-linear-to-r from-gray-100 to-white text-xs shadow-sm">
-          <span className="text-xs text-gray-700">
-            {t("analysisDetails.model")} {model}
+        <div className="inline-flex items-center gap-1.5 rounded-full border border-(--ui-border) bg-(--ui-surface-2) px-3 py-1 text-xs font-medium text-(--ui-muted-foreground)">
+          <FaMicrochip className="text-(--ui-info)" />
+          <span>
+            {t("analysisDetails.model")}: {model}
           </span>
         </div>
       </div>
 
       {/* Body */}
-      <div className="flex flex-col sm:flex-row sm:gap-4">
-        <div className="flex-1">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="space-y-3 rounded-xl border border-(--ui-border) bg-(--ui-surface-2)/60 p-3.5">
           <div className="flex items-center justify-between">
-            <h3 className="text-base font-semibold">
+            <span className="text-xs font-semibold text-(--ui-muted-foreground)">
               {t("analysisDetails.diagnosis")}
-            </h3>
+            </span>
             <span
-              className={`text-sm font-medium ${
-                isNormal ? "text-green-600" : "text-amber-700"
+              className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-bold ${
+                isNormal
+                  ? "border-(--ui-success-border) bg-(--ui-success-bg) text-(--ui-success)"
+                  : "border-(--ui-warning-border) bg-(--ui-warning-bg) text-(--ui-warning)"
               }`}
             >
               {prediction}
             </span>
           </div>
 
-          <div className="mt-3 text-sm text-gray-700 space-y-1">
-            <div>
-              <strong>{t("analysisDetails.model")}:</strong>{" "}
-              <code className="text-xs">{model}</code>
+          <div className="space-y-1.5 text-xs text-(--ui-muted-foreground)">
+            <div className="flex items-center justify-between">
+              <span className="font-medium">{t("analysisDetails.model")}:</span>
+              <code className="rounded bg-(--ui-surface) px-1.5 py-0.5 text-[11px] text-(--ui-foreground)">
+                {model}
+              </code>
             </div>
-            <div>
-              <strong>{t("analysisDetails.inferenceTime")}:</strong>{" "}
-              {timeMs} ms
+            <div className="flex items-center justify-between">
+              <span className="inline-flex items-center gap-1 font-medium">
+                <FaClock className="text-(--ui-info)" />
+                {t("analysisDetails.inferenceTime")}:
+              </span>
+              <span className="font-semibold text-(--ui-foreground)">
+                {timeMs} ms
+              </span>
             </div>
           </div>
-
-          {/* Explanation and saved status removed as requested */}
         </div>
 
-        {/* Confidence */}
-        <div className="w-full sm:w-48 mt-4 sm:mt-0">
-          <div className="mb-2 text-sm text-gray-600">
-            {t("analysisDetails.confidence")}
-          </div>
+        <div>
           <ConfidenceBar value={confidence} t={t} />
         </div>
       </div>
@@ -128,20 +138,22 @@ export default function AnalysisResultCard({
       {/* Images */}
       {(result.imageUrl || result.image_url) && (
         <div className="mt-4">
-          <div className="text-sm text-gray-500 mb-2">
-            {t("analysisDetails.originalImage")}
+          <div className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-(--ui-muted-foreground)">
+            <FaXRay className="text-(--ui-info)" />
+            <span>{t("analysisDetails.originalImage")}</span>
           </div>
           <a
             href={result.imageUrl ?? result.image_url}
             target="_blank"
             rel="noreferrer noopener"
+            className="block overflow-hidden rounded-2xl border border-(--ui-border) bg-(--ui-surface-2)"
           >
             <Image
               src={result.imageUrl ?? result.image_url}
               alt={t("analysisDetails.originalImage")}
               width={800}
               height={400}
-              className="rounded-lg"
+              className="rounded-2xl"
               style={{ maxWidth: "100%", height: "auto" }}
               unoptimized
             />
@@ -151,18 +163,21 @@ export default function AnalysisResultCard({
 
       {(result.heatmap_url || result.heatmapUrl) && (
         <div className="mt-4">
-          <div className="text-sm text-gray-500 mb-2">
-            {t("analysisDetails.heatmap")}
+          <div className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-(--ui-muted-foreground)">
+            <FaXRay className="text-(--ui-warning)" />
+            <span>{t("analysisDetails.heatmap")}</span>
           </div>
-          <Image
-            src={result.heatmap_url ?? result.heatmapUrl}
-            alt={t("analysisDetails.heatmap")}
-            width={800}
-            height={400}
-            className="rounded-lg"
-            style={{ maxWidth: "100%", height: "auto" }}
-            unoptimized
-          />
+          <div className="overflow-hidden rounded-2xl border border-(--ui-border) bg-(--ui-surface-2)">
+            <Image
+              src={result.heatmap_url ?? result.heatmapUrl}
+              alt={t("analysisDetails.heatmap")}
+              width={800}
+              height={400}
+              className="rounded-2xl"
+              style={{ maxWidth: "100%", height: "auto" }}
+              unoptimized
+            />
+          </div>
         </div>
       )}
     </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "@/lib/compat/intl";
+import { GlideSelect } from "@/components/ui";
 
 export default function PatientSettings({ onSave }) {
   const t = useTranslations("patientSettings");
@@ -45,25 +46,36 @@ export default function PatientSettings({ onSave }) {
             <label className="text-sm text-(--ui-muted-foreground)">
               {t("fields.doctorVisibility")}
             </label>
-            <select className="mt-1 w-full rounded-md border border-(--ui-border) bg-(--ui-surface) px-3 py-2 text-sm text-(--ui-foreground)">
-              <option>{t("visibility.full")}</option>
-              <option>{t("visibility.partial")}</option>
-              <option>{t("visibility.private")}</option>
-            </select>
+            <div className="mt-1">
+              <GlideSelect
+                fullWidth
+                options={[
+                  { value: "full", label: t("visibility.full") },
+                  { value: "partial", label: t("visibility.partial") },
+                  { value: "private", label: t("visibility.private") },
+                ]}
+              />
+            </div>
           </div>
           <div>
             <label className="text-sm text-(--ui-muted-foreground)">
               {t("fields.languageAppearance")}
             </label>
-            <div className="mt-1 flex gap-2">
-              <select className="w-1/2 rounded-md border border-(--ui-border) bg-(--ui-surface) px-3 py-2 text-sm text-(--ui-foreground)">
-                <option>{t("language.arabic")}</option>
-                <option>{t("language.english")}</option>
-              </select>
-              <select className="w-1/2 rounded-md border border-(--ui-border) bg-(--ui-surface) px-3 py-2 text-sm text-(--ui-foreground)">
-                <option>{tTheme("mode.light")}</option>
-                <option>{tTheme("mode.dark")}</option>
-              </select>
+            <div className="mt-1 grid grid-cols-2 gap-2">
+              <GlideSelect
+                fullWidth
+                options={[
+                  { value: "ar", label: t("language.arabic") },
+                  { value: "en", label: t("language.english") },
+                ]}
+              />
+              <GlideSelect
+                fullWidth
+                options={[
+                  { value: "light", label: tTheme("mode.light") },
+                  { value: "dark", label: tTheme("mode.dark") },
+                ]}
+              />
             </div>
           </div>
         </div>

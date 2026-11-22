@@ -1,7 +1,12 @@
 export { Button, IconButton, buttonClasses } from "./Button";
 export type { ButtonProps, ButtonSize, ButtonVariant, IconButtonProps } from "./Button";
+export { SpecularButton } from "./SpecularButton";
+export type { SpecularButtonProps } from "./SpecularButton";
+export { GlideSelect } from "./GlideSelect";
+export type { GlideSelectOption, GlideSelectProps } from "./GlideSelect";
 export { Input } from "./Input";
-export { Card } from "./Card";
+export { Card, ProfileMediaCard } from "./Card";
+export type { CardProps, ProfileMediaCardProps } from "./Card";
 export { Alert } from "./Alert";
 export { Modal } from "./Modal";
 export { Loader } from "./Loader";

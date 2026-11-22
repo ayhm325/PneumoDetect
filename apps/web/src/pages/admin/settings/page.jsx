@@ -14,7 +14,7 @@ import { FiSettings, FiUsers } from "react-icons/fi";
 import { useTranslations } from "@/lib/compat/intl";
 import useLocale from "@/lib/compat/intl";
 import { useToast } from "@/components/ui/ToastProvider";
-import { Button } from "@/components/ui";
+import { Button, GlideSelect } from "@/components/ui";
 
 // --- مكون Toggle Switch مخصص ---
 const ToggleSwitch = ({ checked, onChange, label }) => (
@@ -193,24 +193,16 @@ export default function SettingsPage() {
                   <label className="block text-sm font-medium text-(--ui-muted-2) mb-1.5">
                     {t("labels.defaultLanguage.label")}
                   </label>
-                  <div className="relative">
-                    <select
-                      value={settings.defaultLanguage}
-                      onChange={(e) =>
-                        handleChange("defaultLanguage", e.target.value)
-                      }
-                      className="w-full appearance-none px-4 py-2.5 bg-(--ui-surface-2) border border-(--ui-border) rounded-xl focus:outline-none focus:ring-2 focus:ring-(--ui-ring) focus:border-transparent transition-all text-sm text-foreground cursor-pointer"
-                    >
-                      {["ar", "en"].map((lang) => (
-                        <option key={lang} value={lang}>
-                          {t(`system.config.languageOptions.${lang}`)}
-                        </option>
-                      ))}
-                    </select>
-                    <div className="absolute inset-y-0 left-0 flex items-center px-3 pointer-events-none text-(--ui-muted-2)">
-                      <FaGlobeAmericas size={16} />
-                    </div>
-                  </div>
+                  <GlideSelect
+                    fullWidth
+                    size="lg"
+                    value={String(settings.defaultLanguage)}
+                    onChange={(val) => handleChange("defaultLanguage", val)}
+                    options={["ar", "en"].map((lang) => ({
+                      value: lang,
+                      label: t(`system.config.languageOptions.${lang}`),
+                    }))}
+                  />
                 </div>
               </div>
             </section>
@@ -282,22 +274,17 @@ export default function SettingsPage() {
                     <label className="text-xs font-semibold text-(--ui-muted-2) uppercase tracking-wider mb-1 block">
                       {t("labels.appointmentInterval.label")}
                     </label>
-                    <select
-                      value={settings.appointmentInterval}
-                      onChange={(e) =>
-                        handleChange(
-                          "appointmentInterval",
-                          parseInt(e.target.value),
-                        )
+                    <GlideSelect
+                      fullWidth
+                      value={String(settings.appointmentInterval)}
+                      onChange={(val) =>
+                        handleChange("appointmentInterval", parseInt(val, 10))
                       }
-                      className="w-full px-3 py-2 bg-(--ui-surface-2) border border-(--ui-border) rounded-lg text-center focus:outline-none focus:ring-2 focus:ring-(--ui-ring) focus:border-transparent transition-all cursor-pointer text-foreground"
-                    >
-                      {appointmentOptions.map((opt) => (
-                        <option key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </option>
-                      ))}
-                    </select>
+                      options={appointmentOptions.map((opt) => ({
+                        value: String(opt.value),
+                        label: opt.label,
+                      }))}
+                    />
                   </div>
                 </div>
               </div>

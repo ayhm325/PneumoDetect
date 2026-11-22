@@ -21,7 +21,7 @@ import {
   FaCalendar,
 } from "react-icons/fa";
 import UnifiedCard from "@/components/ui/UnifiedCard";
-import { Button } from "@/components/ui";
+import { Button, GlideSelect } from "@/components/ui";
 
 export default function PatientProfilePage() {
   const locale = useLocale();
@@ -267,7 +267,7 @@ function ProfileCard({ t, patientT, locale, placeholder, isEditing, profileData,
       {/* Avatar & Identity */}
       <div className="flex flex-col md:flex-row gap-8 items-center md:items-start mb-8 border-b border-(--ui-border) pb-8">
         <div className="relative shrink-0">
-          <div className="w-32 h-32 rounded-full bg-(--ui-surface-2) flex items-center justify-center text-5xl text-(--ui-info) shadow-inner border-4 border-(--ui-border)"><FaUser /></div>
+          <div className="profile-card-image profile-card-image--avatar w-36 h-40 rounded-[24px] bg-(--ui-surface-2) flex items-center justify-center text-5xl text-(--ui-info) shadow-(--shadow-card-media) border border-(--ui-border)"><FaUser /></div>
           {profileData.status === "active" && (
             <div className="absolute bottom-2 right-2 w-6 h-6 bg-(--ui-success) border-4 border-(--ui-surface) rounded-full" />
           )}
@@ -345,16 +345,20 @@ function ProfileCard({ t, patientT, locale, placeholder, isEditing, profileData,
         <div>
           <label className="text-xs font-bold text-(--ui-muted-foreground) uppercase tracking-wider mb-2 block">{t("field.genderLabel")}</label>
           {isEditing ? (
-            <select
+            <GlideSelect
+              fullWidth
+              size="lg"
               name="gender"
               value={profileData.gender || ""}
-              onChange={handleFieldChange}
-              className="w-full px-4 py-3 bg-(--ui-surface) border border-(--ui-border) rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-(--ui-ring) outline-none transition-all text-(--ui-foreground) appearance-none"
-            >
-              <option value="">{placeholder}</option>
-              <option value="male">{t("field.gender.male")}</option>
-              <option value="female">{t("field.gender.female")}</option>
-            </select>
+              onChange={(val) =>
+                setProfileData((prev) => ({ ...prev, gender: val }))
+              }
+              options={[
+                { value: "", label: placeholder },
+                { value: "male", label: t("field.gender.male") },
+                { value: "female", label: t("field.gender.female") },
+              ]}
+            />
           ) : (
             <div className="text-(--ui-foreground) font-medium">
               {profileData.gender === "male" && t("field.gender.male")}
@@ -510,25 +514,31 @@ function DoctorChangeRequestForm({ t, currentDoctorId }) {
         <label className="block text-sm font-bold text-(--ui-muted-foreground) mb-2">
           {t("doctorChange.selectLabel")}
         </label>
-        <select
+        <GlideSelect
+          fullWidth
+          size="lg"
           name="requestedDoctorId"
-          className="w-full px-4 py-3 bg-(--ui-surface) border border-(--ui-border) rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-(--ui-ring) outline-none transition-all text-(--ui-foreground) appearance-none cursor-pointer"
           disabled={loading}
-        >
-          <option value="">
-            {loading ? t("doctorChange.loading") : t("doctorChange.selectPlaceholder")}
-          </option>
-          {!loading && doctors.length === 0 && (
-            <option disabled>{t("doctorChange.noDoctors")}</option>
-          )}
-          {doctors
-            .filter((doc) => !currentDoctorId || doc.id !== currentDoctorId)
-            .map((doc) => (
-              <option key={doc.id} value={doc.id}>
-                {doc.fullName || doc.name || doc.email || doc.id}
-              </option>
-            ))}
-        </select>
+          placeholder={
+            loading
+              ? t("doctorChange.loading")
+              : t("doctorChange.selectPlaceholder")
+          }
+          options={[
+            {
+              value: "",
+              label: loading
+                ? t("doctorChange.loading")
+                : t("doctorChange.selectPlaceholder"),
+            },
+            ...doctors
+              .filter((doc) => !currentDoctorId || doc.id !== currentDoctorId)
+              .map((doc) => ({
+                value: String(doc.id),
+                label: doc.fullName || doc.name || doc.email || doc.id,
+              })),
+          ]}
+        />
       </div>
       <div>
         <label className="block text-sm font-bold text-(--ui-muted-foreground) mb-2">

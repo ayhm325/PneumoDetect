@@ -20,7 +20,7 @@ import {
   resolveCanonicalReviewStatus,
   resolveClinicalPriority,
 } from "@/lib/analysisStatus";
-import { Button, Card } from "@/components/ui";
+import { Button, Card, GlideSelect, ProfileMediaCard, StatCard } from "@/components/ui";
 
 export default function PatientResultsPage() {
   const router = useRouter();
@@ -164,19 +164,19 @@ export default function PatientResultsPage() {
     thisMonth: t("stats.thisMonth"),
   };
 
-  // Color helpers
+  // Color helpers (token-driven for light and dark mode consistency)
   const getStatusColor = (status) => {
     const normalized = normalizeStatus(status);
-    if (normalized === "ready") return "bg-green-600 text-white border-green-700 dark:bg-green-500 dark:text-white dark:border-green-300";
-    if (normalized === "requires_review") return "bg-amber-500 text-black border-amber-700 dark:bg-amber-400 dark:text-black dark:border-amber-600";
-    if (normalized === "pending") return "bg-yellow-400 text-black border-yellow-600 dark:bg-yellow-300 dark:text-black dark:border-yellow-500";
-    return "bg-gray-200 text-gray-700 border-gray-400 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-500";
+    if (normalized === "ready") return "bg-(--ui-success-bg) text-(--ui-success) border-(--ui-success-border)";
+    if (normalized === "requires_review") return "bg-(--ui-warning-bg) text-(--ui-warning) border-(--ui-warning-border)";
+    if (normalized === "pending") return "bg-(--ui-info-bg) text-(--ui-info) border-(--ui-info-border)";
+    return "bg-(--ui-surface-2) text-(--ui-muted-foreground) border-(--ui-border)";
   };
   const getPriorityColor = (priority) => {
     const normalized = normalizePriority(priority);
-    if (normalized === "urgent") return "bg-red-600 text-white border-red-700 dark:bg-red-500 dark:text-white dark:border-red-300";
-    if (normalized === "normal") return "bg-blue-600 text-white border-blue-700 dark:bg-blue-500 dark:text-white dark:border-blue-300";
-    return "bg-gray-200 text-gray-700 border-gray-400 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-500";
+    if (normalized === "urgent") return "bg-(--ui-danger-bg) text-(--ui-danger) border-(--ui-danger-border)";
+    if (normalized === "normal") return "bg-(--ui-surface-2) text-(--ui-muted-foreground) border-(--ui-border)";
+    return "bg-(--ui-surface-2) text-(--ui-muted-foreground) border-(--ui-border)";
   };
   const getFindingColor = (type) => {
     if (type === "normal") return "text-(--ui-success)";
@@ -236,30 +236,26 @@ export default function PatientResultsPage() {
     {
       title: statsLabels.total,
       value: reports.length,
-      icon: FaFileAlt,
-      iconClass: "text-(--ui-info)",
-      bgClass: "bg-(--ui-info-bg)",
+      icon: <FaFileAlt />,
+      tone: "info",
     },
     {
       title: statsLabels.ready,
       value: reports.filter((r) => normalizeStatus(r.status) === "ready").length,
-      icon: FaCheckCircle,
-      iconClass: "text-(--ui-success)",
-      bgClass: "bg-(--ui-success-bg)",
+      icon: <FaCheckCircle />,
+      tone: "success",
     },
     {
       title: statsLabels.pending,
-      value: reports.filter((r) => normalizeStatus(r.status) === "pending").length,
-      icon: FaHourglassHalf,
-      iconClass: "text-(--ui-warning)",
-      bgClass: "bg-(--ui-warning-bg)",
+      value: reports.filter((r) => normalizeStatus(r.status) !== "ready").length,
+      icon: <FaHourglassHalf />,
+      tone: "warning",
     },
     {
       title: statsLabels.thisMonth,
       value: reports.filter((r) => new Date(r.date).getMonth() === new Date().getMonth()).length,
-      icon: FaXRay,
-      iconClass: "text-(--ui-info)",
-      bgClass: "bg-(--ui-info-bg)",
+      icon: <FaXRay />,
+      tone: "primary",
     },
   ];
 
@@ -293,17 +289,13 @@ export default function PatientResultsPage() {
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {stats.map((stat, index) => (
-          <Card key={index} variant="interactive" size="sm">
-            <div className="flex items-center gap-4">
-              <div className={`p-3 rounded-lg ${stat.bgClass}`}>
-                <stat.icon className={`text-2xl ${stat.iconClass}`} />
-              </div>
-              <div>
-                <p className="text-(--ui-muted-foreground) text-sm">{stat.title}</p>
-                <p className="text-3xl font-bold text-(--ui-foreground)">{stat.value}</p>
-              </div>
-            </div>
-          </Card>
+          <StatCard
+            key={index}
+            label={stat.title}
+            value={stat.value}
+            icon={stat.icon}
+            tone={stat.tone}
+          />
         ))}
       </div>
 
@@ -320,17 +312,19 @@ export default function PatientResultsPage() {
               className="w-full pr-10 pl-4 py-3 border border-(--ui-border) rounded-lg bg-(--ui-surface) text-(--ui-foreground) focus:outline-none focus-visible:ring-2 focus-visible:ring-(--ui-ring)"
             />
           </div>
-          <div className="relative">
-            <FaFilter className="absolute right-3 top-1/2 transform -translate-y-1/2 text-(--ui-muted-foreground)" />
-            <select
+          <div className="flex items-center gap-2">
+            <FaFilter className="text-(--ui-muted-foreground) shrink-0" />
+            <GlideSelect
+              fullWidth
+              size="lg"
               value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="w-full pr-10 pl-4 py-3 border border-(--ui-border) rounded-lg bg-(--ui-surface) text-(--ui-foreground) focus:outline-none focus-visible:ring-2 focus-visible:ring-(--ui-ring) appearance-none"
-            >
-              <option value="all">{labels("filters.allStatuses")}</option>
-              <option value="ready">{labels("statuses.ready")}</option>
-              <option value="pending">{labels("statuses.pending")}</option>
-            </select>
+              onChange={(val) => setFilterStatus(val)}
+              options={[
+                { value: "all", label: labels("filters.allStatuses") },
+                { value: "ready", label: labels("statuses.ready") },
+                { value: "pending", label: labels("statuses.pending") },
+              ]}
+            />
           </div>
         </div>
       </Card>
@@ -344,16 +338,15 @@ export default function PatientResultsPage() {
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {filteredReports.map((report) => (
-            <Card key={report.id} variant="interactive" className="hover:bg-(--ui-surface-2)/40 transition-colors">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-start gap-3">
-                  <div className="text-4xl">{report.typeIcon}</div>
-                  <div>
-                    <h3 className="text-lg font-bold text-(--ui-foreground)">{report.title}</h3>
-                    <p className="text-sm text-(--ui-muted-foreground)">{report.type}</p>
-                  </div>
-                </div>
-                <div className="flex flex-col items-end gap-2">
+            <ProfileMediaCard
+              key={report.id}
+              image={report.images?.[0] || null}
+              imageAlt={report.title}
+              mediaNode={<FaXRay className="text-xl" />}
+              title={report.title}
+              subtitle={`${report.type} • ${report.doctor}`}
+              badge={
+                <div className="flex flex-col items-end gap-1.5">
                   <span className={`px-3 py-1 rounded-full text-xs border font-bold drop-shadow-sm ${getStatusColor(report.status)}`}>
                     {getStatusLabel(report.status)}
                   </span>
@@ -361,60 +354,8 @@ export default function PatientResultsPage() {
                     {getPriorityLabel(report.priority)}
                   </span>
                 </div>
-              </div>
-
-              <div className="space-y-2 mb-4 text-sm text-(--ui-muted-foreground)">
-                <div className="flex items-center gap-2">
-                  <span className="font-medium">{labels("reportLabels.doctor")}</span>
-                  <span>{report.doctor}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="font-medium">{labels("reportLabels.facility")}</span>
-                  <span>{report.facility}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="font-medium">{labels("reportLabels.date")}</span>
-                  <span>{report.date} - {report.time}</span>
-                </div>
-              </div>
-
-              {/* AI Summary */}
-              <div className="bg-(--ui-info-bg) rounded-lg p-4 mb-4 border border-(--ui-info-border)">
-                <div className="flex items-start gap-2">
-                  <span className="text-(--ui-info) font-bold text-sm">{labels("reportLabels.aiSummary")}</span>
-                </div>
-                <p className="text-sm text-(--ui-foreground) mt-2">{report.aiSummary}</p>
-              </div>
-
-              {/* Clinical Status */}
-              <div className="notes-box mb-4">
-                <div className="mb-1 font-bold">{labels("reportLabels.clinicalStatus")}</div>
-                <div>{report.clinicalStatus}</div>
-              </div>
-
-              {/* Findings */}
-              <div className="mb-4">
-                <h4 className="font-bold text-(--ui-foreground) mb-2 text-sm">{labels("reportLabels.findings")}</h4>
-                <div className="space-y-2">
-                  {report.findings.map((finding, idx) => (
-                    <div key={idx} className={`flex items-start gap-2 text-sm ${getFindingColor(finding.type)}`}>
-                      <span className="font-bold">{getFindingIcon(finding.type)}</span>
-                      <span>{finding.text}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Notes */}
-              {report.notes && (
-                <div className="bg-(--ui-surface-2)/40 rounded-lg p-3 mb-4 border border-(--ui-border)">
-                  <p className="text-sm font-medium text-(--ui-foreground) mb-1">{labels("reportLabels.notes")}</p>
-                  <p className="text-sm text-(--ui-muted-foreground)">{report.notes}</p>
-                </div>
-              )}
-
-              {/* Actions */}
-              <div className="flex gap-2">
+              }
+              actions={
                 <Button
                   onClick={() => {
                     setSelectedReport(report);
@@ -426,8 +367,52 @@ export default function PatientResultsPage() {
                   <FaEye />
                   <span>{labels("actions.view")}</span>
                 </Button>
+              }
+            >
+              <div className="space-y-1.5 mb-3 text-sm text-(--ui-muted-foreground)">
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">{labels("reportLabels.facility")}</span>
+                  <span>{report.facility}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">{labels("reportLabels.date")}</span>
+                  <span>{report.date} - {report.time}</span>
+                </div>
               </div>
-            </Card>
+
+              {/* AI Summary */}
+              <div className="bg-(--ui-info-bg) rounded-xl p-3.5 mb-3 border border-(--ui-info-border)">
+                <span className="text-(--ui-info) font-bold text-xs block">{labels("reportLabels.aiSummary")}</span>
+                <p className="text-sm text-(--ui-foreground) mt-1">{report.aiSummary}</p>
+              </div>
+
+              {/* Clinical Status */}
+              <div className="notes-box mb-3 text-sm">
+                <span className="font-bold">{labels("reportLabels.clinicalStatus")}: </span>
+                <span>{report.clinicalStatus}</span>
+              </div>
+
+              {/* Findings */}
+              <div className="mb-3">
+                <h4 className="font-bold text-(--ui-foreground) mb-1.5 text-xs">{labels("reportLabels.findings")}</h4>
+                <div className="space-y-1">
+                  {report.findings.map((finding, idx) => (
+                    <div key={idx} className={`flex items-start gap-2 text-xs ${getFindingColor(finding.type)}`}>
+                      <span className="font-bold">{getFindingIcon(finding.type)}</span>
+                      <span>{finding.text}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Notes */}
+              {report.notes && (
+                <div className="bg-(--ui-surface-2)/40 rounded-xl p-3 border border-(--ui-border)">
+                  <p className="text-xs font-medium text-(--ui-foreground) mb-1">{labels("reportLabels.notes")}</p>
+                  <p className="text-xs text-(--ui-muted-foreground)">{report.notes}</p>
+                </div>
+              )}
+            </ProfileMediaCard>
           ))}
         </div>
       )}

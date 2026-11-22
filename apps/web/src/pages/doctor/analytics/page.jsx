@@ -16,7 +16,7 @@ import {
   FaEye,
 } from "react-icons/fa";
 import { useLocale, useTranslations } from "@/lib/compat/intl";
-import { Card } from "@/components/ui";
+import { Card, GlideSelect } from "@/components/ui";
 
 export default function Page() {
   const { showSuccess, showError, showInfo, showWarning } = useToast();
@@ -159,15 +159,15 @@ export default function Page() {
 
             <div className="flex items-center gap-3">
               {/* Time Range Filter */}
-              <select
+              <GlideSelect
                 value={timeRange}
-                onChange={(e) => setTimeRange(e.target.value)}
-                className="rounded-lg border border-(--ui-border) bg-(--ui-surface) px-4 py-2 text-sm font-medium text-(--ui-foreground) focus:border-(--ui-ring) focus:outline-none focus:ring-2 focus:ring-(--ui-ring)"
-              >
-                <option value="week">{t("timeRange.week")}</option>
-                <option value="month">{t("timeRange.month")}</option>
-                <option value="year">{t("timeRange.year")}</option>
-              </select>
+                onChange={(val) => setTimeRange(val)}
+                options={[
+                  { value: "week", label: t("timeRange.week") },
+                  { value: "month", label: t("timeRange.month") },
+                  { value: "year", label: t("timeRange.year") },
+                ]}
+              />
 
               {/* Export button removed per request */}
             </div>

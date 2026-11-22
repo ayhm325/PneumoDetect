@@ -74,6 +74,7 @@ logs/
 /public/uploads/*
 !/public/uploads/.gitkeep
 /apps/api/public/
+/apps/api/data/
 /python_model/static/heatmaps/*
 !/python_model/static/heatmaps/.gitkeep
 **/__pycache__/

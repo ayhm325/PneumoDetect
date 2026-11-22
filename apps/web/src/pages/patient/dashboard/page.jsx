@@ -25,7 +25,7 @@ import {
 import { useTranslations, useLocale } from "@/lib/compat/intl";
 import PatientDashboardWrapper from "@/components/PatientDashboardWrapper";
 import useSocket from "@/components/chat/useSocket.client";
-import { Button, Card } from "@/components/ui";
+import { Button, Card, StatCard } from "@/components/ui";
 import { PageHeader } from "@/components/ui/PageHeader";
 
 export default function PatientDashboardPage() {
@@ -327,23 +327,20 @@ export default function PatientDashboardPage() {
 
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
-          {stats.map((s, i) => (
-            <Card key={i} variant="interactive" size="sm">
-              <div
-                className={`flex items-center gap-3 justify-center mb-2 ${locale === "ar" ? "flex-row-reverse" : "flex-row"}`}
-              >
-                <s.icon
-                  className={`text-4xl text-(--ui-info) ${locale === "ar" ? "order-2" : "order-1"}`}
-                />
-                <p className="text-lg font-semibold text-(--ui-muted-foreground) text-center w-full">
-                  {s.title}
-                </p>
-              </div>
-              <p className="mt-1 text-3xl font-semibold text-center">
-                {s.value}
-              </p>
-            </Card>
-          ))}
+          {stats.map((s, i) => {
+            const StatIcon = s.icon;
+            const tone =
+              i === 1 ? "success" : i === 2 ? "warning" : "info";
+            return (
+              <StatCard
+                key={i}
+                label={s.title}
+                value={s.value}
+                icon={<StatIcon />}
+                tone={tone}
+              />
+            );
+          })}
         </div>
 
         {/* Recent Analyses & Upcoming Appointments */}
@@ -482,16 +479,33 @@ export default function PatientDashboardPage() {
             {quickActions.map((a, i) => {
               const ActionIcon = a.Icon;
               return (
-                <Button
+                <Card
                   key={i}
+                  variant="interactive"
+                  size="sm"
                   onClick={() => router.push(`${basePrefix}${a.href}`)}
-                  size="lg"
-                  className="h-auto min-h-[124px] flex-col items-start rounded-xl p-5 text-start"
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      router.push(`${basePrefix}${a.href}`);
+                    }
+                  }}
+                  className="group cursor-pointer flex flex-col justify-between gap-3"
                 >
-                  <ActionIcon className="mb-3 text-2xl" />
-                  <h3 className="font-bold">{a.title}</h3>
-                  <p className="mt-1 text-xs opacity-90">{a.desc}</p>
-                </Button>
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-(--ui-info-border) bg-(--ui-info-bg) text-(--color-primary) text-xl">
+                    <ActionIcon />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-(--ui-foreground)">
+                      {a.title}
+                    </h3>
+                    <p className="mt-1 text-xs text-(--ui-muted-foreground) leading-relaxed">
+                      {a.desc}
+                    </p>
+                  </div>
+                </Card>
               );
             })}
           </div>

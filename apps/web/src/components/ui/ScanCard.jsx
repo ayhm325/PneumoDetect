@@ -26,7 +26,7 @@ export default function ScanCard({
         : "status.ready";
 
   const baseClass =
-    "rounded-xl border border-holo bg-glass backdrop-blur-glass p-5 shadow-holo holo-sheen";
+    "rounded-[24px] card-glass p-6 holo-sheen";
   const containerClass = [baseClass, className].filter(Boolean).join(" ");
 
   return (

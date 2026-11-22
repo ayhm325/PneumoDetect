@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "@/lib/compat/intl";
+import { GlideSelect } from "@/components/ui";
 
 export default function RolePermissionsEditor() {
   const t = useTranslations("adminSettings");
@@ -35,17 +36,18 @@ export default function RolePermissionsEditor() {
       <h3 className="font-bold text-xl mb-4 text-(--ui-foreground)">
         {t("rolePermissionsEditor.title")}
       </h3>
-      <select
-        className="mb-4 w-full px-4 py-2 rounded-xl border border-(--ui-border) bg-(--ui-surface) text-(--ui-foreground) focus:outline-none focus-visible:ring-2 focus-visible:ring-(--ui-ring)"
-        value={selectedRole}
-        onChange={(e) => setSelectedRole(e.target.value)}
-      >
-        {roles.map((role) => (
-          <option key={role} value={role}>
-            {t(`rolePermissionsEditor.roles.${role}`)}
-          </option>
-        ))}
-      </select>
+      <div className="mb-4">
+        <GlideSelect
+          fullWidth
+          size="lg"
+          value={selectedRole}
+          onChange={(val) => setSelectedRole(val)}
+          options={roles.map((role) => ({
+            value: role,
+            label: t(`rolePermissionsEditor.roles.${role}`),
+          }))}
+        />
+      </div>
       <div className="flex gap-4 flex-wrap">
         {permissions.map((perm) => (
           <label

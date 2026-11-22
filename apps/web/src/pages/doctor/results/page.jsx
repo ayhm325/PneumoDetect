@@ -29,7 +29,7 @@ import {
 } from "@/lib/analysisStatus";
 import { useLocale, useTranslations } from "@/lib/compat/intl";
 import { useSearchParams } from "@/lib/compat/navigation";
-import { Button, Card } from "@/components/ui";
+import { Button, Card, GlideSelect, ProfileMediaCard, StatCard } from "@/components/ui";
 
 export default function DoctorResultsPage() {
   const { showSuccess, showError, showInfo, showWarning } = useToast();
@@ -397,61 +397,30 @@ export default function DoctorResultsPage() {
 
           {/* Stats Cards */}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <Card size="sm">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-(--ui-muted-foreground)">
-                    {t("stats.total")}
-                  </p>
-                  <p className="mt-1 text-3xl font-bold text-(--ui-foreground)">
-                    {stats.total}
-                  </p>
-                </div>
-                <FaXRay className="text-3xl text-(--ui-info)" />
-              </div>
-            </Card>
-
-            <Card size="sm">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-(--ui-muted-foreground)">
-                    {t("stats.completed")}
-                  </p>
-                  <p className="mt-1 text-3xl font-bold text-(--ui-success)">
-                    {stats.completed}
-                  </p>
-                </div>
-                <FaCheckCircle className="text-3xl text-(--ui-success)" />
-              </div>
-            </Card>
-
-            <Card size="sm">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-(--ui-muted-foreground)">
-                    {t("stats.pending")}
-                  </p>
-                  <p className="mt-1 text-3xl font-bold text-(--ui-warning)">
-                    {stats.pending}
-                  </p>
-                </div>
-                <FaHourglassHalf className="text-3xl text-(--ui-warning)" />
-              </div>
-            </Card>
-
-            <Card size="sm">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-(--ui-muted-foreground)">
-                    {t("stats.today")}
-                  </p>
-                  <p className="mt-1 text-3xl font-bold text-(--ui-info)">
-                    {stats.today}
-                  </p>
-                </div>
-                <FaCalendarAlt className="text-3xl text-(--ui-info)" />
-              </div>
-            </Card>
+            <StatCard
+              label={t("stats.total")}
+              value={stats.total}
+              icon={<FaXRay />}
+              tone="info"
+            />
+            <StatCard
+              label={t("stats.completed")}
+              value={stats.completed}
+              icon={<FaCheckCircle />}
+              tone="success"
+            />
+            <StatCard
+              label={t("stats.pending")}
+              value={stats.pending}
+              icon={<FaHourglassHalf />}
+              tone="warning"
+            />
+            <StatCard
+              label={t("stats.today")}
+              value={stats.today}
+              icon={<FaCalendarAlt />}
+              tone="primary"
+            />
           </div>
 
           {/* Filters */}
@@ -472,74 +441,57 @@ export default function DoctorResultsPage() {
               </div>
 
               {/* Status Filter */}
-              <select
+              <GlideSelect
                 value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-                className="rounded-lg border border-(--ui-border) bg-(--ui-surface) px-4 py-2 text-sm font-medium text-(--ui-foreground) focus:border-(--ui-ring) focus:outline-none focus:ring-2 focus:ring-(--ui-ring)/20"
-              >
-                <option value="all">{t("filters.allStatuses")}</option>
-                <option value="completed">{t("status.completed")}</option>
-                <option value="pending">{t("status.pending")}</option>
-              </select>
+                onChange={(val) => setFilterStatus(val)}
+                options={[
+                  { value: "all", label: t("filters.allStatuses") },
+                  { value: "completed", label: t("status.completed") },
+                  { value: "pending", label: t("status.pending") },
+                ]}
+              />
             </div>
           </Card>
 
           {/* Scans Grid */}
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {filteredScans.map((scan, idx) => (
-              <Card
+              <ProfileMediaCard
                 key={`${scan.id ?? "scan"}-${idx}`}
-                variant="interactive"
-                className="group"
+                image={scan.thumbnail}
+                imageAlt={scan.patientName}
+                title={scan.patientName}
+                subtitle={`${scan.typeLabel} • ${scan.bodyPart}`}
+                badge={getStatusBadge(scan.status)}
+                actions={
+                  <Button
+                    onClick={() => handleViewScan(scan)}
+                    size="sm"
+                    className="flex items-center justify-center gap-2"
+                  >
+                    <FaEye />
+                    {t("actions.view")}
+                  </Button>
+                }
               >
-                {/* Header */}
-                <div className="mb-4 flex items-start justify-between">
-                  {getTypeIcon(scan.typeKey)}
-                  {getStatusBadge(scan.status)}
-                </div>
-
-                {/* Patient Info */}
-                <div className="mb-4 space-y-2">
-                  <h3 className="text-lg font-bold text-(--ui-foreground)">
-                    {scan.patientName}
-                  </h3>
-                  <p className="text-sm text-(--ui-muted-foreground)">
+                <div className="mb-3 space-y-1 text-xs text-(--ui-muted-foreground)">
+                  <p>
                     {t("patientId")} {scan.patientId}
                   </p>
-                  <div className="flex items-center gap-4 text-sm text-(--ui-muted-foreground)">
-                    <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-3">
+                    <span className="inline-flex items-center gap-1">
                       <FaCalendarAlt className="text-(--ui-info)" />
                       {formatDate(scan.date, locale, ui("placeholder"))}
-                    </div>
-                    <div className="flex items-center gap-1">
+                    </span>
+                    <span className="inline-flex items-center gap-1">
                       <FaClock className="text-(--ui-info)" />
                       {scan.time}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Scan Details */}
-                <div className="mb-4 space-y-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-(--ui-foreground)">
-                      {t("type")}
-                    </span>
-                    <span className="text-sm text-(--ui-muted-foreground)">
-                      {scan.typeLabel}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-(--ui-foreground)">
-                      {t("bodyPart")}
-                    </span>
-                    <span className="text-sm text-(--ui-muted-foreground)">
-                      {scan.bodyPart}
                     </span>
                   </div>
                 </div>
 
                 {/* AI Summary */}
-                <div className="mb-4 rounded-lg bg-(--ui-info-bg) border border-(--ui-info-border) p-3">
+                <div className="mb-3 rounded-xl bg-(--ui-info-bg) border border-(--ui-info-border) p-3">
                   <p className="text-xs font-medium text-(--ui-info) mb-1">
                     {t("aiSummary")}
                   </p>
@@ -550,11 +502,11 @@ export default function DoctorResultsPage() {
 
                 {/* Findings */}
                 {scan.findings.length > 0 && (
-                  <div className="mb-4 space-y-1">
-                    {scan.findings.slice(0, 2).map((finding, idx) => (
+                  <div className="space-y-1">
+                    {scan.findings.slice(0, 2).map((finding, fIdx) => (
                       <div
-                        key={idx}
-                        className={`text-xs px-2 py-1 rounded ${
+                        key={fIdx}
+                        className={`text-xs px-2.5 py-1 rounded-lg ${
                           finding.type === "normal"
                             ? "bg-(--ui-success-bg) text-(--ui-success)"
                             : finding.type === "warning"
@@ -567,19 +519,7 @@ export default function DoctorResultsPage() {
                     ))}
                   </div>
                 )}
-
-                {/* Actions */}
-                <div className="flex gap-2">
-                  <Button
-                    onClick={() => handleViewScan(scan)}
-                    size="sm"
-                    className="flex items-center justify-center gap-2"
-                  >
-                    <FaEye />
-                    {t("actions.view")}
-                  </Button>
-                </div>
-              </Card>
+              </ProfileMediaCard>
             ))}
           </div>
 
@@ -707,21 +647,26 @@ export default function DoctorResultsPage() {
                   <label className="block text-sm font-medium text-(--ui-muted-foreground) mb-2">
                     {t("viewer.review.clinicalStatusLabel")}
                   </label>
-                  <select
+                  <GlideSelect
+                    fullWidth
+                    size="lg"
                     value={reviewClinicalStatus}
-                    onChange={(e) => setReviewClinicalStatus(e.target.value)}
-                    className="w-full rounded-xl border border-(--ui-border) bg-(--ui-surface) px-4 py-3 text-sm font-medium text-(--ui-foreground) focus:border-(--ui-ring) focus:outline-none focus-visible:ring-2 focus-visible:ring-(--ui-ring)/20"
-                  >
-                    <option value="stable">
-                      {t("viewer.review.clinicalStatuses.stable")}
-                    </option>
-                    <option value="critical">
-                      {t("viewer.review.clinicalStatuses.critical")}
-                    </option>
-                    <option value="recovering">
-                      {t("viewer.review.clinicalStatuses.recovering")}
-                    </option>
-                  </select>
+                    onChange={(val) => setReviewClinicalStatus(val)}
+                    options={[
+                      {
+                        value: "stable",
+                        label: t("viewer.review.clinicalStatuses.stable"),
+                      },
+                      {
+                        value: "critical",
+                        label: t("viewer.review.clinicalStatuses.critical"),
+                      },
+                      {
+                        value: "recovering",
+                        label: t("viewer.review.clinicalStatuses.recovering"),
+                      },
+                    ]}
+                  />
                 </div>
 
                 <textarea

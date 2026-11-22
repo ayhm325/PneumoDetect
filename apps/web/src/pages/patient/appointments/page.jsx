@@ -17,7 +17,7 @@ import {
 import { useTranslations, useLocale } from "@/lib/compat/intl";
 import toLatin from "./toLatin";
 import { formatArabicDate } from "@/lib/arabicMonths";
-import { Button, Card } from "@/components/ui";
+import { Button, Card, GlideSelect, ProfileMediaCard } from "@/components/ui";
 
 export default function PatientAppointmentsPage() {
   const router = useRouter();
@@ -295,70 +295,29 @@ export default function PatientAppointmentsPage() {
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {upcoming.map((a) => (
-              <Card
+              <ProfileMediaCard
                 key={a.id}
-                variant="interactive"
-                className="flex flex-col gap-4"
-              >
-                <div className="flex justify-between items-center mb-2">
+                isAvatar
+                mediaNode={<FaUserMd className="text-xl" />}
+                title={a.doctorName}
+                subtitle={a.specialty}
+                badge={
                   <span
-                    className={`px-4 py-1 rounded-full text-base font-bold tracking-wide ${statusClass(a.status)}`}
+                    className={`px-3 py-1 rounded-full text-xs font-bold tracking-wide ${statusClass(a.status)}`}
                   >
                     {t(`appointments.status.${a.status}`)}
                   </span>
-                  <div className="flex flex-col items-end">
-                    <span className="font-extrabold text-2xl text-(--ui-foreground)">
-                      {a.doctorName}
-                    </span>
-                    <span className="text-sm text-(--ui-muted-foreground) font-medium">
-                      {a.specialty}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex flex-wrap gap-6 text-lg text-(--ui-foreground) items-center mb-2">
-                  <div className="flex items-center gap-2">
-                    <FaCalendarAlt className="text-(--ui-info) text-xl" />{" "}
-                    <span className="font-bold">{toLatin(a.date)}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <FaClock className="text-(--ui-warning) text-xl" />{" "}
-                    <span className="font-bold">{toLatin(a.time)}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <FaMapMarkerAlt className="text-(--ui-danger) text-xl" />
-                    <span className="font-bold">
-                      {a.type === "online"
-                        ? t("appointments.type.online")
-                        : a.location
-                          ? a.location
-                          : t("appointments.type.clinic")}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <FaPhone className="text-(--ui-info) text-xl" />{" "}
-                    <span className="font-mono text-lg">
-                      {toLatin(a.phone)}
-                    </span>
-                  </div>
-                </div>
-                {a.reason && (
-                  <div className="text-base text-(--ui-foreground) mt-1">
-                    <span className="font-bold">
-                      {t("appointments.form.reason")}
-                    </span>
-                    : <span className="font-bold">{a.reason}</span>
-                  </div>
-                )}
-                <div className="flex gap-3 mt-6">
-                  {a.status === "confirmed" || a.status === "completed" ? (
-                    <span className="bg-(--ui-success) text-white font-extrabold shadow ring-2 ring-(--ui-success)/60 px-6 py-2 rounded-lg flex items-center gap-2 text-lg transition">
+                }
+                actions={
+                  a.status === "confirmed" || a.status === "completed" ? (
+                    <span className="bg-(--ui-success-bg) text-(--ui-success) border border-(--ui-success-border) font-bold px-3.5 py-1.5 rounded-full flex items-center gap-1.5 text-xs">
                       <FaCheckCircle /> {t("appointments.status.confirmed")}
                     </span>
                   ) : a.status === "cancelled" ? (
-                    <span className="bg-(--ui-danger)/12 text-(--ui-danger-foreground) ring-1 ring-inset ring-(--ui-danger)/25 px-6 py-2 rounded-lg flex items-center gap-2 text-lg font-bold shadow-sm transition">
+                    <span className="bg-(--ui-danger-bg) text-(--ui-danger) border border-(--ui-danger-border) px-3.5 py-1.5 rounded-full flex items-center gap-1.5 text-xs font-bold">
                       <FaTimesCircle /> {t("appointments.status.cancelled")}{" "}
                       {a.raw?.patientReason && (
-                        <span className="ml-2 text-base font-normal">
+                        <span className="ms-1 font-normal">
                           - {a.raw.patientReason}
                         </span>
                       )}
@@ -369,7 +328,7 @@ export default function PatientAppointmentsPage() {
                         onClick={() => confirmAppointment(a.id)}
                         fullWidth={false}
                         size="sm"
-                        className="px-6"
+                        className="px-5"
                       >
                         <FaCheckCircle /> {t("appointments.actions.confirm")}
                       </Button>
@@ -378,14 +337,49 @@ export default function PatientAppointmentsPage() {
                         variant="danger"
                         fullWidth={false}
                         size="sm"
-                        className="px-6"
+                        className="px-5"
                       >
                         <FaTimesCircle /> {t("appointments.actions.cancel")}
                       </Button>
                     </>
+                  )
+                }
+              >
+                <div className="flex flex-wrap gap-4 text-xs text-(--ui-foreground) items-center mb-2">
+                  <div className="flex items-center gap-1.5">
+                    <FaCalendarAlt className="text-(--ui-info)" />
+                    <span className="font-semibold">{toLatin(a.date)}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <FaClock className="text-(--ui-warning)" />
+                    <span className="font-semibold">{toLatin(a.time)}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <FaMapMarkerAlt className="text-(--ui-danger)" />
+                    <span className="font-medium">
+                      {a.type === "online"
+                        ? t("appointments.type.online")
+                        : a.location
+                          ? a.location
+                          : t("appointments.type.clinic")}
+                    </span>
+                  </div>
+                  {a.phone && (
+                    <div className="flex items-center gap-1.5">
+                      <FaPhone className="text-(--ui-info)" />
+                      <span className="font-mono">{toLatin(a.phone)}</span>
+                    </div>
                   )}
                 </div>
-              </Card>
+                {a.reason && (
+                  <div className="text-xs text-(--ui-foreground) mt-1">
+                    <span className="font-semibold text-(--ui-muted-foreground)">
+                      {t("appointments.form.reason")}:
+                    </span>{" "}
+                    <span className="font-medium">{a.reason}</span>
+                  </div>
+                )}
+              </ProfileMediaCard>
             ))}
           </div>
         )}
@@ -401,38 +395,33 @@ export default function PatientAppointmentsPage() {
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {past.map((a) => (
-              <Card
+              <ProfileMediaCard
                 key={a.id}
-                variant="interactive"
-                className="flex flex-col gap-4 opacity-80"
-              >
-                <div className="flex justify-between items-center mb-2">
+                isAvatar
+                mediaNode={<FaUserMd className="text-xl" />}
+                title={a.doctorName}
+                subtitle={a.specialty}
+                className="opacity-85"
+                badge={
                   <span
-                    className={`px-4 py-1 rounded-full text-base font-bold tracking-wide ${statusClass(a.status)}`}
+                    className={`px-3 py-1 rounded-full text-xs font-bold tracking-wide ${statusClass(a.status)}`}
                   >
                     {t(`appointments.status.${a.status}`)}
                   </span>
-                  <div className="flex flex-col items-end">
-                    <span className="font-extrabold text-2xl text-(--ui-foreground)">
-                      {a.doctorName}
-                    </span>
-                    <span className="text-sm text-(--ui-muted-foreground) font-medium">
-                      {a.specialty}
-                    </span>
+                }
+              >
+                <div className="flex flex-wrap gap-4 text-xs text-(--ui-foreground) items-center mb-2">
+                  <div className="flex items-center gap-1.5">
+                    <FaCalendarAlt className="text-(--ui-info)" />
+                    <span className="font-semibold">{toLatin(a.date)}</span>
                   </div>
-                </div>
-                <div className="flex flex-wrap gap-6 text-lg text-(--ui-foreground) items-center mb-2">
-                  <div className="flex items-center gap-2">
-                    <FaCalendarAlt className="text-(--ui-info) text-xl" />{" "}
-                    <span className="font-bold">{toLatin(a.date)}</span>
+                  <div className="flex items-center gap-1.5">
+                    <FaClock className="text-(--ui-warning)" />
+                    <span className="font-semibold">{toLatin(a.time)}</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <FaClock className="text-(--ui-warning) text-xl" />{" "}
-                    <span className="font-bold">{toLatin(a.time)}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <FaMapMarkerAlt className="text-(--ui-danger) text-xl" />
-                    <span className="font-bold">
+                  <div className="flex items-center gap-1.5">
+                    <FaMapMarkerAlt className="text-(--ui-danger)" />
+                    <span className="font-medium">
                       {a.type === "online"
                         ? t("appointments.type.online")
                         : a.location
@@ -440,30 +429,30 @@ export default function PatientAppointmentsPage() {
                           : t("appointments.type.clinic")}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <FaPhone className="text-(--ui-info) text-xl" />{" "}
-                    <span className="font-mono text-lg">
-                      {toLatin(a.phone)}
-                    </span>
-                  </div>
+                  {a.phone && (
+                    <div className="flex items-center gap-1.5">
+                      <FaPhone className="text-(--ui-info)" />
+                      <span className="font-mono">{toLatin(a.phone)}</span>
+                    </div>
+                  )}
                 </div>
                 {a.reason && (
-                  <div className="text-base text-(--ui-foreground) mt-1">
-                    <span className="font-bold">
-                      {t("appointments.form.reason")}
-                    </span>
-                    : <span className="font-bold">{a.reason}</span>
+                  <div className="text-xs text-(--ui-foreground) mt-1">
+                    <span className="font-semibold text-(--ui-muted-foreground)">
+                      {t("appointments.form.reason")}:
+                    </span>{" "}
+                    <span className="font-medium">{a.reason}</span>
                   </div>
                 )}
                 {a.status === "cancelled" && a.raw?.patientReason && (
-                  <div className="text-base text-(--ui-danger) mt-1">
-                    <span className="font-bold">
-                      {t("appointments.form.cancelReasonLabel")}
-                    </span>
-                    : {a.raw.patientReason}
+                  <div className="text-xs text-(--ui-danger) mt-1">
+                    <span className="font-semibold">
+                      {t("appointments.form.cancelReasonLabel")}:
+                    </span>{" "}
+                    {a.raw.patientReason}
                   </div>
                 )}
-              </Card>
+              </ProfileMediaCard>
             ))}
           </div>
         )}
@@ -556,14 +545,17 @@ export default function PatientAppointmentsPage() {
             <label className="block mb-2 text-sm text-(--ui-muted-foreground)">
               {t("appointments.form.type")}
             </label>
-            <select
-              value={bookType}
-              onChange={(e) => setBookType(e.target.value)}
-              className="w-full p-2 border border-(--ui-border) bg-(--ui-surface) text-(--ui-foreground) rounded mb-3 focus:outline-none focus:ring-2 focus:ring-(--ui-ring)"
-            >
-              <option value="clinic">{t("appointments.type.clinic")}</option>
-              <option value="online">{t("appointments.type.online")}</option>
-            </select>
+            <div className="mb-3">
+              <GlideSelect
+                fullWidth
+                value={bookType}
+                onChange={(val) => setBookType(val)}
+                options={[
+                  { value: "clinic", label: t("appointments.type.clinic") },
+                  { value: "online", label: t("appointments.type.online") },
+                ]}
+              />
+            </div>
 
             <label className="block mb-2 text-sm text-(--ui-muted-foreground)">
               {t("appointments.form.reason")}

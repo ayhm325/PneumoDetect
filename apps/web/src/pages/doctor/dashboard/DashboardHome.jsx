@@ -7,7 +7,7 @@ import Link from "@/lib/compat/Link";
 import { formatTime } from "@/lib/date";
 import { formatActivityDescription } from "@/lib/activityFormat";
 import useSocket from "@/components/chat/useSocket.client";
-import { Button, Card } from "@/components/ui";
+import { Button, Card, StatCard } from "@/components/ui";
 import { PageHeader } from "@/components/ui/PageHeader";
 import {
   FaUserMd,
@@ -475,58 +475,59 @@ export default function DashboardHome({ serverData = {} }) {
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {stats.map((stat, index) => {
               const Icon = stat.icon;
+              const tone =
+                index === 1
+                  ? "success"
+                  : index === 2
+                    ? "warning"
+                    : "info";
               return (
-                <Card
+                <StatCard
                   key={index}
-                  variant="interactive"
-                  className="group relative overflow-hidden"
-                >
-                  <div
-                    className={`absolute top-0 right-0 h-20 w-20 translate-x-8 -translate-y-8 transform rounded-full ${stat.bgLight} opacity-50 transition-transform group-hover:scale-150`}
-                  ></div>
-                  <div className="relative">
-                    <div className="flex flex-col items-center justify-center text-center">
-                      <div className="flex items-center gap-3 justify-center">
-                        <div
-                          className={`flex h-12 w-12 items-center justify-center rounded-lg ${stat.color}`}
-                        >
-                          <Icon className="text-2xl text-white" />
-                        </div>
-                        <p className="text-lg font-semibold text-(--ui-muted-foreground) text-center">
-                          {stat.title}
-                        </p>
-                      </div>
-                      <p className="mt-3 text-3xl font-semibold text-(--ui-foreground) text-center">
-                        {stat.value}
-                      </p>
-                    </div>
-                  </div>
-                </Card>
+                  label={stat.title}
+                  value={stat.value}
+                  icon={<Icon />}
+                  tone={tone}
+                />
               );
             })}
           </div>
 
           {/* Quick Actions */}
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {quickActions.map((action, index) => {
               const Icon = action.icon;
               return (
-                <Button
+                <Card
                   key={index}
+                  variant="interactive"
+                  size="sm"
                   onClick={() => handleQuickAction(action.link)}
-                  fullWidth
-                  size="lg"
-                  className="group !h-auto min-h-[132px] !items-start !justify-start gap-2 rounded-xl p-5 text-start"
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      handleQuickAction(action.link);
+                    }
+                  }}
+                  className="group cursor-pointer flex flex-col justify-between gap-3"
                 >
-                  <div className="mb-3 flex w-full items-center justify-between">
-                    <Icon className="text-3xl" />
-                    <FaArrowRight className="transition-transform group-hover:-translate-x-1" />
+                  <div className="flex w-full items-center justify-between">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-(--ui-info-border) bg-(--ui-info-bg) text-(--color-primary) text-xl">
+                      <Icon />
+                    </div>
+                    <FaArrowRight className="text-sm text-(--ui-muted-foreground) transition-transform group-hover:-translate-x-1 group-hover:text-(--color-primary)" />
                   </div>
-                  <h3 className="text-lg font-bold">{action.title}</h3>
-                  <p className="mt-1 text-sm opacity-90">
-                    {action.description}
-                  </p>
-                </Button>
+                  <div>
+                    <h3 className="text-base font-bold text-(--ui-foreground)">
+                      {action.title}
+                    </h3>
+                    <p className="mt-1 text-xs text-(--ui-muted-foreground) leading-relaxed">
+                      {action.description}
+                    </p>
+                  </div>
+                </Card>
               );
             })}
           </div>

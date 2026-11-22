@@ -6,6 +6,7 @@ import {
   Alert,
   Button,
   Card,
+  GlideSelect,
   Input,
   Loader,
   Modal,
@@ -279,30 +280,37 @@ export default function UploadXRayPageContent() {
                 value={patientSearch}
                 onChange={(e) => setPatientSearch(e.target.value)}
               />
-              <select
+              <GlideSelect
+                fullWidth
+                size="lg"
                 value={selectedPatientId}
-                onChange={(e) => setSelectedPatientId(e.target.value)}
+                onChange={(val) => setSelectedPatientId(val)}
                 disabled={patientsLoading}
-                className="ui-native-select ui-future-panel h-11 w-full rounded-xl border border-[var(--ui-border)] px-3 text-sm text-[var(--ui-foreground)] outline-none focus-visible:border-[var(--ui-border-strong)]"
-              >
-                <option value="">
-                  {patientsLoading
-                    ? locale === "ar"
-                      ? "جارٍ تحميل المرضى..."
-                      : "Loading assigned patients..."
-                    : locale === "ar"
-                      ? "اختر المريض المعين"
-                      : "Select an assigned patient"}
-                </option>
-                {filteredPatients.map((p) => {
-                  const name = p.fullName || p.user?.fullName || p.email || p.user?.email || p.id;
-                  return (
-                    <option key={p.id} value={p.id}>
-                      {name}
-                    </option>
-                  );
-                })}
-              </select>
+                options={[
+                  {
+                    value: "",
+                    label: patientsLoading
+                      ? locale === "ar"
+                        ? "جارٍ تحميل المرضى..."
+                        : "Loading assigned patients..."
+                      : locale === "ar"
+                        ? "اختر المريض المعين"
+                        : "Select an assigned patient",
+                  },
+                  ...filteredPatients.map((p) => {
+                    const name =
+                      p.fullName ||
+                      p.user?.fullName ||
+                      p.email ||
+                      p.user?.email ||
+                      p.id;
+                    return {
+                      value: String(p.id),
+                      label: name,
+                    };
+                  }),
+                ]}
+              />
             </div>
 
             <div className="rounded-xl border border-[var(--ui-border)] bg-[var(--ui-surface-2)]/50 px-3.5 py-2.5 text-xs font-medium text-[var(--ui-muted)]">

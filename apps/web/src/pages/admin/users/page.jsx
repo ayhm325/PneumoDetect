@@ -2,7 +2,7 @@
 import { useState, useMemo, useEffect } from "react";
 // Page is rendered inside the route-level AdminLayout; avoid double-wrapping
 import { useToast, ToastContainer } from "@/components/ui/ToastProvider";
-import { Button } from "@/components/ui";
+import { Button, GlideSelect } from "@/components/ui";
 import useLocale from "@/lib/compat/intl";
 import { useTranslations } from "@/lib/compat/intl";
 import {
@@ -358,25 +358,29 @@ export default function UsersPage() {
                 className="w-full pr-10 pl-4 py-3 border border-(--ui-border) rounded-lg bg-(--ui-surface-2) text-foreground focus:ring-2 focus:ring-(--ui-ring) focus:border-transparent"
               />
             </div>
-            <select
+            <GlideSelect
+              fullWidth
+              size="lg"
               value={filterRole}
-              onChange={(e) => setFilterRole(e.target.value)}
-              className="w-full px-4 py-3 border border-(--ui-border) rounded-lg bg-(--ui-surface-2) text-foreground focus:ring-2 focus:ring-(--ui-ring) focus:border-transparent"
-            >
-              <option value="all">{t("filters.allRoles")}</option>
-              <option value="admin">{t("roles.admin")}</option>
-              <option value="doctor">{t("roles.doctor")}</option>
-              <option value="patient">{t("roles.patient")}</option>
-            </select>
-            <select
+              onChange={(val) => setFilterRole(val)}
+              options={[
+                { value: "all", label: t("filters.allRoles") },
+                { value: "admin", label: t("roles.admin") },
+                { value: "doctor", label: t("roles.doctor") },
+                { value: "patient", label: t("roles.patient") },
+              ]}
+            />
+            <GlideSelect
+              fullWidth
+              size="lg"
               value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="w-full px-4 py-3 border border-(--ui-border) rounded-lg bg-(--ui-surface-2) text-foreground focus:ring-2 focus:ring-(--ui-ring) focus:border-transparent"
-            >
-              <option value="all">{t("filters.allStatuses")}</option>
-              <option value="active">{t("statuses.active")}</option>
-              <option value="banned">{t("statuses.banned")}</option>
-            </select>
+              onChange={(val) => setFilterStatus(val)}
+              options={[
+                { value: "all", label: t("filters.allStatuses") },
+                { value: "active", label: t("statuses.active") },
+                { value: "banned", label: t("statuses.banned") },
+              ]}
+            />
           </div>
         </div>
 

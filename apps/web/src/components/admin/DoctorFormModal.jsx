@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useTranslations } from "@/lib/compat/intl";
+import { GlideSelect } from "@/components/ui";
 
 function DoctorFormModal({ doctor, open, onSave, onClose }) {
   const t = useTranslations("doctorFormModal");
@@ -57,24 +58,28 @@ function DoctorFormModal({ doctor, open, onSave, onClose }) {
           onChange={(e) => setPhone(e.target.value)}
           required
         />
-        <select
-          className="border border-(--ui-border) rounded-xl px-4 py-3 bg-(--ui-surface-2) text-foreground focus:ring-4 focus:ring-(--ui-ring)/20 focus:border-transparent transition-all outline-none"
+        <GlideSelect
+          fullWidth
+          size="lg"
           value={specialty}
-          onChange={(e) => setSpecialty(e.target.value)}
-        >
-          <option value="radiology">{t("specialties.radiology")}</option>
-          <option value="pulmonology">{t("specialties.pulmonology")}</option>
-          <option value="orthopedics">{t("specialties.orthopedics")}</option>
-        </select>
-        <select
-          className="border border-(--ui-border) rounded-xl px-4 py-3 bg-(--ui-surface-2) text-foreground focus:ring-4 focus:ring-(--ui-ring)/20 focus:border-transparent transition-all outline-none"
+          onChange={(val) => setSpecialty(val)}
+          options={[
+            { value: "radiology", label: t("specialties.radiology") },
+            { value: "pulmonology", label: t("specialties.pulmonology") },
+            { value: "orthopedics", label: t("specialties.orthopedics") },
+          ]}
+        />
+        <GlideSelect
+          fullWidth
+          size="lg"
           value={status}
-          onChange={(e) => setStatus(e.target.value)}
-        >
-          <option value="pending">{t("statusLabels.pending")}</option>
-          <option value="verified">{t("statusLabels.verified")}</option>
-          <option value="rejected">{t("statusLabels.rejected")}</option>
-        </select>
+          onChange={(val) => setStatus(val)}
+          options={[
+            { value: "pending", label: t("statusLabels.pending") },
+            { value: "verified", label: t("statusLabels.verified") },
+            { value: "rejected", label: t("statusLabels.rejected") },
+          ]}
+        />
         <div className="flex gap-3 mt-4">
           <button
             type="submit"
