@@ -4,7 +4,7 @@
      - #BD4444 (25%) — Terracotta Crimson
      - #F1DEC4 (25%) — Warm Parchment
      - #73976A (25%) — Meadow Sage
-     - #677E61 (25%) — Deep Moss
+     - #1F352B (25%) — Deep Forest Pine
    ========================================================================== */
 
 :root,
@@ -17,37 +17,37 @@
   --pd-crimson: #bd4444;
   --pd-parchment: #f1dec4;
   --pd-sage: #73976a;
-  --pd-moss: #677e61;
+  --pd-moss: #1f352b;
 
   /* Derived tonal steps strictly from the 4 colors (no external hues) */
-  --pd-moss-deep: color-mix(in srgb, var(--pd-moss) 42%, #111610);
-  --pd-moss-mid: color-mix(in srgb, var(--pd-moss) 78%, #1a2118);
+  --pd-moss-deep: color-mix(in srgb, var(--pd-moss) 78%, #0c1410);
+  --pd-moss-mid: color-mix(in srgb, var(--pd-moss) 86%, var(--pd-sage));
   --pd-sage-deep: color-mix(in srgb, var(--pd-sage) 45%, #121811);
   --pd-crimson-deep: color-mix(in srgb, var(--pd-crimson) 78%, #261010);
   --pd-crimson-soft: rgba(189, 68, 68, 0.16);
   --pd-parchment-soft: rgba(241, 222, 196, 0.16);
   --pd-sage-soft: rgba(115, 151, 106, 0.18);
-  --pd-moss-soft: rgba(103, 126, 97, 0.2);
+  --pd-moss-soft: rgba(31, 53, 43, 0.16);
 
   /* Ink pairs for accessible WCAG AA contrast on each of the 4 surfaces */
   --pd-ink-on-crimson: #f1dec4;
-  --pd-ink-on-parchment: #2b3528;
-  --pd-ink-on-sage: #1a2218;
+  --pd-ink-on-parchment: #1f352b;
+  --pd-ink-on-sage: #141e19;
   --pd-ink-on-moss: #f1dec4;
 
   /* ---------------------------------------------- Foundation & Surface Tokens */
-  --pd-bg: var(--pd-moss-deep);
-  --pd-bg-elevated: var(--pd-moss-mid);
+  --pd-bg: var(--pd-parchment);
+  --pd-bg-elevated: color-mix(in srgb, var(--pd-parchment) 92%, var(--pd-sage));
   --pd-surface: var(--pd-moss);
   --pd-surface-2: var(--pd-sage);
-  --pd-surface-3: color-mix(in srgb, var(--pd-sage) 76%, var(--pd-parchment));
-  --pd-surface-inset: color-mix(in srgb, var(--pd-moss) 55%, #161d14);
+  --pd-surface-3: color-mix(in srgb, var(--pd-sage) 82%, var(--pd-parchment));
+  --pd-surface-inset: color-mix(in srgb, var(--pd-parchment) 88%, var(--pd-moss));
 
-  /* Typography */
-  --pd-text-primary: var(--pd-parchment);
-  --pd-text-secondary: color-mix(in srgb, var(--pd-parchment) 84%, var(--pd-sage));
-  --pd-text-muted: color-mix(in srgb, var(--pd-parchment) 68%, var(--pd-moss));
-  --pd-text-disabled: color-mix(in srgb, var(--pd-parchment) 46%, var(--pd-moss));
+  /* Typography — high-contrast dark moss ink on #F1DEC4 canvas */
+  --pd-text-primary: #232c21;
+  --pd-text-secondary: #394736;
+  --pd-text-muted: #52634e;
+  --pd-text-disabled: #758470;
 
   --pd-font-ar: "Alexandria Variable", "Alexandria", sans-serif;
   --pd-font-en: "Space Grotesk Variable", "Space Grotesk", sans-serif;
@@ -90,9 +90,9 @@
   --pd-stage: #0e120d;
 
   /* Borders & Shadows */
-  --pd-border: rgba(241, 222, 196, 0.16);
-  --pd-border-strong: rgba(241, 222, 196, 0.28);
-  --pd-scrim: rgba(18, 24, 17, 0.78);
+  --pd-border: rgba(35, 44, 33, 0.14);
+  --pd-border-strong: rgba(35, 44, 33, 0.26);
+  --pd-scrim: rgba(24, 31, 22, 0.68);
 
   --pd-shadow-soft: 0 12px 32px rgba(0, 0, 0, 0.18);
   --pd-shadow-deep: 0 24px 60px rgba(0, 0, 0, 0.28);

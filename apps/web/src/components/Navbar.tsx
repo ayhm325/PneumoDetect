@@ -47,7 +47,7 @@ export default function Navbar() {
 
   return (
     <div className="sticky top-3 z-40 mx-auto w-full max-w-7xl px-3 sm:px-6 lg:px-8">
-      <header className="shape-leaf border border-[var(--pd-line)] bg-[var(--pd-surface)]/92 text-[var(--pd-text-primary)] shadow-[var(--pd-shadow-depth)] backdrop-blur-md">
+      <header className="shape-leaf pd-tone-moss border border-[var(--pd-line)] shadow-[var(--pd-shadow-depth)] backdrop-blur-md">
         <div className="flex h-[68px] items-center justify-between gap-3 px-4 sm:px-6">
           {/* Brand */}
           <Link
@@ -62,17 +62,17 @@ export default function Navbar() {
 
           {/* Primary Nav */}
           {!isAuthRoute && (
-            <nav className="hidden min-w-0 items-center gap-0.5 md:flex lg:gap-1" aria-label="Primary navigation">
+            <nav className="hidden min-w-0 flex-1 items-center justify-center gap-0.5 overflow-hidden md:flex lg:gap-1" aria-label="Primary navigation">
               {links.map((item) => (
                 <NavLink
                   key={item.to}
                   to={item.to}
                   end={item.to === "/"}
                   className={({ isActive }) =>
-                    `relative whitespace-nowrap rounded-full px-2.5 py-1.5 text-sm font-medium transition-colors lg:px-3.5 lg:py-2 ${
+                    `relative shrink-0 whitespace-nowrap rounded-full px-2 py-1.5 text-[13px] font-medium transition-colors lg:px-2.5 lg:py-1.5 ${
                       isActive
-                        ? "bg-[var(--pd-acid-soft)] text-[var(--pd-acid)]"
-                        : "text-[var(--pd-text-secondary)] hover:bg-[var(--pd-surface-raised)] hover:text-[var(--pd-text-primary)]"
+                        ? "bg-[var(--pd-crimson)] text-[var(--pd-parchment)]"
+                        : "text-[var(--pd-parchment)]/90 hover:bg-[var(--pd-parchment)]/14 hover:text-[var(--pd-parchment)]"
                     }`
                   }
                 >
@@ -95,12 +95,12 @@ export default function Navbar() {
               type="button"
               onClick={toggleTheme}
               aria-label={isDark ? "Switch to warm clay theme" : "Switch to night fig theme"}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[var(--pd-line)] bg-[var(--pd-canvas-raised)] text-[var(--pd-text-secondary)] transition-colors hover:border-[var(--pd-line-strong)] hover:text-[var(--pd-text-primary)]"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[var(--pd-parchment)]/40 bg-[var(--pd-parchment)] text-[#1f352b] transition-colors hover:bg-[var(--pd-parchment)]/90"
             >
               {isDark ? (
-                <SunIcon size={17} strokeWidth={1.7} className="text-[var(--pd-marigold)]" />
+                <SunIcon size={17} strokeWidth={1.7} className="text-[var(--pd-crimson)]" />
               ) : (
-                <MoonIcon size={17} strokeWidth={1.7} className="text-[var(--pd-orchid)]" />
+                <MoonIcon size={17} strokeWidth={1.7} className="text-[#1f352b]" />
               )}
             </button>
 
@@ -108,7 +108,7 @@ export default function Navbar() {
               type="button"
               onClick={handleToggleLocale}
               aria-label={isAr ? "Switch to English" : "التبديل إلى العربية"}
-              className="inline-flex h-10 items-center justify-center rounded-full border border-[var(--pd-line)] bg-[var(--pd-canvas-raised)] px-3.5 text-xs font-medium tracking-wider text-[var(--pd-text-secondary)] transition-colors hover:border-[var(--pd-line-strong)] hover:text-[var(--pd-text-primary)]"
+              className="inline-flex h-10 items-center justify-center rounded-full border border-[var(--pd-parchment)]/40 bg-[var(--pd-parchment)] px-3.5 text-xs font-semibold tracking-wider text-[#1f352b] transition-colors hover:bg-[var(--pd-parchment)]/90"
             >
               {isAr ? "EN" : "AR"}
             </button>
@@ -120,14 +120,14 @@ export default function Navbar() {
                     to={portalPath}
                     className="pd-btn pd-btn--primary pd-btn--sm hidden sm:inline-flex"
                   >
-                    <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-[var(--pd-on-accent)]/15 text-[11px] font-semibold">
+                    <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-[var(--pd-parchment)]/20 text-[11px] font-semibold text-[var(--pd-parchment)]">
                       {(user.fullName || user.email || "U").slice(0, 2).toUpperCase()}
                     </span>
                     <span>{t("dashboard", isAr ? "لوحة التحكم" : "Dashboard")}</span>
                   </Link>
                 ) : (
                   <div className="hidden items-center gap-2 sm:flex">
-                    <Link to="/login" className="pd-btn pd-btn--ghost pd-btn--sm">
+                    <Link to="/login" className="pd-btn pd-btn--ghost pd-btn--sm text-[var(--pd-parchment)] hover:bg-[var(--pd-parchment)]/15 hover:text-[var(--pd-parchment)]">
                       {t("login", isAr ? "تسجيل الدخول" : "Login")}
                     </Link>
                     <Link to="/signup" className="pd-btn pd-btn--primary pd-btn--sm">

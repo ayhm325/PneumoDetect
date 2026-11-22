@@ -143,7 +143,7 @@ export function PortalTopbar({
   const displayName = user?.fullName || user?.email || (isAr ? "المستخدم" : "User");
 
   return (
-    <header className="shape-leaf sticky top-3 z-30 mx-3 mt-3 flex h-[66px] items-center justify-between gap-3 border border-[var(--pd-line)] bg-[var(--pd-surface)]/92 px-4 text-[var(--pd-text-primary)] shadow-[var(--pd-shadow-soft)] backdrop-blur-md sm:px-6 md:top-4 md:mx-4 md:mt-4">
+    <header className="shape-leaf pd-tone-sage sticky top-3 z-30 mx-3 mt-3 flex h-[66px] items-center justify-between gap-3 border border-[var(--pd-line)] px-4 shadow-[var(--pd-shadow-soft)] backdrop-blur-md sm:px-6 md:top-4 md:mx-4 md:mt-4">
       {/* Context & Breadcrumb */}
       <div className="flex min-w-0 items-center gap-3">
         <button
@@ -156,7 +156,7 @@ export function PortalTopbar({
         </button>
 
         <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-2">
-          <span className="truncate text-sm font-medium text-[var(--pd-text-muted)] sm:text-[15px]">
+          <span className="shrink-0 whitespace-nowrap text-sm font-medium text-[var(--pd-text-muted)] sm:text-[15px]">
             {portalTitle}
           </span>
           {currentPageLabel && (
@@ -229,9 +229,9 @@ export function PortalTopbar({
           className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[var(--pd-line)] bg-[var(--pd-canvas-raised)] text-[var(--pd-text-secondary)] transition-colors hover:border-[var(--pd-line-strong)] hover:text-[var(--pd-text-primary)]"
         >
           {isDark ? (
-            <SunIcon size={17} strokeWidth={1.7} className="text-[var(--pd-marigold)]" />
+            <SunIcon size={17} strokeWidth={1.7} className="text-[var(--pd-crimson)]" />
           ) : (
-            <MoonIcon size={17} strokeWidth={1.7} className="text-[var(--pd-orchid)]" />
+            <MoonIcon size={17} strokeWidth={1.7} className="text-[#1f352b]" />
           )}
         </button>
 

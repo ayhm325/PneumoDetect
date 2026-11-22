@@ -339,7 +339,10 @@ export default function DashboardHome({ serverData = {} }) {
             locale === "en" ? "en-US" : "ar-EG-u-nu-latn",
             placeholder,
           ),
-          patient: a.patient,
+          patient:
+            typeof a.patient === "string"
+              ? a.patient
+              : a.patient?.fullName || a.patient?.name || a.patient?.email || placeholder,
           type: a.type || "consult",
           status: a.status,
         }))
@@ -394,7 +397,10 @@ export default function DashboardHome({ serverData = {} }) {
 
           return {
             id: s.id ?? i + 1,
-            patient: s.patient ?? placeholder,
+            patient:
+              typeof s.patient === "string"
+                ? s.patient
+                : s.patient?.fullName || s.patient?.name || s.patient?.email || placeholder,
             type: typeLabel,
             date: dateLabel,
             priority,

@@ -12,7 +12,7 @@ export default function Footer() {
 
   return (
     <div className="mx-auto w-full max-w-7xl px-3 pb-6 pt-10 sm:px-6 lg:px-8">
-      <footer className="pd-panel pd-panel--feature-alt pd-panel--deep">
+      <footer className="pd-panel pd-panel--feature-alt pd-tone-sage">
         <div className={isAuthRoute ? "px-5 py-4 sm:px-6" : "px-6 py-9 sm:px-9 sm:py-11"}>
           {!isAuthRoute && (
             <div className="mb-8 grid gap-8 md:grid-cols-4">

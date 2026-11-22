@@ -47,7 +47,7 @@ export function HomePage() {
     icon: typeof ScanLineIcon;
     title: string;
     desc: string;
-    tone: "crimson" | "parchment" | "sage";
+    tone: "crimson" | "parchment" | "sage" | "moss";
     shape: SurfaceShape;
   }> = [
     {
@@ -61,7 +61,7 @@ export function HomePage() {
       icon: FileHeartIcon,
       title: features("item2.title"),
       desc: features("item2.desc"),
-      tone: "parchment",
+      tone: "moss",
       shape: "slanted",
     },
     {

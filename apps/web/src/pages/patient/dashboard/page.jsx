@@ -330,7 +330,7 @@ export default function PatientDashboardPage() {
 
         {/* Recent Analyses (asymmetric panel + open list) & Upcoming Appointments (frameless timeline) */}
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
-          <Surface shape="asymmetric" className="p-6 lg:col-span-7">
+          <Surface shape="asymmetric" tone="moss" className="p-6 lg:col-span-7">
             <div className="mb-5 flex items-center justify-between border-b border-[var(--pd-border)] pb-4">
               <h2 className="flex items-center gap-2.5 text-lg font-semibold text-[var(--pd-text-primary)]">
                 <ScanLineIcon size={18} strokeWidth={1.7} className="text-[var(--pd-copper)]" />

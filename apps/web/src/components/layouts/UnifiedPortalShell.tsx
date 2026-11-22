@@ -60,8 +60,8 @@ function SidebarNavItem({
               isCollapsed ? "justify-center px-0" : "gap-3 px-3.5"
             } ${
               linkActive
-                ? "bg-[var(--pd-acid-soft)] text-[var(--pd-acid)]"
-                : "text-[var(--pd-text-secondary)] hover:bg-[var(--pd-surface)] hover:text-[var(--pd-text-primary)]"
+                ? "bg-[var(--pd-crimson)] text-[var(--pd-parchment)] shadow-[var(--pd-shadow-sm)]"
+                : "text-[var(--pd-parchment)]/85 hover:bg-[var(--pd-parchment)]/12 hover:text-[var(--pd-parchment)]"
             }`
           }
         >
@@ -70,7 +70,7 @@ function SidebarNavItem({
               {linkActive && !isCollapsed && (
                 <span
                   aria-hidden="true"
-                  className="absolute inset-y-2 start-0 w-[3px] rounded-full bg-[var(--pd-acid)]"
+                  className="absolute inset-y-2 start-0 w-[3px] rounded-full bg-[var(--pd-parchment)]"
                 />
               )}
               <span className="shrink-0 text-base transition-transform duration-150 group-hover:scale-105">
@@ -97,8 +97,8 @@ function SidebarNavItem({
           isCollapsed ? "justify-center px-0" : "gap-3 px-3.5"
         } ${
           isOpen || isActive
-            ? "bg-[var(--pd-acid-soft)] text-[var(--pd-acid)]"
-            : "text-[var(--pd-text-secondary)] hover:bg-[var(--pd-surface)] hover:text-[var(--pd-text-primary)]"
+            ? "bg-[var(--pd-crimson)] text-[var(--pd-parchment)] shadow-[var(--pd-shadow-sm)]"
+            : "text-[var(--pd-parchment)]/85 hover:bg-[var(--pd-parchment)]/12 hover:text-[var(--pd-parchment)]"
         }`}
       >
         <span className="shrink-0 text-base">{item.icon}</span>
@@ -128,8 +128,8 @@ function SidebarNavItem({
                 className={({ isActive: subActive }) =>
                   `relative flex h-9 items-center rounded-[var(--shape-control)] ps-10 pe-3 text-xs font-medium transition-colors before:absolute before:start-5 before:top-1/2 before:h-1.5 before:w-1.5 before:-translate-y-1/2 before:rounded-full ${
                     subActive
-                      ? "bg-[var(--pd-surface)] text-[var(--pd-acid)] before:bg-[var(--pd-acid)]"
-                      : "text-[var(--pd-text-muted)] before:bg-[var(--pd-line-strong)] hover:bg-[var(--pd-surface)]/60 hover:text-[var(--pd-text-primary)]"
+                      ? "bg-[var(--pd-parchment)] text-[#232C21] before:bg-[var(--pd-crimson)]"
+                      : "text-[var(--pd-parchment)]/75 before:bg-[var(--pd-parchment)]/40 hover:bg-[var(--pd-parchment)]/10 hover:text-[var(--pd-parchment)]"
                   }`
                 }
               >
@@ -191,7 +191,7 @@ export function UnifiedPortalShell({
       <div className="flex min-h-screen bg-[var(--pd-canvas)] text-[var(--pd-text-primary)]">
         {/* Desktop Sculpted Floating Sidebar */}
         <aside
-          className={`shape-feature hidden shrink-0 flex-col border border-[var(--pd-line)] bg-[var(--pd-canvas-raised)] shadow-[var(--pd-shadow-depth)] transition-[width,padding] duration-300 ease-out md:sticky md:top-4 md:m-4 md:flex md:h-[calc(100vh-2rem)] ${
+          className={`shape-feature pd-tone-moss hidden shrink-0 flex-col border border-[var(--pd-line)] shadow-[var(--pd-shadow-depth)] transition-[width,padding] duration-300 ease-out md:sticky md:top-4 md:m-4 md:flex md:h-[calc(100vh-2rem)] ${
             collapsed ? "w-[78px] px-2.5" : "w-[264px] px-4"
           }`}
         >
@@ -226,8 +226,8 @@ export function UnifiedPortalShell({
 
           {!collapsed && (
             <div className="mb-3 px-1">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-[color-mix(in_srgb,var(--pd-orchid)_26%,transparent)] bg-[var(--pd-orchid-soft)] px-3 py-1 text-xs font-medium text-[var(--pd-orchid)]">
-                <span className="h-1.5 w-1.5 rounded-full bg-[var(--pd-orchid)]" />
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--pd-parchment)]/25 bg-[var(--pd-sage)]/45 px-3 py-1 text-xs font-medium text-[var(--pd-parchment)]">
+                <span className="h-1.5 w-1.5 rounded-full bg-[var(--pd-parchment)]" />
                 {portalBadge}
               </span>
             </div>
@@ -244,12 +244,12 @@ export function UnifiedPortalShell({
               />
             ))}
 
-            <li className="mt-auto mb-3 border-t border-[var(--pd-line)] pt-3">
+            <li className="mt-auto mb-3 border-t border-[var(--pd-parchment)]/18 pt-3">
               <button
                 type="button"
                 onClick={handleLogout}
                 title={collapsed ? (isAr ? "تسجيل الخروج" : "Logout") : undefined}
-                className={`flex h-11 w-full items-center rounded-[var(--shape-control)] text-sm font-medium text-[var(--pd-coral)] transition-colors hover:bg-[var(--pd-coral-soft)] ${
+                className={`flex h-11 w-full items-center rounded-[var(--shape-control)] bg-[var(--pd-crimson)]/25 text-sm font-medium text-[var(--pd-parchment)] transition-colors hover:bg-[var(--pd-crimson)] ${
                   collapsed ? "justify-center px-0" : "gap-3 px-3.5"
                 }`}
               >
@@ -278,7 +278,7 @@ export function UnifiedPortalShell({
                 animate={{ opacity: 1, x: 0 }}
                 exit={reduceMotion ? { opacity: 0 } : { opacity: 0, x: isAr ? 24 : -24 }}
                 transition={pdMotion.normal}
-                className="shape-feature relative z-10 flex w-[276px] max-w-[85vw] flex-col border border-[var(--pd-line)] bg-[var(--pd-canvas-raised)] px-4 shadow-[var(--pd-shadow-float)]"
+                className="shape-feature pd-tone-moss relative z-10 flex w-[276px] max-w-[85vw] flex-col border border-[var(--pd-line)] px-4 shadow-[var(--pd-shadow-float)]"
               >
                 <header className="flex h-[70px] shrink-0 items-center justify-between px-1 pt-1">
                   <Link
