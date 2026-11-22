@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter, usePathname } from "@/lib/compat/navigation";
 import { useToast } from "@/components/ui/ToastProvider";
 import { useTranslations, useLocale } from "@/lib/compat/intl";
@@ -22,6 +22,7 @@ import {
 } from "react-icons/fa";
 import UnifiedCard from "@/components/ui/UnifiedCard";
 import { Button, GlideSelect } from "@/components/ui";
+import { apiRequest } from "@/lib/apiClient";
 
 export default function PatientProfilePage() {
   const locale = useLocale();
@@ -35,6 +36,7 @@ export default function PatientProfilePage() {
 
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [profileData, setProfileData] = useState({
     id: "",
     userId: "",
@@ -55,46 +57,49 @@ export default function PatientProfilePage() {
     updatedAt: "",
   });
 
-  // Fetch profile data
-  useEffect(() => {
-    let mounted = true;
-    setLoading(true);
-    (async () => {
-      try {
-        const res = await fetch("/api/patient/profile");
-        if (!res.ok) return;
-        const data = await res.json();
-        if (!mounted) return;
-        const p = data.profile || {};
-        setProfileData({
-          id: p.id || "",
-          userId: p.userId || "",
-          fullName: p.fullName || "",
-          email: p.email || "",
-          doctorId: p.doctorId || "",
-          doctorName: p.doctor?.fullName || "",
-          phone: p.phone || "",
-          gender: p.gender || "",
-          birthDate: p.birthDate || "",
-          bloodType: p.bloodType || "",
-          joinDate: p.joinDate || p.createdAt || "",
-          lastVisit: p.lastVisit || "",
-          status: p.status || "",
-          clinicalStatus: p.clinicalStatus || p.clinical_status || p.status || "",
-          notes: p.notes || "",
-          createdAt: p.createdAt || "",
-          updatedAt: p.updatedAt || "",
-        });
-      } catch (err) {
-        console.error("Failed to load profile", err);
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    })();
-    return () => {
-      mounted = false;
-    };
+  const applyServerProfile = useCallback((p = {}) => {
+    setProfileData((prev) => ({
+      id: p.id ?? prev.id ?? "",
+      userId: p.userId ?? prev.userId ?? "",
+      fullName: p.fullName ?? "",
+      email: p.email ?? "",
+      doctorId: p.doctorId ?? prev.doctorId ?? "",
+      doctorName: p.doctor?.fullName ?? prev.doctorName ?? "",
+      phone: p.phone ?? "",
+      gender: p.gender ?? "",
+      birthDate: p.birthDate ? String(p.birthDate).slice(0, 10) : "",
+      bloodType: p.bloodType ?? "",
+      joinDate: p.joinDate || p.createdAt || prev.joinDate || "",
+      lastVisit: p.lastVisit ?? prev.lastVisit ?? "",
+      status: p.status ?? prev.status ?? "",
+      clinicalStatus:
+        p.clinicalStatus ||
+        p.clinical_status ||
+        prev.clinicalStatus ||
+        p.status ||
+        "",
+      notes: p.notes ?? "",
+      createdAt: p.createdAt ?? prev.createdAt ?? "",
+      updatedAt: p.updatedAt ?? prev.updatedAt ?? "",
+    }));
   }, []);
+
+  const loadProfile = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await apiRequest("/api/patient/profile");
+      applyServerProfile(data?.profile || {});
+    } catch (err) {
+      setError(err?.message || "Failed to load profile");
+    } finally {
+      setLoading(false);
+    }
+  }, [applyServerProfile]);
+
+  useEffect(() => {
+    loadProfile();
+  }, [loadProfile]);
 
   // Handle input change
   const handleFieldChange = (e) => {
@@ -104,58 +109,38 @@ export default function PatientProfilePage() {
 
   // Save profile
   const handleSave = async () => {
+    if (loading) return;
     setLoading(true);
     try {
-      const res = await fetch("/api/patient/profile", {
+      const payload = {
+        fullName: profileData.fullName,
+        email: profileData.email,
+        phone: profileData.phone,
+        birthDate: profileData.birthDate || "",
+        gender: profileData.gender || "",
+        bloodType: profileData.bloodType || "",
+        notes: profileData.notes || "",
+      };
+      const data = await apiRequest("/api/patient/profile", {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(profileData),
+        body: JSON.stringify(payload),
       });
-      if (!res.ok) {
-        showError(t("toast.saveError"));
-        return;
+      if (data?.profile) {
+        applyServerProfile(data.profile);
       }
-      const data = await res.json();
-      setProfileData((prev) => ({ ...prev, ...data.profile }));
       setIsEditing(false);
       showSuccess(t("toastSaveSuccess"));
-    } catch {
-      showError(t("toast.saveError"));
+    } catch (err) {
+      showError(err?.message || t("toast.saveError"));
     } finally {
       setLoading(false);
     }
   };
 
   // Cancel edit
-  const handleCancel = () => {
+  const handleCancel = async () => {
     setIsEditing(false);
-    (async () => {
-      try {
-        const res = await fetch("/api/patient/profile");
-        if (!res.ok) return;
-        const data = await res.json();
-        const p = data.profile || {};
-        setProfileData({
-          id: p.id || "",
-          userId: p.userId || "",
-          fullName: p.fullName || "",
-          email: p.email || "",
-          doctorId: p.doctorId || "",
-          doctorName: p.doctor?.fullName || "",
-          phone: p.phone || "",
-          gender: p.gender || "",
-          birthDate: p.birthDate || "",
-          bloodType: p.bloodType || "",
-          joinDate: p.joinDate || p.createdAt || "",
-          lastVisit: p.lastVisit || "",
-          status: p.status || "",
-          clinicalStatus: p.clinicalStatus || p.clinical_status || p.status || "",
-          notes: p.notes || "",
-          createdAt: p.createdAt || "",
-          updatedAt: p.updatedAt || "",
-        });
-      } catch {}
-    })();
+    await loadProfile();
     showInfo(t("toastCancelEdit"));
   };
 
@@ -184,8 +169,20 @@ export default function PatientProfilePage() {
           handleSave={handleSave}
         />
 
+        {error && (
+          <div className="rounded-xl border border-(--ui-danger-border) bg-(--ui-danger-bg) p-4 text-(--ui-danger) flex items-center justify-between">
+            <span>{error}</span>
+            <Button size="sm" variant="secondary" onClick={loadProfile}>
+              {locale === "ar" ? "إعادة المحاولة" : "Retry"}
+            </Button>
+          </div>
+        )}
+
         {/* Profile Card */}
-        <UnifiedCard className="backdrop-blur-xl rounded-4xl p-8 shadow-(--shadow-soft) border border-(--ui-border)" glass>
+        <UnifiedCard
+          className="backdrop-blur-xl rounded-4xl p-8 shadow-(--shadow-soft) border border-(--ui-border)"
+          glass
+        >
           <ProfileCard
             t={t}
             patientT={patientT}
@@ -193,29 +190,47 @@ export default function PatientProfilePage() {
             placeholder={placeholder}
             isEditing={isEditing}
             profileData={profileData}
+            setProfileData={setProfileData}
             handleFieldChange={handleFieldChange}
           />
         </UnifiedCard>
 
         {/* Doctor Change Request Card */}
-        <UnifiedCard className="backdrop-blur-xl rounded-4xl p-8 shadow-(--shadow-soft) border border-(--ui-border) overflow-hidden relative" glass>
+        <UnifiedCard
+          className="backdrop-blur-xl rounded-4xl p-8 shadow-(--shadow-soft) border border-(--ui-border) overflow-hidden relative"
+          glass
+        >
           <div className="absolute top-0 right-0 w-32 h-32 bg-(--ui-info)/10 rounded-full blur-3xl pointer-events-none" />
           <div className="relative z-10">
             <div className="flex items-center gap-3 mb-6">
-              <div className="p-3 bg-(--ui-info)/10 text-(--ui-info) rounded-xl border border-(--ui-info-border)"><FaUserMd size={20} /></div>
-              <h2 className="text-xl font-bold text-(--ui-foreground)">{t("doctorChange.title")}</h2>
+              <div className="p-3 bg-(--ui-info)/10 text-(--ui-info) rounded-xl border border-(--ui-info-border)">
+                <FaUserMd size={20} />
+              </div>
+              <h2 className="text-xl font-bold text-(--ui-foreground)">
+                {t("doctorChange.title")}
+              </h2>
             </div>
-            <DoctorChangeRequestForm t={t} currentDoctorId={profileData.doctorId} />
+            <DoctorChangeRequestForm
+              t={t}
+              currentDoctorId={profileData.doctorId}
+            />
           </div>
         </UnifiedCard>
 
         {/* Security Card */}
-        <UnifiedCard className="backdrop-blur-xl rounded-4xl p-8 shadow-(--shadow-soft) border border-(--ui-border) overflow-hidden relative" glass>
+        <UnifiedCard
+          className="backdrop-blur-xl rounded-4xl p-8 shadow-(--shadow-soft) border border-(--ui-border) overflow-hidden relative"
+          glass
+        >
           <div className="absolute top-0 left-0 w-32 h-32 bg-(--ui-danger)/10 rounded-full blur-3xl pointer-events-none" />
           <div className="relative z-10">
             <div className="flex items-center gap-3 mb-6">
-              <div className="p-3 bg-(--ui-danger)/10 text-(--ui-danger) rounded-xl border border-(--ui-danger-border)"><FaShieldAlt size={20} /></div>
-              <h2 className="text-xl font-bold text-(--ui-foreground)">{t("security.changePasswordTitle")}</h2>
+              <div className="p-3 bg-(--ui-danger)/10 text-(--ui-danger) rounded-xl border border-(--ui-danger-border)">
+                <FaShieldAlt size={20} />
+              </div>
+              <h2 className="text-xl font-bold text-(--ui-foreground)">
+                {t("security.changePasswordTitle")}
+              </h2>
             </div>
             <ChangePasswordForm t={t} router={router} pathname={pathname} />
           </div>
@@ -225,49 +240,71 @@ export default function PatientProfilePage() {
   );
 }
 
-  function HeaderSection({ t, isEditing, loading, setIsEditing, handleCancel, handleSave }) {
-    return (
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div>
-          <h1 className="text-4xl font-extrabold tracking-tight brand-gradient-text">{t("pageTitle")}</h1>
-          <p className="text-(--ui-muted-foreground) text-lg mt-2">{t("pageSubtitle")}</p>
-        </div>
-        <div className="flex gap-3">
-          {!isEditing ? (
-            <Button onClick={() => setIsEditing(true)}>
-              <FaEdit /> {t("btnEdit")}
-            </Button>
-          ) : (
-            <>
-              <Button
-                variant="secondary"
-                onClick={handleCancel}
-                disabled={loading}
-              >
-                <FaTimes /> {t("btnCancel")}
-              </Button>
-              <Button
-                onClick={handleSave}
-                disabled={loading}
-                isLoading={loading}
-                loadingText={t("saving")}
-              >
-                <FaSave /> {t("btnSave")}
-              </Button>
-            </>
-          )}
-        </div>
+function HeaderSection({
+  t,
+  isEditing,
+  loading,
+  setIsEditing,
+  handleCancel,
+  handleSave,
+}) {
+  return (
+    <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+      <div>
+        <h1 className="text-4xl font-extrabold tracking-tight brand-gradient-text">
+          {t("pageTitle")}
+        </h1>
+        <p className="text-(--ui-muted-foreground) text-lg mt-2">
+          {t("pageSubtitle")}
+        </p>
       </div>
-    );
-  }
+      <div className="flex gap-3">
+        {!isEditing ? (
+          <Button onClick={() => setIsEditing(true)}>
+            <FaEdit /> {t("btnEdit")}
+          </Button>
+        ) : (
+          <>
+            <Button
+              variant="secondary"
+              onClick={handleCancel}
+              disabled={loading}
+            >
+              <FaTimes /> {t("btnCancel")}
+            </Button>
+            <Button
+              onClick={handleSave}
+              disabled={loading}
+              isLoading={loading}
+              loadingText={t("saving")}
+            >
+              <FaSave /> {t("btnSave")}
+            </Button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
 
-function ProfileCard({ t, patientT, locale, placeholder, isEditing, profileData, handleFieldChange }) {
+function ProfileCard({
+  t,
+  patientT,
+  locale,
+  placeholder,
+  isEditing,
+  profileData,
+  setProfileData,
+  handleFieldChange,
+}) {
   return (
     <>
       {/* Avatar & Identity */}
       <div className="flex flex-col md:flex-row gap-8 items-center md:items-start mb-8 border-b border-(--ui-border) pb-8">
         <div className="relative shrink-0">
-          <div className="profile-card-image profile-card-image--avatar w-36 h-40 rounded-[24px] bg-(--ui-surface-2) flex items-center justify-center text-5xl text-(--ui-info) shadow-(--shadow-card-media) border border-(--ui-border)"><FaUser /></div>
+          <div className="profile-card-image profile-card-image--avatar w-36 h-40 rounded-[24px] bg-(--ui-surface-2) flex items-center justify-center text-5xl text-(--ui-info) shadow-(--shadow-card-media) border border-(--ui-border)">
+            <FaUser />
+          </div>
           {profileData.status === "active" && (
             <div className="absolute bottom-2 right-2 w-6 h-6 bg-(--ui-success) border-4 border-(--ui-surface) rounded-full" />
           )}
@@ -275,7 +312,9 @@ function ProfileCard({ t, patientT, locale, placeholder, isEditing, profileData,
         <div className="flex-1 w-full space-y-4">
           {/* Name */}
           <div className="group">
-            <label className="text-xs font-bold text-(--ui-muted-foreground) uppercase tracking-wider mb-1 block">{t("field.fullName")}</label>
+            <label className="text-xs font-bold text-(--ui-muted-foreground) uppercase tracking-wider mb-1 block">
+              {t("field.fullName")}
+            </label>
             {isEditing ? (
               <input
                 name="fullName"
@@ -284,13 +323,17 @@ function ProfileCard({ t, patientT, locale, placeholder, isEditing, profileData,
                 className="w-full px-4 py-3 bg-(--ui-surface) border border-(--ui-border) rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-(--ui-ring) outline-none transition-all font-bold text-lg text-(--ui-foreground)"
               />
             ) : (
-              <div className="text-2xl font-bold text-(--ui-foreground)">{profileData.fullName || placeholder}</div>
+              <div className="text-2xl font-bold text-(--ui-foreground)">
+                {profileData.fullName || placeholder}
+              </div>
             )}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Email */}
             <div className="group min-w-0">
-              <label className="text-xs font-bold text-(--ui-muted-foreground) uppercase tracking-wider mb-1 flex items-center gap-2"><FaEnvelope className="text-(--ui-info)" /> {t("field.email")}</label>
+              <label className="text-xs font-bold text-(--ui-muted-foreground) uppercase tracking-wider mb-1 flex items-center gap-2">
+                <FaEnvelope className="text-(--ui-info)" /> {t("field.email")}
+              </label>
               {isEditing ? (
                 <input
                   name="email"
@@ -299,12 +342,19 @@ function ProfileCard({ t, patientT, locale, placeholder, isEditing, profileData,
                   className="w-full px-4 py-3 bg-(--ui-surface) border border-(--ui-border) rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-(--ui-ring) outline-none transition-all text-(--ui-foreground)"
                 />
               ) : (
-                <div dir="ltr" className="min-w-0 text-(--ui-muted-foreground) bg-(--ui-surface-2)/40 border border-(--ui-border) p-3 rounded-xl truncate">{profileData.email || placeholder}</div>
+                <div
+                  dir="ltr"
+                  className="min-w-0 text-(--ui-muted-foreground) bg-(--ui-surface-2)/40 border border-(--ui-border) p-3 rounded-xl truncate"
+                >
+                  {profileData.email || placeholder}
+                </div>
               )}
             </div>
             {/* Phone */}
             <div className="group min-w-0">
-              <label className="text-xs font-bold text-(--ui-muted-foreground) uppercase tracking-wider mb-1 flex items-center gap-2"><FaPhone className="text-(--ui-info)" /> {t("field.phone")}</label>
+              <label className="text-xs font-bold text-(--ui-muted-foreground) uppercase tracking-wider mb-1 flex items-center gap-2">
+                <FaPhone className="text-(--ui-info)" /> {t("field.phone")}
+              </label>
               {isEditing ? (
                 <input
                   name="phone"
@@ -313,14 +363,24 @@ function ProfileCard({ t, patientT, locale, placeholder, isEditing, profileData,
                   className="w-full px-4 py-3 bg-(--ui-surface) border border-(--ui-border) rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-(--ui-ring) outline-none transition-all text-(--ui-foreground)"
                 />
               ) : (
-                <div dir="ltr" className="min-w-0 text-(--ui-muted-foreground) bg-(--ui-surface-2)/40 border border-(--ui-border) p-3 rounded-xl truncate">{profileData.phone || placeholder}</div>
+                <div
+                  dir="ltr"
+                  className="min-w-0 text-(--ui-muted-foreground) bg-(--ui-surface-2)/40 border border-(--ui-border) p-3 rounded-xl truncate"
+                >
+                  {profileData.phone || placeholder}
+                </div>
               )}
             </div>
           </div>
           {/* IDs */}
           <div className="flex flex-wrap gap-4 text-xs font-mono text-(--ui-muted-foreground) pt-2">
-            <div className="flex items-center gap-2"><FaIdCard /> {t("field.patientNumber")}: {profileData.id || placeholder}</div>
-            <div className="flex items-center gap-2"><FaIdCard /> {t("userId")}: {profileData.userId || placeholder}</div>
+            <div className="flex items-center gap-2">
+              <FaIdCard /> {t("field.patientNumber")}:{" "}
+              {profileData.id || placeholder}
+            </div>
+            <div className="flex items-center gap-2">
+              <FaIdCard /> {t("userId")}: {profileData.userId || placeholder}
+            </div>
           </div>
         </div>
       </div>
@@ -328,22 +388,32 @@ function ProfileCard({ t, patientT, locale, placeholder, isEditing, profileData,
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Birth Date */}
         <div>
-          <label className="text-xs font-bold text-(--ui-muted-foreground) uppercase tracking-wider mb-2 block">{t("field.birthDate")}</label>
+          <label className="text-xs font-bold text-(--ui-muted-foreground) uppercase tracking-wider mb-2 block">
+            {t("field.birthDate")}
+          </label>
           {isEditing ? (
             <input
               type="date"
               name="birthDate"
-              value={profileData.birthDate ? profileData.birthDate.slice(0, 10) : ""}
+              value={
+                profileData.birthDate ? profileData.birthDate.slice(0, 10) : ""
+              }
               onChange={handleFieldChange}
               className="w-full px-4 py-3 bg-(--ui-surface) border border-(--ui-border) rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-(--ui-ring) outline-none transition-all text-(--ui-foreground)"
             />
           ) : (
-            <div className="text-(--ui-foreground) font-medium">{profileData.birthDate ? new Date(profileData.birthDate).toLocaleDateString(locale) : placeholder}</div>
+            <div className="text-(--ui-foreground) font-medium">
+              {profileData.birthDate
+                ? new Date(profileData.birthDate).toLocaleDateString(locale)
+                : placeholder}
+            </div>
           )}
         </div>
         {/* Gender */}
         <div>
-          <label className="text-xs font-bold text-(--ui-muted-foreground) uppercase tracking-wider mb-2 block">{t("field.genderLabel")}</label>
+          <label className="text-xs font-bold text-(--ui-muted-foreground) uppercase tracking-wider mb-2 block">
+            {t("field.genderLabel")}
+          </label>
           {isEditing ? (
             <GlideSelect
               fullWidth
@@ -369,7 +439,9 @@ function ProfileCard({ t, patientT, locale, placeholder, isEditing, profileData,
         </div>
         {/* Blood Type */}
         <div>
-          <label className="text-xs font-bold text-(--ui-muted-foreground) uppercase tracking-wider mb-2 flex items-center gap-2">{t("field.bloodType")}</label>
+          <label className="text-xs font-bold text-(--ui-muted-foreground) uppercase tracking-wider mb-2 flex items-center gap-2">
+            {t("field.bloodType")}
+          </label>
           {isEditing ? (
             <input
               name="bloodType"
@@ -379,13 +451,17 @@ function ProfileCard({ t, patientT, locale, placeholder, isEditing, profileData,
             />
           ) : (
             <div className="flex items-center gap-2">
-              <span className="w-10 h-10 rounded-full bg-(--ui-danger)/10 text-(--ui-danger) flex items-center justify-center font-bold border border-(--ui-danger)/20">{profileData.bloodType || placeholder}</span>
+              <span className="w-10 h-10 rounded-full bg-(--ui-danger)/10 text-(--ui-danger) flex items-center justify-center font-bold border border-(--ui-danger)/20">
+                {profileData.bloodType || placeholder}
+              </span>
             </div>
           )}
         </div>
         {/* Notes */}
         <div>
-          <label className="text-xs font-bold text-(--ui-muted-foreground) uppercase tracking-wider mb-2 block">{t("field.notes")}</label>
+          <label className="text-xs font-bold text-(--ui-muted-foreground) uppercase tracking-wider mb-2 block">
+            {t("field.notes")}
+          </label>
           {isEditing ? (
             <input
               name="notes"
@@ -394,7 +470,9 @@ function ProfileCard({ t, patientT, locale, placeholder, isEditing, profileData,
               className="w-full px-4 py-3 bg-(--ui-surface) border border-(--ui-border) rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-(--ui-ring) outline-none transition-all text-(--ui-foreground)"
             />
           ) : (
-            <div className="text-(--ui-foreground) text-sm font-medium">{profileData.notes || placeholder}</div>
+            <div className="text-(--ui-foreground) text-sm font-medium">
+              {profileData.notes || placeholder}
+            </div>
           )}
         </div>
       </div>
@@ -403,28 +481,47 @@ function ProfileCard({ t, patientT, locale, placeholder, isEditing, profileData,
         <div className="mt-8 pt-6 border-t border-(--ui-border) flex flex-wrap gap-4">
           {profileData.doctorName && (
             <div className="flex items-center gap-3 p-3 bg-(--ui-info-bg) rounded-xl border border-(--ui-info-border) w-full sm:w-auto max-w-full">
-              <div className="p-2 bg-(--ui-surface) border border-(--ui-border) rounded-lg text-(--ui-info) shadow-sm"><FaUserMd /></div>
+              <div className="p-2 bg-(--ui-surface) border border-(--ui-border) rounded-lg text-(--ui-info) shadow-sm">
+                <FaUserMd />
+              </div>
               <div className="min-w-0 flex-1">
-                <div className="text-xs text-(--ui-muted-foreground) uppercase font-bold">{t("currentDoctor")}</div>
-                <div className="text-sm font-bold text-(--ui-foreground) whitespace-normal wrap-break-word">{profileData.doctorName}</div>
+                <div className="text-xs text-(--ui-muted-foreground) uppercase font-bold">
+                  {t("currentDoctor")}
+                </div>
+                <div className="text-sm font-bold text-(--ui-foreground) whitespace-normal wrap-break-word">
+                  {profileData.doctorName}
+                </div>
               </div>
             </div>
           )}
           {profileData.joinDate && (
             <div className="flex items-center gap-3 p-3 bg-(--ui-success-bg) rounded-xl border border-(--ui-success-border) w-full sm:w-auto max-w-full">
-              <div className="p-2 bg-(--ui-surface) border border-(--ui-border) rounded-lg text-(--ui-success) shadow-sm"><FaCalendar /></div>
+              <div className="p-2 bg-(--ui-surface) border border-(--ui-border) rounded-lg text-(--ui-success) shadow-sm">
+                <FaCalendar />
+              </div>
               <div>
-                <div className="text-xs text-(--ui-muted-foreground) uppercase font-bold">{t("joinDate")}</div>
-                <div className="text-sm font-bold text-(--ui-foreground)">{new Date(profileData.joinDate).toLocaleDateString(locale)}</div>
+                <div className="text-xs text-(--ui-muted-foreground) uppercase font-bold">
+                  {t("joinDate")}
+                </div>
+                <div className="text-sm font-bold text-(--ui-foreground)">
+                  {new Date(profileData.joinDate).toLocaleDateString(locale)}
+                </div>
               </div>
             </div>
           )}
           {profileData.clinicalStatus && (
             <div className="flex items-center gap-3 p-3 bg-(--ui-info-bg) rounded-xl border border-(--ui-info-border) w-full sm:w-auto max-w-full">
-              <div className="p-2 bg-(--ui-surface) border border-(--ui-border) rounded-lg text-(--ui-info) shadow-sm"><FaHeart /></div>
+              <div className="p-2 bg-(--ui-surface) border border-(--ui-border) rounded-lg text-(--ui-info) shadow-sm">
+                <FaHeart />
+              </div>
               <div>
-                <div className="text-xs text-(--ui-muted-foreground) uppercase font-bold">{t("status")}</div>
-                <div className="text-sm font-bold text-(--ui-foreground)">{patientT(`clinicalStatuses.${profileData.clinicalStatus}`) || profileData.clinicalStatus}</div>
+                <div className="text-xs text-(--ui-muted-foreground) uppercase font-bold">
+                  {t("status")}
+                </div>
+                <div className="text-sm font-bold text-(--ui-foreground)">
+                  {patientT(`clinicalStatuses.${profileData.clinicalStatus}`) ||
+                    profileData.clinicalStatus}
+                </div>
               </div>
             </div>
           )}
@@ -434,21 +531,20 @@ function ProfileCard({ t, patientT, locale, placeholder, isEditing, profileData,
   );
 }
 
-
 function DoctorChangeRequestForm({ t, currentDoctorId }) {
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [requestedDoctorId, setRequestedDoctorId] = useState("");
+  const [reason, setReason] = useState("");
   const { showSuccess, showError } = useToast();
 
   useEffect(() => {
     let mounted = true;
     (async () => {
       try {
-        const res = await fetch("/api/doctor/list");
-        if (!res.ok) throw new Error("Failed");
-        const data = await res.json();
-        if (mounted) setDoctors(data.doctors || []);
+        const data = await apiRequest("/api/doctor/list");
+        if (mounted) setDoctors(data?.doctors || []);
       } catch {
         if (mounted) setDoctors([]);
       } finally {
@@ -462,47 +558,33 @@ function DoctorChangeRequestForm({ t, currentDoctorId }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitting(true);
-    const form = e.target;
-    const requestedDoctorId = form.requestedDoctorId.value;
-    const reason = form.reason.value;
+    if (submitting) return;
     if (!requestedDoctorId) {
       showError(t("toast.doctorChangeSelect"));
-      setSubmitting(false);
       return;
     }
     if (currentDoctorId && requestedDoctorId === currentDoctorId) {
       showError(t("toast.doctorChangeSameDoctor"));
-      setSubmitting(false);
       return;
     }
+    setSubmitting(true);
     try {
-      const res = await fetch("/api/doctor-change-requests", {
+      await apiRequest("/api/doctor-change-requests", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        credentials: "include",
         body: JSON.stringify({ requestedDoctorId, reason }),
       });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        const serverMsg = (err?.error || "").toString();
-        if (serverMsg === "Requested doctor is the same as current doctor") {
-          showError(t("toast.doctorChangeSameDoctor"));
-        } else if (serverMsg === "Missing requestedDoctorId") {
-          showError(t("toast.doctorChangeSelect"));
-        } else {
-          showError(serverMsg || t("toast.doctorChangeFail"));
-        }
-        setSubmitting(false);
-        return;
-      }
       showSuccess(t("toast.doctorChangeSent"));
-      form.reset();
+      setRequestedDoctorId("");
+      setReason("");
     } catch (err) {
-      showError(t("toast.doctorChangeNetwork"));
+      const serverMsg = (err?.message || "").toString();
+      if (serverMsg === "Requested doctor is the same as current doctor") {
+        showError(t("toast.doctorChangeSameDoctor"));
+      } else if (serverMsg === "Missing requestedDoctorId") {
+        showError(t("toast.doctorChangeSelect"));
+      } else {
+        showError(serverMsg || t("toast.doctorChangeFail"));
+      }
     } finally {
       setSubmitting(false);
     }
@@ -518,6 +600,8 @@ function DoctorChangeRequestForm({ t, currentDoctorId }) {
           fullWidth
           size="lg"
           name="requestedDoctorId"
+          value={requestedDoctorId}
+          onChange={(val) => setRequestedDoctorId(val)}
           disabled={loading}
           placeholder={
             loading
@@ -546,6 +630,8 @@ function DoctorChangeRequestForm({ t, currentDoctorId }) {
         </label>
         <textarea
           name="reason"
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
           className="w-full px-4 py-3 bg-(--ui-surface) border border-(--ui-border) rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-(--ui-ring) outline-none transition-all text-(--ui-foreground) resize-none"
           rows={3}
           placeholder={t("doctorChange.reasonPlaceholder")}
@@ -577,6 +663,7 @@ function ChangePasswordForm({ t, router, pathname }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (loading) return;
     if (
       String(oldPassword || "").trim() &&
       String(newPassword || "").trim() &&
@@ -595,29 +682,12 @@ function ChangePasswordForm({ t, router, pathname }) {
     }
     setLoading(true);
     try {
-      const res = await fetch("/api/patient/change-password", {
+      await apiRequest("/api/patient/change-password", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
         body: JSON.stringify({ oldPassword, newPassword }),
       });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        if (err?.error === "same_password") {
-          showError(t("toastPasswordSameAsOld"));
-        } else {
-          showError(err?.error || t("toastPasswordChangeFail"));
-        }
-        setLoading(false);
-        return;
-      }
       showSuccess(t("toastPasswordChanged"));
-      try {
-        await fetch("/api/auth/logout", {
-          method: "POST",
-          credentials: "include",
-        }).catch(() => {});
-      } catch {}
+      await apiRequest("/api/auth/logout", { method: "POST" }).catch(() => {});
       if (typeof window !== "undefined") {
         localStorage.clear();
         sessionStorage.clear();
@@ -626,7 +696,11 @@ function ChangePasswordForm({ t, router, pathname }) {
       const basePrefix = locale === "en" ? "/en" : "/ar";
       router.replace(basePrefix);
     } catch (err) {
-      showError(t("toastPasswordChangeNetwork"));
+      if (err?.code === "same_password" || err?.message === "same_password") {
+        showError(t("toastPasswordSameAsOld"));
+      } else {
+        showError(err?.message || t("toastPasswordChangeFail"));
+      }
     } finally {
       setLoading(false);
     }
@@ -662,22 +736,35 @@ function ChangePasswordForm({ t, router, pathname }) {
         autoComplete="new-password"
       />
       <div className="pt-2 flex justify-end">
-        <button
+        <Button
           type="submit"
+          variant="danger"
           disabled={loading}
-          className="flex items-center gap-2 px-6 py-3 bg-(--ui-danger) hover:bg-(--ui-danger)/90 text-(--ui-danger-foreground) rounded-xl shadow-lg transition-all hover:-translate-y-0.5 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          isLoading={loading}
+          loadingText={t("saving")}
         >
-          <FaLock /> {loading ? t("saving") : t("security.changePasswordButton")}
-        </button>
+          <FaLock /> {t("security.changePasswordButton")}
+        </Button>
       </div>
     </form>
   );
 }
 
-function PasswordInputGroup({ label, value, onChange, show, onToggleShow, type = "password", name, autoComplete }) {
+function PasswordInputGroup({
+  label,
+  value,
+  onChange,
+  show,
+  onToggleShow,
+  type = "password",
+  name,
+  autoComplete,
+}) {
   return (
     <div>
-      <label className="block text-sm font-bold text-(--ui-muted-foreground) mb-2">{label}</label>
+      <label className="block text-sm font-bold text-(--ui-muted-foreground) mb-2">
+        {label}
+      </label>
       <div className="relative">
         <input
           type={show ? "text" : type}

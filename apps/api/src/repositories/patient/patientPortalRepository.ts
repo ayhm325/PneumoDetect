@@ -31,6 +31,12 @@ export interface PatientPortalRepository {
     data: Prisma.PatientUncheckedUpdateInput,
   ): Promise<Prisma.PatientGetPayload<{}>>;
   updateUserProfile(userId: string, data: Prisma.UserUpdateInput): Promise<void>;
+  updatePatientAndUserProfile?(input: {
+    patientId: string;
+    userId: string;
+    patientData: Prisma.PatientUncheckedUpdateInput;
+    userData?: Prisma.UserUpdateInput;
+  }): Promise<Prisma.PatientGetPayload<{}>>;
   findDoctorUser(doctorId: string): Promise<Prisma.UserGetPayload<{}> | null>;
   listMedicalRecordsWithDoctor(patientId: string): Promise<Array<Record<string, unknown>>>;
   listAppointmentsForPatient(patientId: string): Promise<Array<Record<string, unknown>>>;
@@ -38,11 +44,11 @@ export interface PatientPortalRepository {
     doctorId: string;
     patientId: string;
     scheduledAt: Date;
+    type?: string | null;
     reason?: string | null;
     location?: string | null;
-    phone?: string | null;
   }): Promise<Record<string, unknown>>;
-  findDoctorByUserId(doctorId: string): Promise<Prisma.DoctorGetPayload<{ select: { user: { select: { fullName: true } } } }> | null>;
+  findDoctorByUserId(doctorId: string): Promise<Prisma.DoctorGetPayload<{ select: { status: true; clinic: true; user: { select: { fullName: true } } } }> | null>;
   findAppointmentById(id: string): Promise<Prisma.AppointmentGetPayload<{}> | null>;
   updateAppointmentById(id: string, data: Prisma.AppointmentUpdateInput): Promise<Record<string, unknown>>;
 }
@@ -332,6 +338,39 @@ export function createPatientPortalRepository(
       }
     },
 
+    async updatePatientAndUserProfile(input) {
+      try {
+        return await db.$transaction(async (tx: Prisma.TransactionClient) => {
+          if (input.userData && Object.keys(input.userData).length > 0) {
+            await tx.user.update({
+              where: { id: input.userId },
+              data: input.userData,
+            });
+          }
+          return await tx.patient.update({
+            where: { id: input.patientId },
+            data: input.patientData,
+          });
+        });
+      } catch (error) {
+        const prismaCode = (error as { code?: string } | null)?.code;
+        if (prismaCode === "P2002") {
+          throw new AppError({
+            code: "conflict",
+            message: "البريد الإلكتروني مستخدم بالفعل",
+            statusCode: 409,
+            cause: error,
+          });
+        }
+        throw new AppError({
+          code: "repository_error",
+          message: "Failed to update patient profile",
+          statusCode: 500,
+          cause: error,
+        });
+      }
+    },
+
     async findDoctorUser(doctorId) {
       try {
         return await db.user.findUnique({ where: { id: doctorId } });
@@ -428,9 +467,9 @@ export function createPatientPortalRepository(
             patientId: input.patientId,
             scheduledAt: input.scheduledAt,
             status: "scheduled",
+            type: input.type || "clinic",
             reason: input.reason || null,
             location: input.location || null,
-            phone: input.phone || null,
           },
         });
 
@@ -449,7 +488,11 @@ export function createPatientPortalRepository(
       try {
         return await db.doctor.findUnique({
           where: { userId: doctorId },
-          select: { user: { select: { fullName: true } } },
+          select: {
+            status: true,
+            clinic: true,
+            user: { select: { fullName: true } },
+          },
         });
       } catch (error) {
         throw new AppError({

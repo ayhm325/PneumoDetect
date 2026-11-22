@@ -12,6 +12,7 @@ import {
 } from "../../legacy-lib/cache/notificationCache";
 import { AppError } from "../../lib/errors/appError";
 import type { PatientPortalRepository } from "../../repositories/patient/patientPortalRepository";
+import { createAdminSettingsRepository, type AdminSettingsRepository } from "../../repositories/admin/adminSettingsRepository";
 import {
   computeCanonicalReviewStatus,
   normalizeUploadStorageReference,
@@ -56,7 +57,8 @@ export interface PatientPortalService {
   getProfile(userId: string): Promise<{ profile: Record<string, unknown> }>;
   updateProfile(input: {
     userId: string;
-    body: Record<string, unknown>;
+    body?: Record<string, unknown>;
+    [key: string]: unknown;
   }): Promise<{ profile: Record<string, unknown> }>;
   listResults(userId: string): Promise<{ records: Array<Record<string, unknown>> }>;
   listAppointments(userId: string): Promise<{ appointments: Array<Record<string, unknown>> }>;
@@ -64,6 +66,7 @@ export interface PatientPortalService {
     userId: string;
     doctorId?: string;
     scheduledAt?: string;
+    type?: string;
     reason?: string;
     location?: string;
     phone?: string;
@@ -83,7 +86,9 @@ export interface PatientPortalService {
 
 export function createPatientPortalService(deps: {
   patientPortalRepository: PatientPortalRepository;
+  adminSettingsRepository?: AdminSettingsRepository;
 }): PatientPortalService {
+  const settingsRepo = deps.adminSettingsRepository ?? createAdminSettingsRepository();
   return {
     async getUnreadNotificationsCount(userId) {
       const cached = await getNotificationCache(userId);
@@ -289,37 +294,81 @@ export function createPatientPortalService(deps: {
         });
       }
 
-      const body = input.body || {};
+      const body: Record<string, unknown> =
+        input.body && typeof input.body === "object"
+          ? (input.body as Record<string, unknown>)
+          : (input as Record<string, unknown>);
       const updateData: Record<string, unknown> = {};
+      const userUpdate: Record<string, unknown> = {};
 
-      if (typeof body.fullName === "string") updateData.fullName = body.fullName;
-      if (typeof body.email === "string") updateData.email = body.email;
-      if (typeof body.phone === "string") updateData.phone = body.phone;
-      if (typeof body.birthDate === "string" && body.birthDate) {
-        updateData.birthDate = new Date(body.birthDate);
+      if (typeof body.fullName === "string") {
+        const trimmedName = body.fullName.trim();
+        if (!trimmedName) {
+          throw new AppError({
+            code: "validation_error",
+            message: "الاسم الكامل مطلوب",
+            statusCode: 400,
+          });
+        }
+        updateData.fullName = trimmedName;
+        userUpdate.fullName = trimmedName;
+      }
+
+      if (typeof body.email === "string") {
+        const trimmedEmail = body.email.trim();
+        if (!trimmedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+          throw new AppError({
+            code: "validation_error",
+            message: "البريد الإلكتروني غير صالح",
+            statusCode: 400,
+          });
+        }
+        updateData.email = trimmedEmail;
+        userUpdate.email = trimmedEmail;
+      }
+
+      if (typeof body.phone === "string") updateData.phone = body.phone.trim();
+      if (typeof body.birthDate === "string") {
+        if (body.birthDate.trim()) {
+          const parsedBirth = new Date(body.birthDate);
+          if (Number.isNaN(parsedBirth.getTime())) {
+            throw new AppError({
+              code: "validation_error",
+              message: "تاريخ الميلاد غير صالح",
+              statusCode: 400,
+            });
+          }
+          updateData.birthDate = parsedBirth;
+        } else {
+          updateData.birthDate = null;
+        }
       }
 
       const normalizedGender = normalizeGender(body.gender);
       if (normalizedGender) updateData.gender = normalizedGender;
-      if (typeof body.bloodType === "string") updateData.bloodType = body.bloodType;
+      else if (body.gender === "") updateData.gender = null;
+
+      if (typeof body.bloodType === "string") updateData.bloodType = body.bloodType.trim();
       if (typeof body.notes === "string") updateData.notes = body.notes;
 
-      const updated = await deps.patientPortalRepository.updatePatientProfile(
-        patient.id,
-        updateData,
-      );
-
-      if (body.fullName || body.email) {
-        const userUpdate: Record<string, unknown> = {};
-        if (typeof body.fullName === "string") userUpdate.fullName = body.fullName;
-        if (typeof body.email === "string") userUpdate.email = body.email;
-
-        try {
+      let updated: Record<string, unknown>;
+      if (typeof deps.patientPortalRepository.updatePatientAndUserProfile === "function") {
+        updated = (await deps.patientPortalRepository.updatePatientAndUserProfile({
+          patientId: patient.id,
+          userId: input.userId,
+          patientData: updateData,
+          userData: userUpdate,
+        })) as unknown as Record<string, unknown>;
+      } else {
+        updated = (await deps.patientPortalRepository.updatePatientProfile(
+          patient.id,
+          updateData,
+        )) as unknown as Record<string, unknown>;
+        if (Object.keys(userUpdate).length > 0) {
           await deps.patientPortalRepository.updateUserProfile(
             input.userId,
             userUpdate,
           );
-        } catch {
         }
       }
 
@@ -347,6 +396,12 @@ export function createPatientPortalService(deps: {
       return {
         profile: {
           ...updated,
+          birthDate:
+            updated.birthDate instanceof Date
+              ? updated.birthDate.toISOString().split("T")[0]
+              : typeof updated.birthDate === "string"
+                ? updated.birthDate.split("T")[0]
+                : "",
           fullName: toStringOrEmpty((updated as { fullName?: unknown }).fullName),
           email: toStringOrEmpty((updated as { email?: unknown }).email),
         } as Record<string, unknown>,
@@ -451,6 +506,7 @@ export function createPatientPortalService(deps: {
         scheduledAt: appointment.scheduledAt,
         status: appointment.status,
         reason: appointment.reason,
+        patientReason: appointment.patientReason || null,
         type: appointment.type || "clinic",
         location:
           appointment.location ||
@@ -473,6 +529,40 @@ export function createPatientPortalService(deps: {
         });
       }
 
+      const scheduledDate = new Date(scheduledAt);
+      if (Number.isNaN(scheduledDate.getTime())) {
+        throw new AppError({
+          code: "validation_error",
+          message: "تاريخ أو وقت الموعد غير صالح",
+          statusCode: 400,
+        });
+      }
+
+      if (scheduledDate.getTime() < Date.now() - 60_000) {
+        throw new AppError({
+          code: "validation_error",
+          message: "لا يمكن حجز موعد في وقت سابق",
+          statusCode: 400,
+        });
+      }
+
+      const settings = await settingsRepo.readSettings().catch(() => null);
+      const intervalMinutes = Number(settings?.appointmentInterval);
+      if (
+        Number.isFinite(intervalMinutes) &&
+        intervalMinutes > 1 &&
+        [15, 30, 45, 60].includes(intervalMinutes)
+      ) {
+        const mins = scheduledDate.getUTCMinutes();
+        if (mins % intervalMinutes !== 0) {
+          throw new AppError({
+            code: "validation_error",
+            message: `يجب أن يكون وقت الموعد بمضاعفات ${intervalMinutes} دقيقة`,
+            statusCode: 400,
+          });
+        }
+      }
+
       const patient = await deps.patientPortalRepository.findPatientByUserId(input.userId);
       if (!patient) {
         throw new AppError({
@@ -482,9 +572,36 @@ export function createPatientPortalService(deps: {
         });
       }
 
-      const scheduledDate = new Date(scheduledAt);
       const doctor = await deps.patientPortalRepository.findDoctorByUserId(doctorId);
+      if (!doctor) {
+        throw new AppError({
+          code: "not_found",
+          message: "الطبيب المحدد غير موجود",
+          statusCode: 404,
+        });
+      }
+      const doctorStatus = (doctor as { status?: string }).status;
+      if (doctorStatus && doctorStatus !== "active") {
+        throw new AppError({
+          code: "validation_error",
+          message: "الطبيب المحدد غير متاح لاستقبال المواعيد حالياً",
+          statusCode: 400,
+        });
+      }
       const doctorName = doctor?.user?.fullName || null;
+      const doctorClinic = (doctor as { clinic?: string | null })?.clinic || null;
+
+      if (typeof input.phone === "string" && input.phone.trim() && input.phone.trim() !== patient.phone) {
+        await deps.patientPortalRepository
+          .updatePatientProfile(patient.id, { phone: input.phone.trim() })
+          .catch(() => undefined);
+      }
+
+      const normalizedType = input.type === "online" ? "online" : "clinic";
+      const locationValue =
+        (typeof input.location === "string" && input.location.trim()) ||
+        (normalizedType === "online" ? "عن بعد" : doctorClinic) ||
+        null;
 
       let created: Record<string, unknown>;
       try {
@@ -492,9 +609,9 @@ export function createPatientPortalService(deps: {
           doctorId,
           patientId: patient.id,
           scheduledAt: scheduledDate,
+          type: normalizedType,
           reason: input.reason || null,
-          location: input.location || null,
-          phone: input.phone || null,
+          location: locationValue,
         });
       } catch (error) {
         const appError = error as AppError & {

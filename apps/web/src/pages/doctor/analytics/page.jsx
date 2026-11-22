@@ -16,6 +16,7 @@ import {
   FaEye,
 } from "react-icons/fa";
 import { useLocale, useTranslations } from "@/lib/compat/intl";
+import { apiRequest } from "@/lib/apiClient";
 import { Card, GlideSelect } from "@/components/ui";
 
 export default function Page() {
@@ -34,20 +35,25 @@ export default function Page() {
     let mounted = true;
     (async () => {
       try {
-        const [pRes, rRes, aRes] = await Promise.all([
-          fetch("/api/doctor/patients", { credentials: "include" }),
-          fetch("/api/doctor/results", { credentials: "include" }),
-          fetch("/api/doctor/appointments", { credentials: "include" }),
-        ]);
         const [pJson, rJson, aJson] = await Promise.all([
-          pRes.ok ? pRes.json().catch(() => ({})) : {},
-          rRes.ok ? rRes.json().catch(() => ({})) : {},
-          aRes.ok ? aRes.json().catch(() => ({})) : {},
+          apiRequest("/api/doctor/patients").catch(() => ({})),
+          apiRequest("/api/doctor/results").catch(() => ({})),
+          apiRequest("/api/doctor/appointments").catch(() => ({})),
         ]);
         if (!mounted) return;
         setPatientsData(Array.isArray(pJson?.patients) ? pJson.patients : []);
-        setResultsData(Array.isArray(rJson?.results) ? rJson.results : Array.isArray(rJson?.data) ? rJson.data : []);
-        setAppointmentsData(Array.isArray(aJson?.appointments) ? aJson.appointments : []);
+        setResultsData(
+          Array.isArray(rJson?.records)
+            ? rJson.records
+            : Array.isArray(rJson?.results)
+              ? rJson.results
+              : Array.isArray(rJson?.data)
+                ? rJson.data
+                : [],
+        );
+        setAppointmentsData(
+          Array.isArray(aJson?.appointments) ? aJson.appointments : [],
+        );
       } catch {
         // Keep empty arrays on error
       }

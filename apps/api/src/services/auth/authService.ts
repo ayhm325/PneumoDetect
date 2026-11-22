@@ -16,6 +16,7 @@ import type { AuthActivityRepository } from "../../repositories/auth/activityRep
 import type { AuthNotificationRepository } from "../../repositories/auth/notificationRepository";
 import type { LoginAttemptStore } from "./loginAttemptStore";
 import type { AuthDoctorRepository } from "../../repositories/auth/doctorRepository";
+import { createAdminSettingsRepository } from "../../repositories/admin/adminSettingsRepository";
 
 export interface AuthService {
   login(command: LoginCommand): Promise<LoginResult>;
@@ -31,9 +32,11 @@ type AuthServiceDeps = {
   loginAttemptStore: LoginAttemptStore;
   maxAttempts: number;
   windowMinutes: number;
+  adminSettingsRepository?: ReturnType<typeof createAdminSettingsRepository>;
 };
 
 export function createAuthService(deps: AuthServiceDeps): AuthService {
+  const settingsRepo = deps.adminSettingsRepository ?? createAdminSettingsRepository();
   return {
     async login(command) {
       const email = String(command.email || "").trim();
@@ -153,6 +156,17 @@ export function createAuthService(deps: AuthServiceDeps): AuthService {
         }
       }
 
+      let sessionMinutes = 120;
+      try {
+        const settings = await settingsRepo.readSettings();
+        const rawDuration = Number(settings?.sessionDuration);
+        if (Number.isFinite(rawDuration) && rawDuration >= 5 && rawDuration <= 1440) {
+          sessionMinutes = Math.round(rawDuration);
+        }
+      } catch {
+        // Default to 120m if settings read fails
+      }
+
       const token = jwt.sign(
         {
           id: user.id,
@@ -162,13 +176,14 @@ export function createAuthService(deps: AuthServiceDeps): AuthService {
           isActive: Boolean(user.isActive),
         },
         getJwtSecret(),
-        applyJwtClaimsToSignOptions({ expiresIn: "2h" }),
+        applyJwtClaimsToSignOptions({ expiresIn: `${sessionMinutes}m` }),
       );
 
       const { password: _password, ...safeUser } = user;
       const result: LoginResult = {
         user: safeUser,
         token,
+        sessionMaxAgeMs: sessionMinutes * 60 * 1000,
       };
 
       if (process.env.NODE_ENV !== "production") {
@@ -179,6 +194,15 @@ export function createAuthService(deps: AuthServiceDeps): AuthService {
     },
 
     async registerPatient(command) {
+      const settings = await settingsRepo.readSettings().catch(() => null);
+      if (settings && settings.registrationEnabled === false) {
+        throw new AppError({
+          code: "forbidden",
+          message: "التسجيل مغلق حالياً من قبل الإدارة",
+          statusCode: 403,
+        });
+      }
+
       if (!command.email || !command.password || !command.fullName || !command.doctorId) {
         throw new AppError({
           code: "validation_error",
@@ -216,6 +240,15 @@ export function createAuthService(deps: AuthServiceDeps): AuthService {
     },
 
     async registerDoctor(command) {
+      const settings = await settingsRepo.readSettings().catch(() => null);
+      if (settings && settings.registrationEnabled === false) {
+        throw new AppError({
+          code: "forbidden",
+          message: "التسجيل مغلق حالياً من قبل الإدارة",
+          statusCode: 403,
+        });
+      }
+
       const { email, password, fullName, licenseNumber, phone } = command;
       if (!email || !password || !fullName || !licenseNumber || !phone) {
         throw new AppError({

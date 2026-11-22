@@ -3,6 +3,7 @@ import { clearNotificationCache, getNotificationCache, setNotificationCache } fr
 import { prisma } from "../../db/prisma";
 import { AppError } from "../../lib/errors/appError";
 import type { DoctorPortalRepository } from "../../repositories/doctor/doctorPortalRepository";
+import { createAdminSettingsRepository, type AdminSettingsRepository } from "../../repositories/admin/adminSettingsRepository";
 import {
   computeCanonicalReviewStatus,
   normalizeUploadStorageReference,
@@ -21,7 +22,8 @@ export interface DoctorPortalService {
   }): Promise<{ appointment: Record<string, unknown> }>;
   patchAppointment(input: {
     userId: string;
-    id: string;
+    id?: string;
+    appointmentId?: string;
     action?: string;
     scheduledAt?: string;
     newScheduledAt?: string;
@@ -43,12 +45,23 @@ export interface DoctorPortalService {
   updateNotifications(input: { userId: string; id?: string | null; isRead?: boolean }): Promise<{ success: true; updated?: Record<string, unknown>; updatedCount?: number }>;
   deleteNotifications(input: { userId: string; id?: string | null }): Promise<{ success: true; deletedCount?: number }>;
   getMyProfile(userId: string): Promise<{ profile: Record<string, unknown> }>;
+  updateMyProfile?(input: {
+    userId: string;
+    name?: string;
+    fullName?: string;
+    email?: string;
+    phone?: string;
+    licenseNumber?: string;
+    clinic?: string | null;
+  }): Promise<{ profile: Record<string, unknown> }>;
   listDoctors(input: { includePending: boolean }): Promise<{ doctors: Array<Record<string, unknown>> }>;
 }
 
 export function createDoctorPortalService(deps: {
   doctorPortalRepository: DoctorPortalRepository;
+  adminSettingsRepository?: AdminSettingsRepository;
 }): DoctorPortalService {
+  const settingsRepo = deps.adminSettingsRepository ?? createAdminSettingsRepository();
   return {
     async listAppointments(userId) {
       const appointments = await deps.doctorPortalRepository.listAppointments(userId);
@@ -95,9 +108,41 @@ export function createDoctorPortalService(deps: {
         throw new AppError({ code: "validation_error", message: "Invalid date", statusCode: 400 });
       }
 
+      if (scheduled.getTime() < Date.now() - 60_000) {
+        throw new AppError({
+          code: "validation_error",
+          message: "لا يمكن تحديد موعد في وقت سابق",
+          statusCode: 400,
+        });
+      }
+
+      const settings = await settingsRepo.readSettings().catch(() => null);
+      const intervalMinutes = Number(settings?.appointmentInterval);
+      if (
+        Number.isFinite(intervalMinutes) &&
+        intervalMinutes > 1 &&
+        [15, 30, 45, 60].includes(intervalMinutes)
+      ) {
+        const mins = scheduled.getUTCMinutes();
+        if (mins % intervalMinutes !== 0) {
+          throw new AppError({
+            code: "validation_error",
+            message: `يجب أن يكون وقت الموعد بمضاعفات ${intervalMinutes} دقيقة`,
+            statusCode: 400,
+          });
+        }
+      }
+
       const patient = await deps.doctorPortalRepository.findPatientById(patientId);
       if (!patient) {
         throw new AppError({ code: "not_found", message: "Patient not found", statusCode: 404 });
+      }
+      if ("doctorId" in patient && patient.doctorId && patient.doctorId !== input.userId) {
+        throw new AppError({
+          code: "forbidden",
+          message: "لا يمكن إنشاء موعد لمريض غير تابع لك",
+          statusCode: 403,
+        });
       }
 
       let locationValue: string | null = null;
@@ -138,7 +183,7 @@ export function createDoctorPortalService(deps: {
     },
 
     async patchAppointment(input) {
-      const id = String(input.id || "").trim();
+      const id = String(input.id || input.appointmentId || "").trim();
       const action = String(input.action || "").trim();
       if (!id) throw new AppError({ code: "validation_error", message: "Missing id", statusCode: 400 });
       if (!action) throw new AppError({ code: "validation_error", message: "Missing action", statusCode: 400 });
@@ -528,6 +573,7 @@ export function createDoctorPortalService(deps: {
           name: result.user?.fullName || "",
           email: result.user?.email || "",
           phone: doctor.phone || "",
+          clinic: doctor.clinic || "",
           specialty: doctor.specialty || "",
           bio: doctor.bio || "",
           licenseNumber: doctor.licenseNumber || "",
@@ -535,6 +581,40 @@ export function createDoctorPortalService(deps: {
           createdAt: doctor.createdAt,
         },
       };
+    },
+
+    async updateMyProfile(input) {
+      const fullName =
+        typeof input.fullName === "string"
+          ? input.fullName.trim()
+          : typeof input.name === "string"
+            ? input.name.trim()
+            : undefined;
+      if (typeof fullName === "string" && !fullName) {
+        throw new AppError({
+          code: "validation_error",
+          message: "الاسم الكامل مطلوب",
+          statusCode: 400,
+        });
+      }
+      if (typeof input.email === "string" && (!input.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.email.trim()))) {
+        throw new AppError({
+          code: "validation_error",
+          message: "البريد الإلكتروني غير صالح",
+          statusCode: 400,
+        });
+      }
+      if (typeof deps.doctorPortalRepository.updateDoctorOwnProfile === "function") {
+        await deps.doctorPortalRepository.updateDoctorOwnProfile({
+          userId: input.userId,
+          fullName,
+          email: input.email,
+          phone: input.phone,
+          licenseNumber: input.licenseNumber,
+          clinic: input.clinic,
+        });
+      }
+      return this.getMyProfile(input.userId);
     },
 
     async listDoctors(input) {

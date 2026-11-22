@@ -107,40 +107,34 @@ export default function DoctorsTable({
                           {isAr ? "رفض" : "Reject"}
                         </Button>
                       </>
-                    ) : typeof onToggle === "function" ? (
-                      // Show a single toggle button for enable/disable
-                      <Button
-                        variant="ghost"
-                        className="px-3 py-2"
-                        title={
-                          doctor.status === "active"
-                            ? t("disable")
-                            : t("enable")
-                        }
-                        onClick={() => onToggle(doctor)}
-                      >
-                        {doctor.status === "active"
-                          ? t("disable")
-                          : t("enable")}
-                      </Button>
                     ) : (
                       <>
-                        <Button
-                          variant="ghost"
-                          className="px-3 py-2"
-                          title={t("edit")}
-                          onClick={() => onEdit && onEdit(doctor)}
-                        >
-                          {t("edit")}
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          className="px-3 py-2 text-(--ui-danger)"
-                          title={t("delete")}
-                          onClick={() => onDelete && onDelete(doctor)}
-                        >
-                          {t("delete")}
-                        </Button>
+                        {typeof onEdit === "function" && (
+                          <Button
+                            variant="ghost"
+                            className="px-3 py-2"
+                            title={t("edit")}
+                            onClick={() => onEdit(doctor)}
+                          >
+                            {t("edit")}
+                          </Button>
+                        )}
+                        {typeof onToggle === "function" && (
+                          <Button
+                            variant="ghost"
+                            className="px-3 py-2"
+                            title={
+                              doctor.status === "active"
+                                ? t("disable")
+                                : t("enable")
+                            }
+                            onClick={() => onToggle(doctor)}
+                          >
+                            {doctor.status === "active"
+                              ? t("disable")
+                              : t("enable")}
+                          </Button>
+                        )}
                       </>
                     )}
                     <Button

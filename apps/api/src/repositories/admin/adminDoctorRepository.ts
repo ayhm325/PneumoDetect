@@ -25,6 +25,7 @@ export interface AdminDoctorRepository {
     phone: string;
     licenseNumber: string;
     hashedPassword: string;
+    status?: DoctorStatus;
   }): Promise<DoctorWithUser>;
   updateDoctorStatus(input: { userId: string; status: DoctorStatus }): Promise<void>;
   findDoctorByUserId(userId: string): Promise<{ userId: string } | null>;
@@ -76,6 +77,10 @@ export function createAdminDoctorRepository(
     },
 
     async createDoctorWithUser(input) {
+      const targetStatus: DoctorStatus =
+        input.status && ["active", "pending", "banned"].includes(input.status)
+          ? input.status
+          : "active";
       try {
         return await db.$transaction(async (transaction: Prisma.TransactionClient) => {
           const createdUser = await transaction.user.create({
@@ -84,7 +89,7 @@ export function createAdminDoctorRepository(
               email: input.email,
               role: "doctor",
               password: input.hashedPassword,
-              isActive: true,
+              isActive: targetStatus === "active",
             },
           });
 
@@ -93,7 +98,7 @@ export function createAdminDoctorRepository(
               userId: createdUser.id,
               phone: input.phone,
               licenseNumber: input.licenseNumber,
-              status: "active",
+              status: targetStatus,
             },
             include: {
               user: {

@@ -83,7 +83,7 @@ export function buttonClasses({
 } = {}): string {
   if (variant === "link") {
     return clsx(
-      "inline-flex items-center justify-center gap-2 font-semibold border border-transparent bg-transparent px-0 text-[var(--color-primary)] underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ui-ring)]",
+      "inline-flex items-center justify-center gap-2 font-semibold border border-transparent bg-transparent px-0 text-[var(--color-primary)] underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ui-ring)] disabled:opacity-50 disabled:cursor-not-allowed",
       fullWidth ? "w-full" : "w-auto",
       className,
     );
@@ -103,6 +103,7 @@ export type ButtonProps = Omit<SpecularButtonProps, "size"> & {
   fullWidth?: boolean;
   isLoading?: boolean;
   loadingText?: string;
+  specular?: boolean;
 };
 
 export function Button({
@@ -129,8 +130,11 @@ export function Button({
   glow,
   followMouse = true,
   proximity = 250,
+  specular,
+  enableWebGL,
   ...props
 }: ButtonProps) {
+  const isDisabled = Boolean(disabled || isLoading);
   const content = isLoading ? (
     <span className="inline-flex items-center gap-2" aria-live="polite">
       <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
@@ -144,8 +148,9 @@ export function Button({
     return (
       <button
         type={type}
+        aria-busy={isLoading || undefined}
         className={buttonClasses({ variant, size, fullWidth, className })}
-        disabled={disabled || isLoading}
+        disabled={isDisabled}
         {...props}
       >
         {content}
@@ -154,6 +159,12 @@ export function Button({
   }
 
   const preset = SPECULAR_PRESETS[variant] || SPECULAR_PRESETS.primary;
+  const shouldEnableWebGL =
+    enableWebGL !== undefined
+      ? enableWebGL
+      : specular !== undefined
+        ? specular
+        : variant === "primary" && size !== "sm";
 
   return (
     <SpecularButton
@@ -173,7 +184,9 @@ export function Button({
       glow={glow ?? preset.glow}
       followMouse={followMouse}
       proximity={proximity}
-      disabled={disabled || isLoading}
+      enableWebGL={shouldEnableWebGL}
+      disabled={isDisabled}
+      aria-busy={isLoading || undefined}
       className={clsx(
         `specular-button--variant-${variant}`,
         fullWidth ? "w-full" : "w-auto",
@@ -193,6 +206,7 @@ export type IconButtonProps = Omit<
   "aria-label": string;
   variant?: Exclude<ButtonVariant, "link">;
   size?: ButtonSize;
+  specular?: boolean;
 };
 
 export function IconButton({
@@ -202,6 +216,8 @@ export function IconButton({
   size = "md",
   type = "button",
   radius = 14,
+  specular = false,
+  enableWebGL,
   ...props
 }: IconButtonProps) {
   const preset = SPECULAR_PRESETS[variant] || SPECULAR_PRESETS.ghost;
@@ -219,6 +235,7 @@ export function IconButton({
       baseColor={preset.baseColor}
       idleIntensity={preset.idleIntensity}
       glow={preset.glow}
+      enableWebGL={enableWebGL ?? specular}
       className={clsx(
         "shrink-0",
         `specular-button--variant-${variant}`,

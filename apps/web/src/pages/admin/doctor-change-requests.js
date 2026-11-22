@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
+import { apiRequest } from "@/lib/apiClient";
 
 // جلب جميع الطلبات (ليست فقط المعلقة) من API
 export function useDoctorChangeRequests(refreshKey = 0) {
   const [requests, setRequests] = useState([]);
   useEffect(() => {
-    fetch("/api/admin/doctor-change-requests?all=1")
-      .then((res) => res.json())
+    apiRequest("/api/admin/doctor-change-requests?all=true")
       .then((data) => {
-        if (data.success && Array.isArray(data.requests)) {
+        if (data?.success && Array.isArray(data.requests)) {
           setRequests(
             data.requests.map((r) => ({
               id: r.id,
@@ -35,26 +35,20 @@ export function useDoctorChangeRequests(refreshKey = 0) {
 
 // الموافقة على الطلب
 export async function approveDoctorChangeRequest(id) {
-  const res = await fetch("/api/admin/doctor-change-requests", {
+  const data = await apiRequest("/api/admin/doctor-change-requests", {
     method: "PATCH",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ id, action: "approve" }),
   });
-  const data = await res.json();
-  if (!data.success) throw new Error(data.error || "UNKNOWN_ERROR");
+  if (!data?.success) throw new Error(data?.error || "UNKNOWN_ERROR");
   return true;
 }
 
 // رفض الطلب
 export async function rejectDoctorChangeRequest(id) {
-  const res = await fetch("/api/admin/doctor-change-requests", {
+  const data = await apiRequest("/api/admin/doctor-change-requests", {
     method: "PATCH",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ id, action: "reject" }),
   });
-  const data = await res.json();
-  if (!data.success) throw new Error(data.error || "UNKNOWN_ERROR");
+  if (!data?.success) throw new Error(data?.error || "UNKNOWN_ERROR");
   return true;
 }

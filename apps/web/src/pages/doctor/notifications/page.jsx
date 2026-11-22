@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { FaBell, FaTrash, FaCheck, FaCheckDouble } from "react-icons/fa";
 import { useLocale, useTranslations } from "@/lib/compat/intl";
 import { useToast } from "@/components/ui/ToastProvider";
+import { apiRequest } from "@/lib/apiClient";
 import DoctorLayout from "../DoctorLayout";
 
 export default function NotificationsPage() {
@@ -80,11 +81,7 @@ export default function NotificationsPage() {
     let mounted = true;
     (async () => {
       try {
-        const res = await fetch("/api/doctor/notifications", {
-          cache: "no-store",
-        });
-        if (!res.ok) return;
-        const data = await res.json().catch(() => ({}));
+        const data = await apiRequest("/api/doctor/notifications");
         if (!mounted) return;
         setNowMs(Date.now());
         setNotifications(
@@ -108,92 +105,89 @@ export default function NotificationsPage() {
   const readCount = totalCount - unreadCount;
 
   const handleDelete = async (id) => {
-    const res = await fetch(`/api/doctor/notifications?id=${id}`, {
-      method: "DELETE",
-    });
-    if (!res.ok) {
-      showInfo(t("errorUpdate"));
-      return;
-    }
-    const data = await res.json();
-    if (data.success) {
-      setNotifications(notifications.filter((n) => n.id !== id));
-      showInfo(t("notificationDeleted"));
-    } else {
+    try {
+      const data = await apiRequest(`/api/doctor/notifications?id=${id}`, {
+        method: "DELETE",
+      });
+      if (data?.success) {
+        setNotifications((prev) => prev.filter((n) => n.id !== id));
+        showInfo(t("notificationDeleted"));
+      } else {
+        showInfo(t("errorUpdate"));
+      }
+    } catch {
       showInfo(t("errorUpdate"));
     }
   };
 
   const handleDeleteAll = async () => {
     if (!window.confirm(t("confirmDeleteAll"))) return;
-    const res = await fetch("/api/doctor/notifications", { method: "DELETE" });
-    if (!res.ok) {
-      showInfo(t("errorUpdate"));
-      return;
-    }
-    const data = await res.json();
-    if (data.success) {
-      setNotifications([]);
-      showInfo(t("notificationDeleted"));
-      showSuccess(t("allDeleted"));
-    } else {
+    try {
+      const data = await apiRequest("/api/doctor/notifications", {
+        method: "DELETE",
+      });
+      if (data?.success) {
+        setNotifications([]);
+        showInfo(t("notificationDeleted"));
+        showSuccess(t("allDeleted"));
+      } else {
+        showInfo(t("errorUpdate"));
+      }
+    } catch {
       showInfo(t("errorUpdate"));
     }
   };
 
   const handleMarkAsRead = async (id) => {
-    const res = await fetch(`/api/doctor/notifications?id=${id}`, {
-      method: "PATCH",
-      body: JSON.stringify({ isRead: true }),
-      headers: { "Content-Type": "application/json" },
-    });
-    if (!res.ok) {
-      showInfo(t("errorUpdate"));
-      return;
-    }
-    const data = await res.json();
-    if (data.success) {
-      setNotifications(
-        notifications.map((n) => (n.id === id ? { ...n, isRead: true } : n)),
-      );
-      showInfo(t("markedRead"));
-    } else {
+    try {
+      const data = await apiRequest("/api/doctor/notifications", {
+        method: "PATCH",
+        body: JSON.stringify({ id, isRead: true }),
+      });
+      if (data?.success) {
+        setNotifications((prev) =>
+          prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)),
+        );
+        showInfo(t("markedRead"));
+      } else {
+        showInfo(t("errorUpdate"));
+      }
+    } catch {
       showInfo(t("errorUpdate"));
     }
   };
 
   const handleMarkAsUnread = async (id) => {
-    const res = await fetch(`/api/doctor/notifications?id=${id}`, {
-      method: "PATCH",
-      body: JSON.stringify({ isRead: false }),
-      headers: { "Content-Type": "application/json" },
-    });
-    if (!res.ok) {
-      showInfo(t("errorUpdate"));
-      return;
-    }
-    const data = await res.json();
-    if (data.success) {
-      setNotifications(
-        notifications.map((n) => (n.id === id ? { ...n, isRead: false } : n)),
-      );
-      showInfo(t("markedUnread"));
-    } else {
+    try {
+      const data = await apiRequest("/api/doctor/notifications", {
+        method: "PATCH",
+        body: JSON.stringify({ id, isRead: false }),
+      });
+      if (data?.success) {
+        setNotifications((prev) =>
+          prev.map((n) => (n.id === id ? { ...n, isRead: false } : n)),
+        );
+        showInfo(t("markedUnread"));
+      } else {
+        showInfo(t("errorUpdate"));
+      }
+    } catch {
       showInfo(t("errorUpdate"));
     }
   };
 
   const handleMarkAllAsRead = async () => {
-    const res = await fetch("/api/doctor/notifications", { method: "PATCH" });
-    if (!res.ok) {
-      showInfo(t("errorUpdate"));
-      return;
-    }
-    const data = await res.json();
-    if (data.success) {
-      setNotifications(notifications.map((n) => ({ ...n, isRead: true })));
-      showSuccess(t("allMarkedRead"));
-    } else {
+    try {
+      const data = await apiRequest("/api/doctor/notifications", {
+        method: "PATCH",
+      });
+      if (data?.success) {
+        setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+        showSuccess(t("allMarkedRead"));
+      } else {
+        showInfo(t("errorUpdate"));
+      }
+    } catch {
       showInfo(t("errorUpdate"));
     }
   };

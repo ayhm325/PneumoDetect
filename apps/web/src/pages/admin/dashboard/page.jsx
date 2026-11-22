@@ -22,6 +22,7 @@ import { Button } from "@/components/ui";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { useLocale, useTranslations } from "@/lib/compat/intl";
 import { formatActivityDescription } from "@/lib/activityFormat";
+import { apiRequest } from "@/lib/apiClient";
 
 export default function AdminDashboardPage() {
   const router = useRouter();
@@ -57,10 +58,9 @@ export default function AdminDashboardPage() {
   }
 
   useEffect(() => {
-    fetch("/api/admin/dashboard-stats")
-      .then((res) => res.json())
+    apiRequest("/api/admin/dashboard-stats")
       .then((data) => {
-        setStatsData(data);
+        if (data) setStatsData(data);
       })
       .catch(() => {});
   }, []);
@@ -137,9 +137,10 @@ export default function AdminDashboardPage() {
     dbSize: placeholder,
   });
   useEffect(() => {
-    fetch("/api/admin/system-status")
-      .then((res) => res.json())
-      .then((data) => setSystemStatusData(data))
+    apiRequest("/api/admin/system-status")
+      .then((data) => {
+        if (data) setSystemStatusData(data);
+      })
       .catch(() => {});
   }, []);
   const systemStatus = [
@@ -176,10 +177,9 @@ export default function AdminDashboardPage() {
 
   useEffect(() => {
     setActivitiesLoading(true);
-    fetch("/api/admin/recent-activities")
-      .then((res) => res.json())
+    apiRequest("/api/admin/recent-activities")
       .then((data) => {
-        setRecentActivities(data.activities || []);
+        setRecentActivities(data?.activities || []);
         setActivitiesLoading(false);
       })
       .catch(() => {
@@ -197,9 +197,8 @@ export default function AdminDashboardPage() {
     const fetchPendingApprovals = async () => {
       setPendingLoading(true);
       try {
-        const res = await fetch("/api/admin/doctors");
-        const data = await res.json();
-        if (data.doctors) {
+        const data = await apiRequest("/api/admin/doctors");
+        if (data?.doctors) {
           // ØªØµÙÙŠØ© Ø§Ù„Ø£Ø·Ø¨Ø§Ø¡ Ø§Ù„Ù…Ø¹Ù„Ù‚ÙŠÙ† ÙÙ‚Ø·
           const pending = data.doctors
             .filter((doc) => doc.status === "pending")
@@ -240,8 +239,7 @@ export default function AdminDashboardPage() {
   // Ø¥Ø´Ø¹Ø§Ø±Ø§Øª Ø§Ù„Ø£Ø¯Ù…Ù†
   const [unreadCount, setUnreadCount] = useState(0);
   useEffect(() => {
-    fetch("/api/admin/notifications-unread")
-      .then((res) => res.json())
+    apiRequest("/api/admin/notifications-unread")
       .then((data) =>
         setUnreadCount((data && (data.badge ?? data.unread)) || 0),
       )
@@ -412,36 +410,42 @@ export default function AdminDashboardPage() {
                           size="sm"
                           fullWidth
                           onClick={async () => {
-                            await fetch("/api/admin/doctors", {
-                              method: "PATCH",
-                              headers: { "Content-Type": "application/json" },
-                              body: JSON.stringify({
-                                id: approval.id,
-                                status: "active",
-                              }),
-                            });
-                            setPendingApprovals((prev) =>
-                              prev.filter((d) => d.id !== approval.id),
-                            );
-                            showSuccess(t("toast.approved"));
+                            try {
+                              await apiRequest("/api/admin/doctors", {
+                                method: "PATCH",
+                                body: JSON.stringify({
+                                  id: approval.id,
+                                  status: "active",
+                                }),
+                              });
+                              setPendingApprovals((prev) =>
+                                prev.filter((d) => d.id !== approval.id),
+                              );
+                              showSuccess(t("toast.approved"));
+                            } catch (err) {
+                              showError(err?.message || "Failed to approve");
+                            }
                           }}
                         >
                           {t("pendingApprovals.approve")}
                         </Button>
                         <button
                           onClick={async () => {
-                            await fetch("/api/admin/doctors", {
-                              method: "PATCH",
-                              headers: { "Content-Type": "application/json" },
-                              body: JSON.stringify({
-                                id: approval.id,
-                                status: "banned",
-                              }),
-                            });
-                            setPendingApprovals((prev) =>
-                              prev.filter((d) => d.id !== approval.id),
-                            );
-                            showError(t("toast.rejected"));
+                            try {
+                              await apiRequest("/api/admin/doctors", {
+                                method: "PATCH",
+                                body: JSON.stringify({
+                                  id: approval.id,
+                                  status: "banned",
+                                }),
+                              });
+                              setPendingApprovals((prev) =>
+                                prev.filter((d) => d.id !== approval.id),
+                              );
+                              showError(t("toast.rejected"));
+                            } catch (err) {
+                              showError(err?.message || "Failed to reject");
+                            }
                           }}
                           className="flex-1 bg-(--ui-danger) hover:opacity-90 text-white px-3 py-2 rounded-lg text-sm transition-colors"
                         >

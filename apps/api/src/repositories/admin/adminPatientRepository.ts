@@ -48,6 +48,7 @@ export interface AdminPatientRepository {
     gender?: Gender | null;
     bloodType?: string | null;
     birthDate?: Date | null;
+    notes?: string | null;
     status?: string;
     doctorId?: string;
     hashedPassword: string;
@@ -141,6 +142,7 @@ export function createAdminPatientRepository(
               gender: input.gender ?? null,
               bloodType: input.bloodType ?? null,
               birthDate: input.birthDate ?? null,
+              notes: input.notes ?? null,
               status: (input.status as "active" | "suspended") || "active",
               ...(input.doctorId ? { doctorId: input.doctorId } : {}),
             },
@@ -212,6 +214,27 @@ export function createAdminPatientRepository(
                 updatedAt: true,
               },
             },
+            doctor: {
+              select: {
+                userId: true,
+                status: true,
+                phone: true,
+                clinic: true,
+                createdAt: true,
+                user: {
+                  select: {
+                    id: true,
+                    fullName: true,
+                    email: true,
+                    role: true,
+                    isActive: true,
+                    createdAt: true,
+                    updatedAt: true,
+                  },
+                },
+              },
+            },
+            _count: { select: { appointments: true, medicalRecords: true } },
           },
         });
       } catch (error) {

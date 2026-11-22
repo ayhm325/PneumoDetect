@@ -13,7 +13,7 @@ export interface DoctorPortalRepository {
     location?: string | null;
     type?: string | null;
   }): Promise<Record<string, unknown>>;
-  findPatientById(patientId: string): Promise<{ userId: string | null; fullName: string } | null>;
+  findPatientById(patientId: string): Promise<{ userId: string | null; fullName: string; doctorId?: string | null } | null>;
   findDoctorUserName(doctorId: string): Promise<string | null>;
   findAppointmentWithPatient(id: string): Promise<Prisma.AppointmentGetPayload<{ include: { patient: { select: { userId: true; fullName: true } } } }> | null>;
   updateAppointment(id: string, data: Prisma.AppointmentUpdateInput): Promise<Record<string, unknown>>;
@@ -43,6 +43,7 @@ export interface DoctorPortalRepository {
     doctor: {
       userId: string;
       phone: string | null;
+      clinic?: string | null;
       specialty: string | null;
       bio: string | null;
       licenseNumber: string;
@@ -50,6 +51,14 @@ export interface DoctorPortalRepository {
       createdAt: Date;
     } | null;
   }>;
+  updateDoctorOwnProfile?(input: {
+    userId: string;
+    fullName?: string;
+    email?: string;
+    phone?: string;
+    licenseNumber?: string;
+    clinic?: string | null;
+  }): Promise<void>;
   listDoctorsPublic(includePending: boolean): Promise<Array<Record<string, unknown>>>;
 }
 
@@ -110,7 +119,7 @@ export function createDoctorPortalRepository(
 
     async findPatientById(patientId) {
       try {
-        return await db.patient.findUnique({ where: { id: patientId }, select: { userId: true, fullName: true } });
+        return await db.patient.findUnique({ where: { id: patientId }, select: { userId: true, fullName: true, doctorId: true } });
       } catch (error) {
         throw new AppError({ code: "repository_error", message: "Failed to find patient", statusCode: 500, cause: error });
       }
@@ -451,6 +460,59 @@ export function createDoctorPortalRepository(
         };
       } catch (error) {
         throw new AppError({ code: "repository_error", message: "Failed to load doctor profile", statusCode: 500, cause: error });
+      }
+    },
+
+    async updateDoctorOwnProfile(input) {
+      try {
+        await db.$transaction(async (tx: Prisma.TransactionClient) => {
+          const userData: Record<string, unknown> = {};
+          if (typeof input.fullName === "string" && input.fullName.trim()) {
+            userData.fullName = input.fullName.trim();
+          }
+          if (typeof input.email === "string" && input.email.trim()) {
+            userData.email = input.email.trim();
+          }
+          if (Object.keys(userData).length > 0) {
+            await tx.user.update({
+              where: { id: input.userId },
+              data: userData,
+            });
+          }
+
+          const doctorData: Record<string, unknown> = {};
+          if (typeof input.phone === "string" && input.phone.trim()) {
+            doctorData.phone = input.phone.trim();
+          }
+          if (typeof input.licenseNumber === "string" && input.licenseNumber.trim()) {
+            doctorData.licenseNumber = input.licenseNumber.trim();
+          }
+          if (typeof input.clinic === "string" || input.clinic === null) {
+            doctorData.clinic = input.clinic;
+          }
+          if (Object.keys(doctorData).length > 0) {
+            await tx.doctor.update({
+              where: { userId: input.userId },
+              data: doctorData,
+            });
+          }
+        });
+      } catch (error) {
+        const prismaCode = (error as { code?: string } | null)?.code;
+        if (prismaCode === "P2002") {
+          throw new AppError({
+            code: "conflict",
+            message: "البيانات المدخلة (البريد أو الهاتف أو رقم الترخيص) مستخدمة بالفعل",
+            statusCode: 409,
+            cause: error,
+          });
+        }
+        throw new AppError({
+          code: "repository_error",
+          message: "Failed to update doctor profile",
+          statusCode: 500,
+          cause: error,
+        });
       }
     },
 

@@ -49,6 +49,27 @@ doctorRouter.get(
   },
 );
 
+doctorRouter.put(
+  "/doctor/me",
+  requireAuth,
+  requireRole("doctor"),
+  withRateLimit("PUT /api/doctor/me"),
+  async (req: AuthenticatedRequest, res, next) => {
+    try {
+      const result =
+        typeof doctorPortalService.updateMyProfile === "function"
+          ? await doctorPortalService.updateMyProfile({
+              userId: req.auth!.user.id,
+              ...(req.body || {}),
+            })
+          : await doctorPortalService.getMyProfile(req.auth!.user.id);
+      return res.status(200).json(result);
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
 doctorRouter.get(
   "/doctor/list",
   withRateLimit("GET /api/doctor/list"),
@@ -160,6 +181,7 @@ doctorRouter.patch(
     try {
       const result = await doctorPortalService.patchAppointment({
         userId: req.auth!.user.id,
+        id: String(req.params.id),
         appointmentId: String(req.params.id),
         ...(req.body || {}),
       });

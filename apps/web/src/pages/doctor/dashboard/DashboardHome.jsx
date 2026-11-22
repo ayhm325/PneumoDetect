@@ -7,6 +7,7 @@ import Link from "@/lib/compat/Link";
 import { formatTime } from "@/lib/date";
 import { formatActivityDescription } from "@/lib/activityFormat";
 import useSocket from "@/components/chat/useSocket.client";
+import { apiFetch, apiRequest } from "@/lib/apiClient";
 import { Button, Card, StatCard } from "@/components/ui";
 import { PageHeader } from "@/components/ui/PageHeader";
 import {
@@ -41,12 +42,9 @@ export default function DashboardHome({ serverData = {} }) {
     let mounted = true;
     (async () => {
       try {
-        const res = await fetch("/api/auth/token", { credentials: "include" });
+        const data = await apiRequest("/api/auth/token");
         if (!mounted) return;
-        if (res.ok) {
-          const data = await res.json().catch(() => ({}));
-          if (data?.token) setJwtToken(data.token);
-        }
+        if (data?.token) setJwtToken(data.token);
       } catch (e) {}
     })();
     return () => {
@@ -109,7 +107,7 @@ export default function DashboardHome({ serverData = {} }) {
     let mounted = true;
     (async () => {
       try {
-        const res = await fetch("/api/doctor/notifications", {
+        const res = await apiFetch("/api/doctor/notifications", {
           method: "HEAD",
         });
         if (!mounted) return;
@@ -259,25 +257,18 @@ export default function DashboardHome({ serverData = {} }) {
     let mounted = true;
     (async () => {
       try {
-        const [meRes, pRes, aRes, rRes, cRes] = await Promise.all([
-          fetch("/api/doctor/me", { credentials: "include" }),
-          fetch("/api/doctor/patients", { credentials: "include" }),
-          fetch("/api/doctor/appointments", { credentials: "include" }),
-          fetch("/api/doctor/results", { credentials: "include" }),
-          fetch("/api/chat/doctor", { credentials: "include" }),
-        ]);
         const [meJson, pJson, aJson, rJson, cJson] = await Promise.all([
-          meRes.ok ? meRes.json().catch(() => ({})) : {},
-          pRes.ok ? pRes.json().catch(() => ({})) : {},
-          aRes.ok ? aRes.json().catch(() => ({})) : {},
-          rRes.ok ? rRes.json().catch(() => ({})) : {},
-          cRes.ok ? cRes.json().catch(() => ({})) : {},
+          apiRequest("/api/doctor/me").catch(() => ({})),
+          apiRequest("/api/doctor/patients").catch(() => ({})),
+          apiRequest("/api/doctor/appointments").catch(() => ({})),
+          apiRequest("/api/doctor/results").catch(() => ({})),
+          apiRequest("/api/chat/doctor").catch(() => ({})),
         ]);
         if (!mounted) return;
 
         const patients = Array.isArray(pJson) ? pJson : Array.isArray(pJson?.patients) ? pJson.patients : [];
         const appointments = Array.isArray(aJson?.appointments) ? aJson.appointments : Array.isArray(aJson) ? aJson : [];
-        const results = Array.isArray(rJson?.results) ? rJson.results : Array.isArray(rJson?.data) ? rJson.data : [];
+        const results = Array.isArray(rJson?.records) ? rJson.records : Array.isArray(rJson?.results) ? rJson.results : Array.isArray(rJson?.data) ? rJson.data : [];
         const chats = Array.isArray(cJson?.chats) ? cJson.chats : Array.isArray(cJson) ? cJson : [];
 
         const todayStr = new Date().toDateString();

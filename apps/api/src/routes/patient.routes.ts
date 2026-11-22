@@ -73,6 +73,7 @@ patientRouter.put(
     try {
       const result = await patientPortalService.updateProfile({
         userId: req.auth!.user.id,
+        body: req.body && typeof req.body === "object" ? req.body : {},
         ...(req.body || {}),
       });
       logAudit({

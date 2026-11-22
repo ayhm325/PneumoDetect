@@ -34,7 +34,7 @@ authRouter.post("/login", async (req, res, next) => {
       secure: env.isProd,
       sameSite: env.isProd ? "none" : "lax",
       path: "/",
-      maxAge: 1000 * 60 * 60 * 2,
+      maxAge: result.sessionMaxAgeMs || 1000 * 60 * 60 * 2,
     });
 
     return sendJsonNoStore(res, responseBody, 200);

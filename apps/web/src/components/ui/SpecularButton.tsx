@@ -5,8 +5,75 @@ import clsx from "clsx";
 
 const PAD = 24;
 const TAU = Math.PI * 2;
-const MAX_ACTIVE_WEBGL_CONTEXTS = 12;
+const MAX_ACTIVE_WEBGL_CONTEXTS = 8;
 const activeContextDestroyers = new Set<() => void>();
+
+type GlobalPointerSubscriber = (event: PointerEvent) => void;
+const pointerMoveSubscribers = new Set<GlobalPointerSubscriber>();
+const pointerEndSubscribers = new Set<GlobalPointerSubscriber>();
+const pointerLeaveSubscribers = new Set<() => void>();
+let globalListenersAttached = false;
+
+const onGlobalPointerMove = (e: PointerEvent) => {
+  pointerMoveSubscribers.forEach((cb) => cb(e));
+};
+const onGlobalPointerEnd = (e: PointerEvent) => {
+  pointerEndSubscribers.forEach((cb) => cb(e));
+};
+const onGlobalPointerLeave = () => {
+  pointerLeaveSubscribers.forEach((cb) => cb());
+};
+
+function subscribeGlobalPointer(
+  onMove: GlobalPointerSubscriber,
+  onEnd: GlobalPointerSubscriber,
+  onLeave: () => void,
+) {
+  if (typeof window === "undefined") return () => {};
+  pointerMoveSubscribers.add(onMove);
+  pointerEndSubscribers.add(onEnd);
+  pointerLeaveSubscribers.add(onLeave);
+
+  if (!globalListenersAttached) {
+    globalListenersAttached = true;
+    window.addEventListener("pointermove", onGlobalPointerMove, { passive: true });
+    window.addEventListener("pointerup", onGlobalPointerEnd, { passive: true });
+    window.addEventListener("pointercancel", onGlobalPointerEnd, { passive: true });
+    document.documentElement.addEventListener("pointerleave", onGlobalPointerLeave);
+  }
+
+  return () => {
+    pointerMoveSubscribers.delete(onMove);
+    pointerEndSubscribers.delete(onEnd);
+    pointerLeaveSubscribers.delete(onLeave);
+    if (
+      globalListenersAttached &&
+      pointerMoveSubscribers.size === 0 &&
+      pointerEndSubscribers.size === 0 &&
+      pointerLeaveSubscribers.size === 0
+    ) {
+      globalListenersAttached = false;
+      window.removeEventListener("pointermove", onGlobalPointerMove);
+      window.removeEventListener("pointerup", onGlobalPointerEnd);
+      window.removeEventListener("pointercancel", onGlobalPointerEnd);
+      document.documentElement.removeEventListener("pointerleave", onGlobalPointerLeave);
+    }
+  };
+}
+
+let sharedProbeCanvas: CanvasRenderingContext2D | null | undefined;
+function getColorProbe(): CanvasRenderingContext2D | null {
+  if (sharedProbeCanvas !== undefined) return sharedProbeCanvas;
+  if (typeof document === "undefined") return null;
+  try {
+    sharedProbeCanvas = document
+      .createElement("canvas")
+      .getContext("2d", { willReadFrequently: true });
+  } catch {
+    sharedProbeCanvas = null;
+  }
+  return sharedProbeCanvas;
+}
 
 const VERTEX = `#version 300 es
 in vec2 aPosition;
@@ -198,6 +265,7 @@ export type SpecularButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> 
   followMouse?: boolean;
   proximity?: number;
   autoAnimate?: boolean;
+  enableWebGL?: boolean;
 };
 
 export function SpecularButton({
@@ -220,6 +288,7 @@ export function SpecularButton({
   followMouse = true,
   proximity = 250,
   autoAnimate = false,
+  enableWebGL = true,
   disabled = false,
   onClick,
   className = "",
@@ -246,14 +315,24 @@ export function SpecularButton({
     proximity: Math.max(1, proximity),
     autoAnimate,
     disabled,
+    enableWebGL,
   };
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
 
   useEffect(() => {
+    if (!enableWebGL || disabled || typeof window === "undefined") {
+      return undefined;
+    }
+    const reduce =
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+    if (reduce) {
+      return undefined;
+    }
+
     const button = buttonRef.current;
     const canvas = canvasRef.current;
-    if (!button || !canvas || typeof window === "undefined") return undefined;
+    if (!button || !canvas) return undefined;
 
     let gl: WebGL2RenderingContext | null = null;
     let program: WebGLProgram | null = null;
@@ -261,11 +340,7 @@ export function SpecularButton({
     let vao: WebGLVertexArrayObject | null = null;
     const uniforms: Record<string, WebGLUniformLocation | null> = {};
 
-    const probe = document
-      .createElement("canvas")
-      .getContext("2d", { willReadFrequently: true });
-    const reduce =
-      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+    const probe = getColorProbe();
     const colors = new Map<string, [number, number, number]>();
     const view = { width: 1, height: 1, ratio: 1 };
     const pointer = { x: 0, y: 0, known: false };
@@ -274,15 +349,9 @@ export function SpecularButton({
     let last = 0;
     let visible = true;
 
-    const destroyGl = () => {
+    const releaseGlRefs = () => {
       cancelAnimationFrame(raf);
       raf = 0;
-      if (gl) {
-        if (buffer) gl.deleteBuffer(buffer);
-        if (vao) gl.deleteVertexArray(vao);
-        if (program) gl.deleteProgram(program);
-        gl.getExtension("WEBGL_lose_context")?.loseContext();
-      }
       gl = null;
       program = null;
       buffer = null;
@@ -290,8 +359,32 @@ export function SpecularButton({
       activeContextDestroyers.delete(destroyGl);
     };
 
+    const destroyGl = () => {
+      cancelAnimationFrame(raf);
+      raf = 0;
+      if (gl && !gl.isContextLost()) {
+        if (buffer) gl.deleteBuffer(buffer);
+        if (vao) gl.deleteVertexArray(vao);
+        if (program) gl.deleteProgram(program);
+      }
+      releaseGlRefs();
+    };
+
+    const onContextLost = (e: Event) => {
+      e.preventDefault();
+      releaseGlRefs();
+    };
+
+    const onContextRestored = () => {
+      releaseGlRefs();
+      wake();
+    };
+
+    canvas.addEventListener("webglcontextlost", onContextLost);
+    canvas.addEventListener("webglcontextrestored", onContextRestored);
+
     const ensureGl = (): boolean => {
-      if (gl && program && vao) return true;
+      if (gl && !gl.isContextLost() && program && vao) return true;
       if (activeContextDestroyers.size >= MAX_ACTIVE_WEBGL_CONTEXTS) {
         const oldest = activeContextDestroyers.values().next().value;
         if (typeof oldest === "function") oldest();
@@ -307,7 +400,10 @@ export function SpecularButton({
       } catch {
         gl = null;
       }
-      if (!gl) return false;
+      if (!gl || gl.isContextLost()) {
+        gl = null;
+        return false;
+      }
       program = link(gl);
       if (!program) {
         gl = null;
@@ -493,7 +589,7 @@ export function SpecularButton({
       const box = entry?.borderBoxSize?.[0];
       view.width = Math.max(1, box ? box.inlineSize : button.offsetWidth);
       view.height = Math.max(1, box ? box.blockSize : button.offsetHeight);
-      view.ratio = Math.min(window.devicePixelRatio || 1, 3);
+      view.ratio = Math.min(window.devicePixelRatio || 1, 2);
       canvas.width = Math.max(
         1,
         Math.round((view.width + PAD * 2) * view.ratio),
@@ -503,12 +599,10 @@ export function SpecularButton({
         Math.round((view.height + PAD * 2) * view.ratio),
       );
       if (state.ready && gl) draw(settingsRef.current);
-      if (activeContextDestroyers.size < MAX_ACTIVE_WEBGL_CONTEXTS) {
-        wake();
-      }
     };
 
     const onPointerMove = (event: PointerEvent) => {
+      if (!visible) return;
       pointer.x = event.clientX;
       pointer.y = event.clientY;
       pointer.known = true;
@@ -531,12 +625,12 @@ export function SpecularButton({
     const onPointerEnd = (event: PointerEvent) => {
       if (event.pointerType === "mouse") return;
       pointer.known = false;
-      wake();
+      if (gl) wake();
     };
 
     const onPointerLeave = () => {
       pointer.known = false;
-      wake();
+      if (gl) wake();
     };
 
     const resizeObserver =
@@ -549,7 +643,10 @@ export function SpecularButton({
       typeof IntersectionObserver !== "undefined"
         ? new IntersectionObserver((entries) => {
             visible = entries.some((entry) => entry.isIntersecting);
-            if (visible && activeContextDestroyers.size < MAX_ACTIVE_WEBGL_CONTEXTS) {
+            if (!visible && raf) {
+              cancelAnimationFrame(raf);
+              raf = 0;
+            } else if (visible && settingsRef.current.autoAnimate) {
               last = 0;
               wake();
             }
@@ -557,30 +654,29 @@ export function SpecularButton({
         : null;
     intersection?.observe(button);
 
-    window.addEventListener("pointermove", onPointerMove, { passive: true });
-    window.addEventListener("pointerup", onPointerEnd, { passive: true });
-    window.addEventListener("pointercancel", onPointerEnd, { passive: true });
-    document.documentElement.addEventListener("pointerleave", onPointerLeave);
+    const unsubscribeGlobal = subscribeGlobalPointer(
+      onPointerMove,
+      onPointerEnd,
+      onPointerLeave,
+    );
     button.addEventListener("pointerdown", onPointerDown);
     measure();
+    if (settingsRef.current.autoAnimate) {
+      wake();
+    }
     wakeRef.current = wake;
 
     return () => {
       wakeRef.current = null;
       resizeObserver?.disconnect();
       intersection?.disconnect();
-      window.removeEventListener("pointermove", onPointerMove);
-      window.removeEventListener("pointerup", onPointerEnd);
-      window.removeEventListener("pointercancel", onPointerEnd);
-      document.documentElement.removeEventListener("pointerleave", onPointerLeave);
+      unsubscribeGlobal();
       button.removeEventListener("pointerdown", onPointerDown);
+      canvas.removeEventListener("webglcontextlost", onContextLost);
+      canvas.removeEventListener("webglcontextrestored", onContextRestored);
       destroyGl();
     };
-  }, []);
-
-  useEffect(() => {
-    wakeRef.current?.();
-  });
+  }, [enableWebGL, disabled]);
 
   return (
     <button
@@ -607,11 +703,13 @@ export function SpecularButton({
       }
       {...rest}
     >
-      <canvas
-        ref={canvasRef}
-        className="specular-button__light"
-        aria-hidden="true"
-      />
+      {enableWebGL && !disabled ? (
+        <canvas
+          ref={canvasRef}
+          className="specular-button__light"
+          aria-hidden="true"
+        />
+      ) : null}
       <span className="specular-button__label">{children}</span>
     </button>
   );

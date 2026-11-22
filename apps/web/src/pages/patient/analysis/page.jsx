@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from "react";
 import Image from "@/lib/compat/Image";
 import AnalysisDetailsModal from "@/components/analysis/AnalysisDetailsModal";
 import { Button } from "@/components/ui";
+import { apiUploadWithProgress } from "@/lib/apiClient";
 import { useTranslations } from "@/lib/compat/intl";
 
 // شريط الثقة مع تدرج ولون متغير حسب النسبة
@@ -169,70 +170,51 @@ export default function AnalysisPage() {
 
   // ----------------------- رفع الصورة وتحليلها -----------------------
   const handleAnalyze = async () => {
-    if (!selectedImage) return;
+    if (!selectedImage || isLoading) return;
 
     setIsLoading(true);
     setError(null);
+    setUploadProgress(0);
+    setPhase("uploading");
+    const startedAt = Date.now();
+    setUploadStartTime(startedAt);
 
     const formData = new FormData();
     formData.append("image", selectedImage);
     formData.append("with_heatmap", "true");
 
     try {
-      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-      setUploadProgress(0);
-
-      const xhr = new XMLHttpRequest();
-      xhrRef.current = xhr;
-      xhr.open("POST", "/api/analysis/analyze");
-      if (token) xhr.setRequestHeader("Authorization", `Bearer ${token}`);
-
-      setPhase("uploading");
-      xhr.upload.onprogress = (e) => {
-        if (e.lengthComputable) {
-          const now = Date.now();
-          if (!uploadStartTime) setUploadStartTime(now);
-          setUploadLoaded(e.loaded);
-          setUploadTotal(e.total);
-          const pct = Math.round((e.loaded / e.total) * 100);
-          setUploadProgress(pct);
-          if (pct >= 100) {
+      const data = await apiUploadWithProgress("/api/analysis/analyze", {
+        body: formData,
+        onXhrCreated: (xhr) => {
+          xhrRef.current = xhr;
+        },
+        onProgress: ({ loaded, total, percent }) => {
+          setUploadLoaded(loaded);
+          setUploadTotal(total);
+          setUploadProgress(percent);
+          if (percent >= 100) {
             setPhase("analyzing");
           }
-        }
-      };
-
-      xhr.onload = () => {
-        setIsLoading(false);
-        resetUploadUi();
-
-        try {
-          const data = JSON.parse(xhr.responseText || "{}");
-          if (xhr.status >= 200 && xhr.status < 300) {
-            setAnalysisResult(data.data ?? data ?? null);
-            setSavedToHistory(Boolean(data.saved));
-            setPhase("completed");
-          } else {
-            setPhase("failed");
-            setError(data.error || data.message || `HTTP ${xhr.status}`);
-          }
-        } catch (e) {
-          setPhase("failed");
-          setError(String(e));
-        }
-      };
-
-      xhr.onerror = () => {
-        setIsLoading(false);
-        resetUploadUi();
-        setError(t("analysis.errors.networkUpload"));
-      };
-
-      xhr.send(formData);
-    } catch (err) {
-      setError(err.message || String(err));
+        },
+      });
       setIsLoading(false);
       resetUploadUi();
+      setAnalysisResult(data?.data ?? data ?? null);
+      setSavedToHistory(Boolean(data?.saved));
+      setPhase("completed");
+    } catch (err) {
+      setIsLoading(false);
+      resetUploadUi();
+      if (err?.code === "aborted") {
+        setPhase("cancelled");
+        setError(t("analysis.errors.uploadCanceled"));
+      } else {
+        setPhase("failed");
+        setError(err?.message || t("analysis.errors.networkUpload"));
+      }
+    } finally {
+      xhrRef.current = null;
     }
   };
 

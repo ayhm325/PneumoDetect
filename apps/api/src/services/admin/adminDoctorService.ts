@@ -12,6 +12,7 @@ export interface AdminDoctorService {
     phone: string;
     licenseNumber: string;
     password?: string;
+    status?: string;
   }): Promise<Record<string, unknown>>;
   updateDoctorStatus(input: { id: string; status: string }): Promise<{ success: true }>;
   updateDoctorByUserId(input: {
@@ -89,6 +90,14 @@ export function createAdminDoctorService(deps: {
       }
 
       const hashedPassword = await bcrypt.hash(rawPassword, 10);
+      const rawStatus = input.status ? String(input.status).trim() : "active";
+      if (!Object.values(DoctorStatus).includes(rawStatus as DoctorStatus)) {
+        throw new AppError({
+          code: "validation_error",
+          message: "حالة الطبيب غير صحيحة",
+          statusCode: 400,
+        });
+      }
 
       const created = await deps.adminDoctorRepository.createDoctorWithUser({
         name,
@@ -96,6 +105,7 @@ export function createAdminDoctorService(deps: {
         phone,
         licenseNumber,
         hashedPassword,
+        status: rawStatus as DoctorStatus,
       });
 
       return created as unknown as Record<string, unknown>;
@@ -178,11 +188,18 @@ export function createAdminDoctorService(deps: {
         });
       }
 
+      const nameValue =
+        typeof input.fullName === "string"
+          ? input.fullName.trim()
+          : typeof (input as { name?: unknown }).name === "string"
+            ? String((input as { name?: string }).name).trim()
+            : undefined;
+
       await deps.adminDoctorRepository.updateDoctorAndUser({
         userId,
         user: {
-          ...(typeof input.fullName === "string" ? { fullName: input.fullName } : {}),
-          ...(typeof input.email === "string" ? { email: input.email } : {}),
+          ...(nameValue ? { fullName: nameValue } : {}),
+          ...(typeof input.email === "string" ? { email: input.email.trim() } : {}),
           ...(statusValue ? { isActive: statusValue === "active" } : {}),
         },
         doctor: {

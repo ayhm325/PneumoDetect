@@ -2,6 +2,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import FileUpload from "../../ui/FileUpload";
 import { useLocale, useTranslations } from "@/lib/compat/intl";
+import { apiRequest, apiUploadWithProgress } from "@/lib/apiClient";
 import {
   Alert,
   Button,
@@ -27,9 +28,7 @@ export default function UploadXRayPageContent() {
 
   const loadRecentUploads = useCallback(async () => {
     try {
-      const res = await fetch("/api/analysis/history?scope=doctor", { credentials: "include" });
-      if (!res.ok) return;
-      const json = await res.json();
+      const json = await apiRequest("/api/analysis/history?scope=doctor");
       const rows = Array.isArray(json?.data) ? json.data : [];
       setRecentUploads(
         rows.slice(0, 10).map((item) => ({
@@ -69,8 +68,7 @@ export default function UploadXRayPageContent() {
 
   useEffect(() => {
     let mounted = true;
-    fetch("/api/doctor/patients", { credentials: "include" })
-      .then((res) => (res.ok ? res.json() : null))
+    apiRequest("/api/doctor/patients")
       .then((data) => {
         if (!mounted) return;
         const list = Array.isArray(data?.patients) ? data.patients : [];
@@ -121,45 +119,24 @@ export default function UploadXRayPageContent() {
     setFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const uploadSingleFile = (file) =>
-    new Promise((resolve, reject) => {
-      const formData = new FormData();
-      formData.append("image", file);
-      formData.append("with_heatmap", "true");
-      formData.append("patientId", selectedPatientId);
-      formData.append("modality", "xray");
-      if (notes) formData.append("notes", notes);
+  const uploadSingleFile = (file) => {
+    const formData = new FormData();
+    formData.append("image", file);
+    formData.append("with_heatmap", "true");
+    formData.append("patientId", selectedPatientId);
+    formData.append("modality", "xray");
+    if (notes) formData.append("notes", notes);
 
-      const xhr = new XMLHttpRequest();
-      xhr.open("POST", "/api/analysis/analyze");
-      xhr.withCredentials = true;
-
-      xhr.upload.onprogress = (event) => {
-        if (event.lengthComputable) {
-          const pct = Math.round((event.loaded / event.total) * 100);
-          setProgress(pct);
-          if (pct >= 100) {
-            setPhase("analyzing");
-          }
+    return apiUploadWithProgress("/api/analysis/analyze", {
+      body: formData,
+      onProgress: ({ percent }) => {
+        setProgress(percent);
+        if (percent >= 100) {
+          setPhase("analyzing");
         }
-      };
-
-      xhr.onload = () => {
-        try {
-          const data = JSON.parse(xhr.responseText || "{}");
-          if (xhr.status >= 200 && xhr.status < 300) {
-            resolve(data);
-          } else {
-            reject(new Error(data?.message || data?.error || `HTTP ${xhr.status}`));
-          }
-        } catch {
-          reject(new Error(`HTTP ${xhr.status}`));
-        }
-      };
-
-      xhr.onerror = () => reject(new Error("Network error"));
-      xhr.send(formData);
+      },
     });
+  };
 
   const handleUpload = async () => {
     if (!selectedPatientId || files.length === 0) {

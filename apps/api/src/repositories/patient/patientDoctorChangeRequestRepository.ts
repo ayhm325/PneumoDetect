@@ -5,6 +5,7 @@ export interface PatientDoctorChangeRequestRepository {
   listDoctorsForChange(): Promise<Array<Record<string, unknown>>>;
   findPatientByUserId(userId: string): Promise<Record<string, unknown> | null>;
   findDoctorByUserId(userId: string): Promise<Record<string, unknown> | null>;
+  countDoctorChangeRequestsByUserId(userId: string): Promise<number>;
   createDoctorChangeRequest(input: {
     userId: string;
     patientId: string;
@@ -78,6 +79,25 @@ export function createPatientDoctorChangeRequestRepository(
         throw new AppError({
           code: "repository_error",
           message: "Failed to find doctor by userId",
+          statusCode: 500,
+          cause: error,
+        });
+      }
+    },
+
+    async countDoctorChangeRequestsByUserId(userId) {
+      try {
+        return await db.changeRequest.count({
+          where: {
+            userId,
+            type: "doctor_change",
+            isDeleted: false,
+          },
+        });
+      } catch (error) {
+        throw new AppError({
+          code: "repository_error",
+          message: "Failed to count doctor change requests",
           statusCode: 500,
           cause: error,
         });

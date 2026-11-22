@@ -15,12 +15,11 @@ import {
 } from "react-icons/fa";
 import { useTranslations } from "@/lib/compat/intl";
 import useLocale from "@/lib/compat/intl";
+import { apiRequest } from "@/lib/apiClient";
 import { Button, Card } from "@/components/ui";
 
 export default function DoctorSettingsPage() {
-  const { showSuccess, showError, showInfo, showWarning } = useToast();
-
-  // Use single namespace `doctorSettings` and access nested keys via `t(key)`
+  const { showSuccess, showError } = useToast();
   const t = useTranslations("doctorSettings");
   const locale = useLocale();
 
@@ -29,26 +28,33 @@ export default function DoctorSettingsPage() {
     name: "",
     email: "",
     phone: "",
-    bio: "",
+    clinic: "",
     licenseNumber: "",
   });
   const [userEmail, setUserEmail] = useState("");
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [savingPassword, setSavingPassword] = useState(false);
 
   useEffect(() => {
-    fetch("/api/doctor/me")
-      .then((res) => res.json())
+    let mounted = true;
+    apiRequest("/api/doctor/me")
       .then((data) => {
+        if (!mounted) return;
         if (data && data.profile) {
           setProfile({
             name: data.profile.name || "",
             email: data.profile.email || "",
             phone: data.profile.phone || "",
-            bio: data.profile.bio || "",
+            clinic: data.profile.clinic || "",
             licenseNumber: data.profile.licenseNumber || "",
           });
           setUserEmail(data.profile.email || "");
         }
-      });
+      })
+      .catch(() => {});
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   // إعدادات الأمان
@@ -65,12 +71,41 @@ export default function DoctorSettingsPage() {
   });
 
   // حفظ الملف الشخصي
-  const handleSaveProfile = () => {
-    showSuccess(t("profile.toast.saved"));
+  const handleSaveProfile = async () => {
+    if (savingProfile) return;
+    setSavingProfile(true);
+    try {
+      const data = await apiRequest("/api/doctor/me", {
+        method: "PUT",
+        body: JSON.stringify({
+          fullName: profile.name.trim(),
+          email: profile.email.trim(),
+          phone: profile.phone.trim(),
+          licenseNumber: profile.licenseNumber.trim(),
+          clinic: profile.clinic ? profile.clinic.trim() : null,
+        }),
+      });
+      if (data?.profile) {
+        setProfile({
+          name: data.profile.name || "",
+          email: data.profile.email || "",
+          phone: data.profile.phone || "",
+          clinic: data.profile.clinic || "",
+          licenseNumber: data.profile.licenseNumber || "",
+        });
+        setUserEmail(data.profile.email || "");
+      }
+      showSuccess(t("profile.toast.saved"));
+    } catch (err) {
+      showError(err?.message || "Failed to save profile");
+    } finally {
+      setSavingProfile(false);
+    }
   };
 
   // تغيير كلمة المرور
-  const handleChangePassword = () => {
+  const handleChangePassword = async () => {
+    if (savingPassword) return;
     const { currentPassword, newPassword, confirmPassword } = security;
 
     if (!currentPassword || !newPassword || !confirmPassword) {
@@ -93,66 +128,54 @@ export default function DoctorSettingsPage() {
       return;
     }
 
-    fetch("/api/doctor/change-password", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email: userEmail,
-        currentPassword,
-        newPassword,
-      }),
-    })
-      .then(async (res) => {
-        const data = await res.json();
-        if (res.ok && data.success) {
-          showSuccess(t("security.toast.changedSuccess"));
-          setSecurity({
-            currentPassword: "",
-            newPassword: "",
-            confirmPassword: "",
-          });
-
-          setTimeout(async () => {
-            try {
-              const token =
-                typeof window !== "undefined"
-                  ? localStorage.getItem("token")
-                  : null;
-              await fetch("/api/auth/logout", {
-                method: "POST",
-                credentials: "include",
-                headers: token
-                  ? {
-                      Authorization: `Bearer ${token}`,
-                      "Content-Type": "application/json",
-                    }
-                  : { "Content-Type": "application/json" },
-                body: token ? JSON.stringify({ token }) : undefined,
-              }).catch(() => {});
-            } finally {
-              if (typeof window !== "undefined") {
-                localStorage.clear();
-                sessionStorage.clear();
-              }
-              window.location.href = locale === "en" ? "/en" : "/ar";
-            }
-          }, 1200);
-        } else {
-          if (data?.error === "same_password") {
-            showError(t("security.toast.sameAsOld"));
-          } else {
-            showError(data?.message || data?.error || t("security.toast.changeFailed"));
-          }
-        }
-      })
-      .catch(() => {
-        showError(t("security.toast.changeFailed"));
+    setSavingPassword(true);
+    try {
+      const data = await apiRequest("/api/doctor/change-password", {
+        method: "POST",
+        body: JSON.stringify({
+          email: userEmail,
+          currentPassword,
+          newPassword,
+        }),
       });
+
+      if (data?.success !== false) {
+        showSuccess(t("security.toast.changedSuccess"));
+        setSecurity({
+          currentPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        });
+
+        setTimeout(async () => {
+          try {
+            await apiRequest("/api/auth/logout", { method: "POST" }).catch(
+              () => {},
+            );
+          } finally {
+            if (typeof window !== "undefined") {
+              localStorage.clear();
+              sessionStorage.clear();
+            }
+            window.location.href = locale === "en" ? "/en" : "/ar";
+          }
+        }, 1200);
+      } else {
+        showError(data?.message || data?.error || t("security.toast.changeFailed"));
+      }
+    } catch (err) {
+      if (err?.code === "same_password" || err?.message === "same_password") {
+        showError(t("security.toast.sameAsOld"));
+      } else {
+        showError(err?.message || t("security.toast.changeFailed"));
+      }
+    } finally {
+      setSavingPassword(false);
+    }
   };
 
   return (
     <DoctorLayout>
-
       <div className="min-h-screen bg-(--ui-surface-2) text-(--ui-foreground) p-6">
         <div className="mx-auto max-w-2xl flex flex-col gap-10">
           {/* Header */}
@@ -216,7 +239,7 @@ export default function DoctorSettingsPage() {
                 />
               </div>
 
-              <div className="md:col-span-2">
+              <div>
                 <label className="mb-2 block text-sm font-medium text-(--ui-muted-foreground)">
                   {t("profile.license")}
                 </label>
@@ -232,13 +255,13 @@ export default function DoctorSettingsPage() {
 
               <div className="md:col-span-2">
                 <label className="mb-2 block text-sm font-medium text-(--ui-muted-foreground)">
-                  {t("profile.bio")}
+                  {locale === "ar" ? "اسم أو عنوان العيادة" : "Clinic Name / Address"}
                 </label>
-                <textarea
-                  rows={4}
-                  value={profile.bio}
+                <input
+                  type="text"
+                  value={profile.clinic}
                   onChange={(e) =>
-                    setProfile({ ...profile, bio: e.target.value })
+                    setProfile({ ...profile, clinic: e.target.value })
                   }
                   className="w-full rounded-lg border border-(--ui-border) bg-(--ui-surface) px-4 py-3 text-(--ui-foreground) focus:border-(--ui-ring) focus:outline-none focus:ring-2 focus:ring-(--ui-ring)/20"
                 />
@@ -247,6 +270,8 @@ export default function DoctorSettingsPage() {
 
             <Button
               onClick={handleSaveProfile}
+              disabled={savingProfile}
+              isLoading={savingProfile}
               fullWidth={false}
               size="sm"
               className="mt-6 flex items-center gap-2 px-6"
@@ -365,6 +390,8 @@ export default function DoctorSettingsPage() {
 
             <Button
               onClick={handleChangePassword}
+              disabled={savingPassword}
+              isLoading={savingPassword}
               fullWidth={false}
               size="sm"
               className="mt-6 flex items-center gap-2 px-6"

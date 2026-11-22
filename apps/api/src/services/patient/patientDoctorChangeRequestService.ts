@@ -1,5 +1,6 @@
 import { AppError } from "../../lib/errors/appError";
 import type { PatientDoctorChangeRequestRepository } from "../../repositories/patient/patientDoctorChangeRequestRepository";
+import { createAdminSettingsRepository, type AdminSettingsRepository } from "../../repositories/admin/adminSettingsRepository";
 
 export interface PatientDoctorChangeRequestService {
   listDoctorsForPatientChange(userId: string): Promise<{ success: true; doctors: Array<Record<string, unknown>> }>;
@@ -14,7 +15,9 @@ export interface PatientDoctorChangeRequestService {
 
 export function createPatientDoctorChangeRequestService(deps: {
   patientDoctorChangeRequestRepository: PatientDoctorChangeRequestRepository;
+  adminSettingsRepository?: AdminSettingsRepository;
 }): PatientDoctorChangeRequestService {
+  const settingsRepo = deps.adminSettingsRepository ?? createAdminSettingsRepository();
   return {
     async listDoctorsForPatientChange(userId) {
       const normalizedUserId = String(userId || "").trim();
@@ -35,6 +38,32 @@ export function createPatientDoctorChangeRequestService(deps: {
       const patient = await deps.patientDoctorChangeRequestRepository.findPatientByUserId(userId);
       if (!patient) {
         throw new AppError({ code: "not_found", message: "Patient not found", statusCode: 404 });
+      }
+
+      const settings = await settingsRepo.readSettings().catch(() => null);
+      if (settings && settings.allowPatientChangeDoctor === false) {
+        throw new AppError({
+          code: "forbidden",
+          message: "تغيير الطبيب المشرف غير متاح حالياً حسب إعدادات الإدارة",
+          statusCode: 403,
+        });
+      }
+
+      const maxRequestsRaw = settings?.maxDoctorChangeRequests;
+      const maxRequests =
+        typeof maxRequestsRaw === "number" && Number.isFinite(maxRequestsRaw)
+          ? Math.max(0, Math.floor(maxRequestsRaw))
+          : 3;
+
+      if (typeof deps.patientDoctorChangeRequestRepository.countDoctorChangeRequestsByUserId === "function") {
+        const existingCount = await deps.patientDoctorChangeRequestRepository.countDoctorChangeRequestsByUserId(userId);
+        if (existingCount >= maxRequests) {
+          throw new AppError({
+            code: "validation_error",
+            message: `تم تجاوز الحد الأقصى لطلبات تغيير الطبيب (${maxRequests})`,
+            statusCode: 400,
+          });
+        }
       }
 
       const requestedDoctorRaw = input.requestedDoctorId || input.newDoctorId || input.newDoctor;

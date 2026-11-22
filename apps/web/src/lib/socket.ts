@@ -1,6 +1,20 @@
 import { io, type Socket } from "socket.io-client";
+import { resolveApiUrl } from "./apiClient";
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || undefined;
+declare const __VITE_SOCKET_URL__: string | undefined;
+
+function getSocketBaseUrl(): string | undefined {
+  if (typeof __VITE_SOCKET_URL__ === "string" && __VITE_SOCKET_URL__) {
+    return __VITE_SOCKET_URL__;
+  }
+  if (typeof process !== "undefined" && process.env?.VITE_SOCKET_URL) {
+    return String(process.env.VITE_SOCKET_URL);
+  }
+  const apiBase = resolveApiUrl("");
+  return apiBase && apiBase !== "/" ? apiBase : undefined;
+}
+
+const SOCKET_URL = getSocketBaseUrl();
 
 let socketInstance: Socket | null = null;
 let currentUserKey: string | null = null;

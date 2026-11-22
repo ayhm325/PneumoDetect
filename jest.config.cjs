@@ -1,5 +1,6 @@
 module.exports = {
   testEnvironment: "node",
+  cacheDirectory: "<rootDir>/node_modules/.cache/jest",
   setupFiles: ["<rootDir>/__tests__/jest.setup.js"],
   transform: {
     "^.+\\.[tj]sx?$": "babel-jest",

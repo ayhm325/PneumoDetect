@@ -28,6 +28,7 @@ import {
   authIcon,
 } from "./authStyles";
 import AnimatedBackground from "./ui/AnimatedBackground";
+import { apiFetch, apiRequest } from "@/lib/apiClient";
 
 // Helper to prefix locale to path
 const withLocale = (locale, path) => {
@@ -90,9 +91,8 @@ export default function SignUpForm() {
       setDoctorsError("");
       try {
         const apiPath = `/api/doctor/list${import.meta.env.VITE_DEBUG_INCLUDE_PENDING === "true" ? "?includePending=true" : ""}`;
-        const res = await fetch(apiPath);
-        const data = await res.json();
-        if (data.doctors) {
+        const data = await apiRequest(apiPath);
+        if (data?.doctors) {
           setDoctors(
             data.doctors.map((doc) => ({
               id: doc.id,
@@ -173,7 +173,7 @@ export default function SignUpForm() {
               doctorId: form.doctorId,
             };
 
-      const res = await fetch(apiUrl, {
+      const res = await apiFetch(apiUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

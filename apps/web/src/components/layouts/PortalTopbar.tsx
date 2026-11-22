@@ -15,6 +15,7 @@ import {
 } from "react-icons/fa";
 import type { AuthUser } from "@pneumodetect/contracts";
 import type { PortalNavItem } from "./UnifiedPortalShell";
+import { apiRequest } from "@/lib/apiClient";
 
 export interface PortalTopbarProps {
   portalTitle: string;
@@ -95,9 +96,11 @@ export function PortalTopbar({
 
     const loadUnread = async () => {
       try {
-        const res = await fetch("/api/notifications", { credentials: "include" });
-        if (!res.ok || !active) return;
-        const data = await res.json();
+        const data = await apiRequest<{
+          notifications?: Array<{ isRead?: boolean; read?: boolean }>;
+          unreadCount?: number;
+        }>("/api/notifications");
+        if (!active) return;
         const list = Array.isArray(data?.notifications)
           ? data.notifications
           : Array.isArray(data)

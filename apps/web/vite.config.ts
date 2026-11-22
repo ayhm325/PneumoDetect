@@ -7,6 +7,10 @@ const apiTarget = process.env.VITE_API_PROXY_TARGET || "http://localhost:4000";
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  define: {
+    __VITE_API_URL__: JSON.stringify(process.env.VITE_API_URL || ""),
+    __VITE_SOCKET_URL__: JSON.stringify(process.env.VITE_SOCKET_URL || ""),
+  },
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),

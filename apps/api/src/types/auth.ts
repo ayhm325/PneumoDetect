@@ -20,6 +20,7 @@ export type LoginResult = {
   user: Record<string, unknown>;
   token: string;
   tokenForDev?: string;
+  sessionMaxAgeMs?: number;
 };
 
 export type RegisterPatientCommand = {

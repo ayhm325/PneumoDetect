@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import useSWR from "swr";
 import { useToast } from "@/components/ui/ToastProvider";
 import { Button, GlideSelect } from "@/components/ui";
+import { apiRequest } from "@/lib/apiClient";
 import useLocale from "@/lib/compat/intl";
 import { useTranslations } from "@/lib/compat/intl";
 import {
@@ -49,21 +50,19 @@ export default function PatientsPage() {
     phone: "",
     password: "",
     gender: "male",
-    age: "",
-    medicalId: "",
     doctorId: "",
     status: "active",
     bloodType: "",
     birthDate: "",
-    allergies: "",
-    chronicDiseases: "",
+    notes: "",
   };
   const [formData, setFormData] = useState({ ...emptyForm });
   const [showPassword, setShowPassword] = useState(false);
   const [doctorsList, setDoctorsList] = useState([]);
+  const [submitting, setSubmitting] = useState(false);
 
   // Data Fetching
-  const fetcher = (url) => fetch(url).then((res) => res.json());
+  const fetcher = (url) => apiRequest(url);
   const {
     data: patients = [],
     error,
@@ -136,9 +135,9 @@ export default function PatientsPage() {
             ? formatDate(p.createdAt)
             : "",
         bloodType: p.bloodType || "",
-        allergies: p.allergies || [],
-        chronicDiseases: p.chronicDiseases || [],
+        notes: p.notes || "",
         doctorId:
+          p.doctor?.userId ||
           p.doctor?.id ||
           p.doctorId ||
           (doctorUser ? doctorUser.id || doctorUser.userId : null),
@@ -152,10 +151,9 @@ export default function PatientsPage() {
   // Fetch Doctors
   React.useEffect(() => {
     let mounted = true;
-    fetch("/api/admin/doctors")
-      .then((res) => res.json())
+    apiRequest("/api/admin/doctors")
       .then((data) => {
-        const list = Array.isArray(data) ? data : data.doctors || [];
+        const list = Array.isArray(data) ? data : data?.doctors || [];
         if (mounted) setDoctorsList(list);
       })
       .catch(() => {
@@ -237,24 +235,25 @@ export default function PatientsPage() {
 
   // Handlers
   const handleAddPatient = async () => {
+    if (submitting) return;
     const trimmedPassword = (formData.password || "").trim();
     if (
-      !formData.name ||
-      !formData.email ||
-      !formData.phone ||
+      !formData.name?.trim() ||
+      !formData.email?.trim() ||
+      !formData.phone?.trim() ||
       !trimmedPassword
     ) {
       showToast(tPatients("toast.fillFields"), "error");
       return;
     }
+    setSubmitting(true);
     try {
       const payload = {
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim(),
         password: trimmedPassword,
         gender: formData.gender,
-        medicalId: formData.medicalId || undefined,
         doctorId: formData.doctorId || undefined,
         status:
           formData.status === "banned" || formData.status === "suspended"
@@ -262,41 +261,27 @@ export default function PatientsPage() {
             : "active",
         bloodType: formData.bloodType || undefined,
         birthDate: formData.birthDate || undefined,
-        allergies: formData.allergies
-          ? formData.allergies
-              .split(",")
-              .map((s) => s.trim())
-              .filter(Boolean)
-          : undefined,
-        chronicDiseases: formData.chronicDiseases
-          ? formData.chronicDiseases
-              .split(",")
-              .map((s) => s.trim())
-              .filter(Boolean)
-          : undefined,
+        notes: formData.notes || undefined,
       };
-      const res = await fetch("/api/admin/patients", {
+      await apiRequest("/api/admin/patients", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        showToast(err?.message || err?.error || tPatients("toast.patientAdded"), "error");
-        return;
-      }
       await mutate();
       setFormData({ ...emptyForm });
       setShowPassword(false);
       setShowAddModal(false);
       showToast(tPatients("toast.patientAdded"), "success");
     } catch (e) {
-      showToast(e.message, "error");
+      showToast(e?.message || "Failed to add patient", "error");
+    } finally {
+      setSubmitting(false);
     }
   };
 
   const handleEditPatient = async () => {
-    if (!formData.name || !formData.email || !formData.phone) {
+    if (submitting) return;
+    if (!formData.name?.trim() || !formData.email?.trim() || !formData.phone?.trim()) {
       showToast(tPatients("toast.fillFields"), "error");
       return;
     }
@@ -304,71 +289,42 @@ export default function PatientsPage() {
       showToast(tPatients("toast.patientUpdated"), "error");
       return;
     }
+    setSubmitting(true);
     try {
       const payload = {
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim(),
         gender: formData.gender,
-        age: formData.age || undefined,
-        medicalId: formData.medicalId || undefined,
-        doctorId: formData.doctorId || undefined,
+        doctorId: formData.doctorId ?? "",
         status:
           formData.status === "banned" || formData.status === "suspended"
             ? "suspended"
             : formData.status || undefined,
-        bloodType: formData.bloodType || undefined,
-        birthDate: formData.birthDate || undefined,
-        allergies: formData.allergies
-          ? formData.allergies
-              .split(",")
-              .map((s) => s.trim())
-              .filter(Boolean)
-          : undefined,
-        chronicDiseases: formData.chronicDiseases
-          ? formData.chronicDiseases
-              .split(",")
-              .map((s) => s.trim())
-              .filter(Boolean)
-          : undefined,
+        bloodType: formData.bloodType || "",
+        birthDate: formData.birthDate || "",
+        notes: formData.notes || "",
       };
-      const targetId = selectedPatient.id || selectedPatient.userId;
-      const res = await fetch(`/api/admin/patients/${targetId}`, {
+      const targetId = selectedPatient.id;
+      await apiRequest(`/api/admin/patients/${targetId}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      if (!res.ok) {
-        const errObj = await res.json().catch(() => ({}));
-        showToast(errObj?.message || errObj?.error || tPatients("toast.patientUpdated"), "error");
-        return;
-      }
       await mutate();
-      setFormData({
-        name: "",
-        email: "",
-        phone: "",
-        gender: "male",
-        age: "",
-        medicalId: "",
-        doctorId: "",
-        status: "",
-        bloodType: "",
-        birthDate: "",
-        allergies: "",
-        chronicDiseases: "",
-      });
+      setFormData({ ...emptyForm });
       setShowEditModal(false);
       showToast(tPatients("toast.patientUpdated"), "success");
     } catch (e) {
-      showToast(e.message, "error");
+      showToast(e?.message || "Failed to update patient", "error");
+    } finally {
+      setSubmitting(false);
     }
   };
 
   const handleDeletePatient = () => {
     (async () => {
       try {
-        const targetId = selectedPatient?.id || selectedPatient?.userId;
+        const targetId = selectedPatient?.id;
         if (!targetId) {
           setShowDeleteModal(false);
           return;
@@ -378,31 +334,24 @@ export default function PatientsPage() {
         const currentStatus = selectedPatient?.status || "active";
         const targetStatus =
           currentStatus === "active" ? "suspended" : "active";
-        const res = await fetch(`/api/admin/patients/${targetId}`, {
+        await apiRequest(`/api/admin/patients/${targetId}`, {
           method: "PATCH",
-          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ status: targetStatus }),
         });
-        if (!res.ok) {
-          const errObj = await res.json().catch(() => ({}));
-          const message = errObj?.message || errObj?.error || tPatients("toast.patientDeleted");
-          setDeleteError(message);
-          setDeleting(false);
-          return;
-        }
         await mutate();
         setShowDeleteModal(false);
         setDeleteError(null);
         setDeleting(false);
         showToast(
-          targetStatus === "banned"
+          targetStatus === "suspended"
             ? tPatients("toast.patientDisabled")
             : tPatients("toast.patientEnabled"),
           "success",
         );
       } catch (e) {
-        showToast(e.message, "error");
-        setShowDeleteModal(false);
+        const message = e?.message || tPatients("toast.patientDeleted");
+        setDeleteError(message);
+        setDeleting(false);
       }
     })();
   };
@@ -410,24 +359,18 @@ export default function PatientsPage() {
   const openEditModal = (patient) => {
     setSelectedPatient(patient);
     setFormData({
-      name: patient.name,
-      email: patient.email,
-      phone: patient.phone,
-      gender: patient.gender,
-      age: patient.age,
-      medicalId: patient.medicalId,
-      doctorId: patient.doctorId,
-      status: patient.status === "banned" ? "suspended" : patient.status || "",
-      bloodType: patient.bloodType,
+      name: patient.name || "",
+      email: patient.email || "",
+      phone: patient.phone || "",
+      password: "",
+      gender: patient.gender || "male",
+      doctorId: patient.doctorId || "",
+      status: patient.status === "banned" ? "suspended" : patient.status || "active",
+      bloodType: patient.bloodType || "",
       birthDate: patient.birthDate
         ? new Date(patient.birthDate).toISOString().split("T")[0]
         : "",
-      allergies: Array.isArray(patient.allergies)
-        ? patient.allergies.join(", ")
-        : (patient.allergies || "").toString(),
-      chronicDiseases: Array.isArray(patient.chronicDiseases)
-        ? patient.chronicDiseases.join(", ")
-        : (patient.chronicDiseases || "").toString(),
+      notes: patient.notes || "",
     });
     setShowEditModal(true);
   };
@@ -659,8 +602,14 @@ export default function PatientsPage() {
                   {/* Actions */}
                   <div className="mt-auto pt-6 border-t border-(--ui-border) flex gap-4">
                     <button
+                      onClick={() => openEditModal(patient)}
+                      className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl bg-(--ui-info-bg) text-(--ui-info) border border-(--ui-info-border) hover:opacity-90 transition-all duration-300 font-medium text-sm"
+                    >
+                      {locale === "ar" ? "تعديل" : "Edit"}
+                    </button>
+                    <button
                       onClick={() => openDeleteModal(patient)}
-                      className="flex-1 group/btn flex items-center justify-center gap-2 py-3 rounded-2xl bg-(--ui-surface-2) text-foreground border border-(--ui-border) hover:text-white transition-all duration-300 font-medium text-sm"
+                      className="flex-1 group/btn flex items-center justify-center gap-2 py-3 rounded-2xl bg-(--ui-surface-2) text-foreground border border-(--ui-border) hover:bg-(--ui-surface) transition-all duration-300 font-medium text-sm"
                     >
                       {patient.status === "active" ||
                       patient.status === undefined ? (
@@ -918,6 +867,8 @@ export default function PatientsPage() {
                     onClick={
                       showAddModal ? handleAddPatient : handleEditPatient
                     }
+                    disabled={submitting}
+                    isLoading={submitting}
                     fullWidth
                     size="lg"
                   >
@@ -929,6 +880,7 @@ export default function PatientsPage() {
                   <Button
                     variant="secondary"
                     size="lg"
+                    disabled={submitting}
                     onClick={() => {
                       setShowPassword(false);
                       setShowAddModal(false);

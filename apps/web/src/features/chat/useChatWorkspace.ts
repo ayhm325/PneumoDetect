@@ -16,6 +16,7 @@ import {
   uploadChatAttachment,
   type ChatConversation,
 } from "./chatApi";
+import { apiRequest } from "@/lib/apiClient";
 
 const STATUS_RANK: Record<MessageDeliveryStatus, number> = {
   failed: 0,
@@ -92,8 +93,7 @@ export function useChatWorkspace(role: "doctor" | "patient") {
   // Connect canonical Socket.IO client once on mount
   useEffect(() => {
     let mounted = true;
-    fetch("/api/auth/token", { credentials: "include" })
-      .then((res) => (res.ok ? res.json() : null))
+    apiRequest<{ token?: string; user?: { id?: string } }>("/api/auth/token")
       .then((data) => {
         if (!mounted) return;
         if (data?.user?.id) myUserIdRef.current = String(data.user.id);

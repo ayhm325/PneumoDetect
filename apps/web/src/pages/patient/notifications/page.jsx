@@ -4,6 +4,7 @@ import { useToast } from "@/components/ui/ToastProvider";
 import { useTranslations } from "@/lib/compat/intl";
 import { FaBell, FaTrash, FaCheck, FaCheckDouble } from "react-icons/fa";
 import { useLocale } from "@/lib/compat/intl";
+import { apiRequest } from "@/lib/apiClient";
 
 export default function PatientNotificationsPage() {
   const locale = useLocale();
@@ -75,11 +76,7 @@ export default function PatientNotificationsPage() {
     let mounted = true;
     (async () => {
       try {
-        const res = await fetch("/api/patient/notifications", {
-          cache: "no-store",
-        });
-        if (!res.ok) return;
-        const data = await res.json().catch(() => ({}));
+        const data = await apiRequest("/api/patient/notifications");
         if (!mounted) return;
         setNowMs(Date.now());
         setNotifications(
@@ -99,73 +96,79 @@ export default function PatientNotificationsPage() {
   });
 
   const handleDelete = async (id) => {
-    await fetch(`/api/patient/notifications?id=${id}`, { method: "DELETE" });
-    setNotifications((prev) => prev.filter((n) => n.id !== id));
-    showInfo(labels.toast.notificationDeleted);
+    try {
+      await apiRequest(`/api/patient/notifications?id=${id}`, {
+        method: "DELETE",
+      });
+      setNotifications((prev) => prev.filter((n) => n.id !== id));
+      showInfo(labels.toast.notificationDeleted);
+    } catch {
+      showError(labels.toast.errorUpdate);
+    }
   };
 
   const handleDeleteAll = async () => {
     if (window.confirm(labels.confirmDeleteAll)) {
-      // حذف من الباك-إند
-      await fetch("/api/patient/notifications", { method: "DELETE" });
-      setNotifications([]);
-      showSuccess(labels.toast.allDeleted);
+      try {
+        await apiRequest("/api/patient/notifications", { method: "DELETE" });
+        setNotifications([]);
+        showSuccess(labels.toast.allDeleted);
+      } catch {
+        showError(labels.toast.errorUpdate);
+      }
     }
   };
 
   const handleMarkAsRead = async (id) => {
-    const res = await fetch(`/api/patient/notifications?id=${id}`, {
-      method: "PATCH",
-      body: JSON.stringify({ isRead: true }),
-      headers: { "Content-Type": "application/json" },
-    });
-    if (!res.ok) {
-      showError(labels.toast.errorUpdate);
-      return;
-    }
-    const data = await res.json();
-    if (data.success) {
-      setNotifications((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, isRead: true } : n))
-      );
-      showInfo(labels.toast.markedRead);
-    } else {
+    try {
+      const data = await apiRequest("/api/patient/notifications", {
+        method: "PATCH",
+        body: JSON.stringify({ id, isRead: true }),
+      });
+      if (data?.success) {
+        setNotifications((prev) =>
+          prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)),
+        );
+        showInfo(labels.toast.markedRead);
+      } else {
+        showError(labels.toast.errorUpdate);
+      }
+    } catch {
       showError(labels.toast.errorUpdate);
     }
   };
 
   const handleMarkAllAsRead = async () => {
-    const res = await fetch("/api/patient/notifications", { method: "PATCH" });
-    if (!res.ok) {
-      showError(labels.toast.errorUpdate);
-      return;
-    }
-    const data = await res.json();
-    if (data.success) {
-      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
-      showSuccess(labels.toast.allMarkedRead);
-    } else {
+    try {
+      const data = await apiRequest("/api/patient/notifications", {
+        method: "PATCH",
+      });
+      if (data?.success) {
+        setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+        showSuccess(labels.toast.allMarkedRead);
+      } else {
+        showError(labels.toast.errorUpdate);
+      }
+    } catch {
       showError(labels.toast.errorUpdate);
     }
   };
 
   const handleMarkAsUnread = async (id) => {
-    const res = await fetch(`/api/patient/notifications?id=${id}`, {
-      method: "PATCH",
-      body: JSON.stringify({ isRead: false }),
-      headers: { "Content-Type": "application/json" },
-    });
-    if (!res.ok) {
-      showError(labels.toast.errorUpdate);
-      return;
-    }
-    const data = await res.json();
-    if (data.success) {
-      setNotifications((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, isRead: false } : n))
-      );
-      showInfo(labels.toast.markedUnread);
-    } else {
+    try {
+      const data = await apiRequest("/api/patient/notifications", {
+        method: "PATCH",
+        body: JSON.stringify({ id, isRead: false }),
+      });
+      if (data?.success) {
+        setNotifications((prev) =>
+          prev.map((n) => (n.id === id ? { ...n, isRead: false } : n)),
+        );
+        showInfo(labels.toast.markedUnread);
+      } else {
+        showError(labels.toast.errorUpdate);
+      }
+    } catch {
       showError(labels.toast.errorUpdate);
     }
   };

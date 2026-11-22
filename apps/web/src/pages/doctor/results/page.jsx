@@ -29,6 +29,7 @@ import {
 } from "@/lib/analysisStatus";
 import { useLocale, useTranslations } from "@/lib/compat/intl";
 import { useSearchParams } from "@/lib/compat/navigation";
+import { apiRequest } from "@/lib/apiClient";
 import { Button, Card, GlideSelect, ProfileMediaCard, StatCard } from "@/components/ui";
 
 export default function DoctorResultsPage() {
@@ -64,10 +65,8 @@ export default function DoctorResultsPage() {
     const url = patientId
       ? `/api/doctor/results?patientId=${encodeURIComponent(patientId)}`
       : "/api/doctor/results";
-    fetch(url)
-      .then(async (res) => {
-        if (!res.ok) throw new Error("fetch_failed");
-        const data = await res.json();
+    apiRequest(url)
+      .then((data) => {
         // Transform API data to match UI expectations
         const inferTypeKey = (rawTitle, imageUrl) => {
           const title =
@@ -179,7 +178,8 @@ export default function DoctorResultsPage() {
   const stats = {
     total: scans.length,
     completed: scans.filter((s) => s.status === "completed").length,
-    pending: scans.filter((s) => s.status === "pending" || s.status === "requires_review").length,
+    pending: scans.filter((s) => s.status === "pending").length,
+    requiresReview: scans.filter((s) => s.status === "requires_review").length,
     today: scans.filter((s) => {
       const today = new Date();
       const scanDate = new Date(s.date);
@@ -194,9 +194,7 @@ export default function DoctorResultsPage() {
   const filteredScans = scans.filter((scan) => {
     if (filterType !== "all" && scan.typeKey !== filterType) return false;
     if (filterStatus !== "all") {
-      if (filterStatus === "pending") {
-        if (scan.status !== "pending" && scan.status !== "requires_review") return false;
-      } else if (scan.status !== filterStatus) {
+      if (scan.status !== filterStatus) {
         return false;
       }
     }
@@ -223,17 +221,11 @@ export default function DoctorResultsPage() {
   };
 
   const handleMarkReviewed = async () => {
-    if (!selectedScan?.id) return;
+    if (!selectedScan?.id || savingReview) return;
     setSavingReview(true);
     try {
-      const token =
-        typeof window !== "undefined" ? localStorage.getItem("token") : null;
-      const res = await fetch("/api/doctor/results", {
+      const body = await apiRequest("/api/doctor/results", {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
         body: JSON.stringify({
           id: selectedScan.id,
           reviewedByDoctor: true,
@@ -241,10 +233,6 @@ export default function DoctorResultsPage() {
           clinicalStatus: reviewClinicalStatus,
         }),
       });
-
-      const body = await res.json().catch(() => ({}));
-      if (!res.ok)
-        throw new Error(body.error || body.message || `HTTP ${res.status}`);
 
       const nextDoctorNotes =
         typeof reviewNotes === "string" ? reviewNotes.trim() : "";
@@ -448,6 +436,10 @@ export default function DoctorResultsPage() {
                   { value: "all", label: t("filters.allStatuses") },
                   { value: "completed", label: t("status.completed") },
                   { value: "pending", label: t("status.pending") },
+                  {
+                    value: "requires_review",
+                    label: getReviewStatusLabel("requires_review", locale),
+                  },
                 ]}
               />
             </div>

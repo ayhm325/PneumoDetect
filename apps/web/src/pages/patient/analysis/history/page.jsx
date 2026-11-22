@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import Image from "@/lib/compat/Image";
 import AnalysisDetailsModal from "@/components/analysis/AnalysisDetailsModal";
 import { Button, ProfileMediaCard } from "@/components/ui";
+import { apiRequest } from "@/lib/apiClient";
 import { useLocale, useTranslations } from "@/lib/compat/intl";
 import { formatDateTime } from "@/lib/date";
 import ARABIC_MONTHS from "@/lib/arabicMonths";
@@ -24,20 +25,10 @@ export default function PatientAnalysisHistoryPage() {
       setLoading(true);
       setError(null);
       try {
-        const token =
-          typeof window !== "undefined" ? localStorage.getItem("token") : null;
-        const headers = token ? { Authorization: `Bearer ${token}` } : {};
-        const res = await fetch("/api/analysis/history", {
-          method: "GET",
-          headers,
-          credentials: "same-origin",
-        });
-        const body = await res.json().catch(() => ({}));
-        if (!res.ok)
-          throw new Error(body.error || body.message || `HTTP ${res.status}`);
-        setRecords(body.data || []);
+        const body = await apiRequest("/api/analysis/history");
+        setRecords(body?.data || []);
       } catch (e) {
-        setError(e.message || String(e));
+        setError(e?.message || String(e));
       } finally {
         setLoading(false);
       }
@@ -159,31 +150,14 @@ export default function PatientAnalysisHistoryPage() {
                         const id = item.id;
                         setDeletingId(id);
                         try {
-                          const token =
-                            typeof window !== "undefined"
-                              ? localStorage.getItem("token")
-                              : null;
-                          const res = await fetch("/api/analysis/history", {
+                          await apiRequest("/api/analysis/history", {
                             method: "DELETE",
-                            headers: {
-                              "Content-Type": "application/json",
-                              ...(token
-                                ? { Authorization: `Bearer ${token}` }
-                                : {}),
-                            },
                             body: JSON.stringify({ id }),
                           });
-                          const body = await res.json().catch(() => ({}));
-                          if (!res.ok)
-                            throw new Error(
-                              body.error ||
-                                body.message ||
-                                `HTTP ${res.status}`,
-                            );
                           setRecords((prev) => prev.filter((r) => r.id !== id));
                           if (selected && selected.id === id) setSelected(null);
                         } catch (e) {
-                          setError(e.message || String(e));
+                          setError(e?.message || String(e));
                         } finally {
                           setDeletingId(null);
                         }

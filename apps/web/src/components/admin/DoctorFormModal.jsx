@@ -4,14 +4,19 @@ import { GlideSelect } from "@/components/ui";
 
 function DoctorFormModal({ doctor, open, onSave, onClose }) {
   const t = useTranslations("doctorFormModal");
-  const [name, setName] = useState(doctor?.name || "");
-  const [email, setEmail] = useState(doctor?.email || "");
-  const [specialty, setSpecialty] = useState(doctor?.specialty || "radiology");
+  const [name, setName] = useState(doctor?.name || doctor?.user?.fullName || "");
+  const [email, setEmail] = useState(doctor?.email || doctor?.user?.email || "");
   const [licenseNumber, setLicenseNumber] = useState(
     doctor?.licenseNumber || "",
   );
   const [phone, setPhone] = useState(doctor?.phone || "");
-  const [status, setStatus] = useState(doctor?.status || "pending");
+  const [status, setStatus] = useState(
+    doctor?.status === "verified"
+      ? "active"
+      : doctor?.status === "rejected"
+        ? "banned"
+        : doctor?.status || "pending",
+  );
 
   if (!open) return null;
   return (
@@ -20,7 +25,7 @@ function DoctorFormModal({ doctor, open, onSave, onClose }) {
         className="card-glass p-8 rounded-2xl shadow-(--shadow-lift) min-w-100 max-w-125 w-full flex flex-col gap-5 border border-(--ui-border)"
         onSubmit={(e) => {
           e.preventDefault();
-          onSave({ name, email, specialty, licenseNumber, phone, status });
+          onSave({ name, email, licenseNumber, phone, status });
         }}
       >
         <h3 className="font-bold text-2xl mb-2 brand-gradient-text">
@@ -61,23 +66,12 @@ function DoctorFormModal({ doctor, open, onSave, onClose }) {
         <GlideSelect
           fullWidth
           size="lg"
-          value={specialty}
-          onChange={(val) => setSpecialty(val)}
-          options={[
-            { value: "radiology", label: t("specialties.radiology") },
-            { value: "pulmonology", label: t("specialties.pulmonology") },
-            { value: "orthopedics", label: t("specialties.orthopedics") },
-          ]}
-        />
-        <GlideSelect
-          fullWidth
-          size="lg"
           value={status}
           onChange={(val) => setStatus(val)}
           options={[
             { value: "pending", label: t("statusLabels.pending") },
-            { value: "verified", label: t("statusLabels.verified") },
-            { value: "rejected", label: t("statusLabels.rejected") },
+            { value: "active", label: t("statusLabels.verified") },
+            { value: "banned", label: t("statusLabels.rejected") },
           ]}
         />
         <div className="flex gap-3 mt-4">

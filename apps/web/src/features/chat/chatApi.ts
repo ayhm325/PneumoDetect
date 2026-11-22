@@ -1,4 +1,5 @@
 import type { ChatMessageItem } from "@/components/chat/chatUtils";
+import { apiRequest } from "@/lib/apiClient";
 
 export interface ChatParticipantInfo {
   id: string;
@@ -20,39 +21,22 @@ export interface ChatConversation {
   updatedAt?: string;
 }
 
-async function parseJsonOrThrow<T>(res: Response, fallbackError: string): Promise<T> {
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    const msg =
-      (data as { error?: string; message?: string })?.error ||
-      (data as { message?: string })?.message ||
-      fallbackError;
-    throw new Error(msg);
-  }
-  return data as T;
-}
-
 export async function fetchDoctorChats(): Promise<ChatConversation[]> {
-  const res = await fetch("/api/chat/doctor", { credentials: "include" });
-  const data = await parseJsonOrThrow<{ chats?: ChatConversation[] }>(res, "Failed to load chats");
-  return Array.isArray(data.chats) ? data.chats : [];
+  const data = await apiRequest<{ chats?: ChatConversation[] }>("/api/chat/doctor");
+  return Array.isArray(data?.chats) ? data.chats : [];
 }
 
 export async function fetchPatientChats(): Promise<ChatConversation[]> {
-  const res = await fetch("/api/chat/patient", { credentials: "include" });
-  const data = await parseJsonOrThrow<{ chats?: ChatConversation[] }>(res, "Failed to load chats");
-  return Array.isArray(data.chats) ? data.chats : [];
+  const data = await apiRequest<{ chats?: ChatConversation[] }>("/api/chat/patient");
+  return Array.isArray(data?.chats) ? data.chats : [];
 }
 
 export async function ensurePatientChat(): Promise<ChatConversation | null> {
-  const res = await fetch("/api/chat/patient", {
+  const data = await apiRequest<{ chat?: ChatConversation }>("/api/chat/patient", {
     method: "POST",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({}),
   });
-  const data = await parseJsonOrThrow<{ chat?: ChatConversation }>(res, "Failed to start chat");
-  return data.chat || null;
+  return data?.chat || null;
 }
 
 export async function fetchChatMessages(
@@ -63,17 +47,12 @@ export async function fetchChatMessages(
   if (opts?.limit) params.set("limit", String(opts.limit));
   if (opts?.before) params.set("before", opts.before);
   const qs = params.toString();
-  const res = await fetch(
+  const data = await apiRequest<{ messages?: ChatMessageItem[]; hasMore?: boolean }>(
     `/api/chat/${encodeURIComponent(chatId)}/messages${qs ? `?${qs}` : ""}`,
-    { credentials: "include" },
-  );
-  const data = await parseJsonOrThrow<{ messages?: ChatMessageItem[]; hasMore?: boolean }>(
-    res,
-    "Failed to load messages",
   );
   return {
-    messages: Array.isArray(data.messages) ? data.messages : [],
-    hasMore: Boolean(data.hasMore),
+    messages: Array.isArray(data?.messages) ? data.messages : [],
+    hasMore: Boolean(data?.hasMore),
   };
 }
 
@@ -87,15 +66,12 @@ export async function sendChatMessageRest(
     fileName?: string;
   },
 ): Promise<{ message: ChatMessageItem; existing?: boolean }> {
-  const res = await fetch(`/api/chat/${encodeURIComponent(chatId)}/messages`, {
-    method: "POST",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-  return parseJsonOrThrow<{ message: ChatMessageItem; existing?: boolean }>(
-    res,
-    "Failed to send message",
+  return apiRequest<{ message: ChatMessageItem; existing?: boolean }>(
+    `/api/chat/${encodeURIComponent(chatId)}/messages`,
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+    },
   );
 }
 
@@ -104,10 +80,8 @@ export async function markChatMessagesReadRest(
   messageIds: string[],
 ): Promise<void> {
   if (!chatId || messageIds.length === 0) return;
-  await fetch(`/api/chat/${encodeURIComponent(chatId)}/read`, {
+  await apiRequest(`/api/chat/${encodeURIComponent(chatId)}/read`, {
     method: "POST",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ messageIds: messageIds.slice(0, 100) }),
   }).catch(() => undefined);
 }
@@ -122,25 +96,23 @@ export async function uploadChatAttachment(
 }> {
   const formData = new FormData();
   formData.append("file", file);
-  const res = await fetch(`/api/chat/${encodeURIComponent(chatId)}/upload`, {
-    method: "POST",
-    credentials: "include",
-    body: formData,
-  });
-  const data = await parseJsonOrThrow<{
+  const data = await apiRequest<{
     fileUrl?: string;
     url?: string;
     mimeType?: string;
     fileName?: string;
-  }>(res, "Failed to upload file");
+  }>(`/api/chat/${encodeURIComponent(chatId)}/upload`, {
+    method: "POST",
+    body: formData,
+  });
 
-  const fileUrl = data.fileUrl || data.url || "";
+  const fileUrl = data?.fileUrl || data?.url || "";
   if (!fileUrl) {
     throw new Error("Upload succeeded without file URL");
   }
   return {
     fileUrl,
-    mimeType: data.mimeType || file.type || "application/octet-stream",
-    fileName: data.fileName || file.name,
+    mimeType: data?.mimeType || file.type || "application/octet-stream",
+    fileName: data?.fileName || file.name,
   };
 }

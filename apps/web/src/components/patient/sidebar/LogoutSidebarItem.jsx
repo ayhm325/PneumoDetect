@@ -1,5 +1,6 @@
 "use client";
 import { useRouter } from "@/lib/compat/navigation";
+import { apiRequest } from "@/lib/apiClient";
 
 export default function LogoutSidebarItem() {
   const router = useRouter();
@@ -7,18 +8,8 @@ export default function LogoutSidebarItem() {
   const handleLogout = () => {
     (async () => {
       try {
-        const token =
-          typeof window !== "undefined" ? localStorage.getItem("token") : null;
-        await fetch("/api/auth/logout", {
+        await apiRequest("/api/auth/logout", {
           method: "POST",
-          credentials: "include",
-          headers: token
-            ? {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json",
-              }
-            : { "Content-Type": "application/json" },
-          body: token ? JSON.stringify({ token }) : undefined,
         }).catch(() => {});
       } finally {
         if (typeof window !== "undefined") {

@@ -9,6 +9,7 @@ import { useTheme } from "@/lib/compat/theme";
 import { useLocaleContext } from "@/contexts/LocaleContext";
 import AuthGuard from "@/components/AuthGuard";
 import useSocket from "@/components/chat/useSocket.client";
+import { apiRequest } from "@/lib/apiClient";
 
 export default function PatientLayout({ children }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -27,20 +28,17 @@ export default function PatientLayout({ children }) {
     let mounted = true;
     (async () => {
       try {
-        const res = await fetch("/api/auth/token", { credentials: "include" });
+        const data = await apiRequest("/api/auth/token");
         if (!mounted) return;
-        if (res.ok) {
-          const data = await res.json();
-          if (data?.token) {
+        if (data?.token) {
+          try {
+            socket.connect({ token: data.token });
+          } catch (e) {
             try {
-              socket.connect({ token: data.token });
-            } catch (e) {
-              try {
-                socket.connect();
-              } catch (e2) {}
-            }
-            return;
+              socket.connect();
+            } catch (e2) {}
           }
+          return;
         }
       } catch (e) {
         // ignore

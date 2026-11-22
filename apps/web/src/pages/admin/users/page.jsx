@@ -1,8 +1,9 @@
 "use client";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 // Page is rendered inside the route-level AdminLayout; avoid double-wrapping
 import { useToast, ToastContainer } from "@/components/ui/ToastProvider";
 import { Button, GlideSelect } from "@/components/ui";
+import { apiRequest } from "@/lib/apiClient";
 import useLocale from "@/lib/compat/intl";
 import { useTranslations } from "@/lib/compat/intl";
 import {
@@ -38,65 +39,62 @@ export default function UsersPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [users, setUsers] = useState([]);
+  const [submitting, setSubmitting] = useState(false);
+
+  const mapServerUser = useCallback(
+    (u) => {
+      const role = u.role || "admin";
+      const phone =
+        (u.doctor && u.doctor.phone) || (u.patient && u.patient.phone) || "";
+      const status =
+        u.isActive === false
+          ? "banned"
+          : role === "admin"
+            ? "active"
+            : role === "doctor"
+              ? u.doctor?.status || "pending"
+              : u.patient?.status || "active";
+      const joinDate = u.patient?.joinDate
+        ? new Date(u.patient.joinDate).toISOString().split("T")[0]
+        : u.createdAt
+          ? new Date(u.createdAt).toISOString().split("T")[0]
+          : "";
+      const lastLogin = u.updatedAt
+        ? new Date(u.updatedAt).toISOString().replace("T", " ").substring(0, 16)
+        : "";
+
+      return {
+        id: u.id,
+        name: u.fullName || u.name || "",
+        email: u.email || "",
+        phone,
+        role,
+        status,
+        isActive: Boolean(u.isActive),
+        joinDate,
+        lastLogin,
+        avatar:
+          role === "admin"
+            ? t("avatars.admin")
+            : role === "doctor"
+              ? t("avatars.doctor")
+              : t("avatars.patient"),
+        specialty: u.doctor?.specialty,
+        license: u.doctor?.licenseNumber,
+        patientId: u.patient?.id,
+        permissions: [],
+      };
+    },
+    [t],
+  );
 
   useEffect(() => {
     let mounted = true;
     async function loadUsers() {
       try {
-        const res = await fetch("/api/admin/users");
-        if (!res.ok) throw new Error(t("errors.fetchFailed"));
-        const data = await res.json();
-
-        const mapped = data.map((u) => {
-          const role = u.role;
-          const phone =
-            (u.doctor && u.doctor.phone) ||
-            (u.patient && u.patient.phone) ||
-            "";
-          // Prefer explicit isActive flag: if user is not active, show as 'banned' in admin list
-          const status =
-            u.isActive === false
-              ? "banned"
-              : role === "admin"
-                ? "active"
-                : role === "doctor"
-                  ? u.doctor?.status || "pending"
-                  : u.patient?.status || "active";
-          const joinDate = u.patient?.joinDate
-            ? new Date(u.patient.joinDate).toISOString().split("T")[0]
-            : u.createdAt
-              ? new Date(u.createdAt).toISOString().split("T")[0]
-              : "";
-          const lastLogin = u.updatedAt
-            ? new Date(u.updatedAt)
-                .toISOString()
-                .replace("T", " ")
-                .substring(0, 16)
-            : "";
-
-          return {
-            id: u.id,
-            name: u.fullName || u.name,
-            email: u.email,
-            phone,
-            role,
-            status,
-            isActive: !!u.isActive,
-            joinDate,
-            lastLogin,
-            avatar:
-              role === "admin"
-                ? t("avatars.admin")
-                : role === "doctor"
-                  ? t("avatars.doctor")
-                  : t("avatars.patient"),
-            specialty: u.doctor?.specialty,
-            license: u.doctor?.licenseNumber,
-            patientId: u.patient?.id,
-            permissions: [],
-          };
-        });
-
+        const data = await apiRequest("/api/admin/users");
+        const list = Array.isArray(data) ? data : data?.users || [];
+        const mapped = list.map(mapServerUser);
         if (mounted) setUsers(mapped);
       } catch (err) {
         showError(String(err?.message || t("errors.loadFailed")));
@@ -107,7 +105,7 @@ export default function UsersPage() {
     return () => {
       mounted = false;
     };
-  }, [locale, t, showError]);
+  }, [locale, t, showError, mapServerUser]);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -184,80 +182,46 @@ export default function UsersPage() {
     }
   };
 
-  const handleAddUser = () => {
-    // In a real app, this would add the user to a database
-    const newUser = {
-      id: users.length + 1,
-      name: formData.name,
-      email: formData.email,
-      role: "admin",
-      status: "active",
-      joinDate: new Date().toISOString().split("T")[0],
-      lastLogin: new Date().toISOString().replace("T", " ").substring(0, 16),
-      phone: "",
-      password: formData.password || "changeme",
-      avatar: t("avatars.admin"),
-    };
+  const handleAddUser = async () => {
+    if (submitting) return;
+    if (
+      !formData.name?.trim() ||
+      !formData.email?.trim() ||
+      !formData.password?.trim()
+    ) {
+      showError(t("errors.createAdminFailed"));
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const created = await apiRequest("/api/admin/users", {
+        method: "POST",
+        body: JSON.stringify({
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          password: formData.password,
+          status: "active",
+        }),
+      });
 
-    setUsers([...users, newUser]);
-    setShowAddModal(false);
-    setFormData({
-      name: "",
-      email: "",
-      password: "",
-      role: "admin",
-    });
-    showToast(t("toast.userAdded"), "success");
-    // Create admin via API
-    (async () => {
-      try {
-        const res = await fetch("/api/admin/users", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name: formData.name,
-            email: formData.email,
-            password: formData.password,
-            status: "active",
-          }),
-        });
+      const uiUser = mapServerUser({
+        ...created,
+        fullName: created?.fullName || formData.name.trim(),
+        email: created?.email || formData.email.trim(),
+        role: created?.role || "admin",
+        isActive: created?.isActive !== undefined ? created.isActive : true,
+      });
 
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          showToast(err.message || err.error || t("errors.createAdminFailed"), "error");
-          return;
-        }
-
-        const created = await res.json();
-
-        const uiUser = {
-          id: created.id,
-          name: created.fullName || formData.name,
-          email: created.email,
-          phone: "",
-          role: created.role || "admin",
-          status: created.isActive ? "active" : "suspended",
-          joinDate: created.createdAt
-            ? new Date(created.createdAt).toISOString().split("T")[0]
-            : new Date().toISOString().split("T")[0],
-          lastLogin: created.updatedAt
-            ? new Date(created.updatedAt)
-                .toISOString()
-                .replace("T", " ")
-                .substring(0, 16)
-            : new Date().toISOString().replace("T", " ").substring(0, 16),
-          avatar: t("avatars.admin"),
-          permissions: [],
-        };
-
-        setUsers((prev) => [uiUser, ...prev]);
-        setShowAddModal(false);
-        setFormData({ name: "", email: "", password: "", role: "admin" });
-        showToast(t("messages.adminCreated"), "success");
-      } catch (err) {
-        showToast(t("errors.createAdminFailed"), "error");
-      }
-    })();
+      setUsers((prev) => [uiUser, ...prev.filter((u) => u.id !== uiUser.id)]);
+      setShowAddModal(false);
+      setShowPassword(false);
+      setFormData({ name: "", email: "", password: "", role: "admin" });
+      showSuccess(t("messages.adminCreated"));
+    } catch (err) {
+      showError(err?.message || t("errors.createAdminFailed"));
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const openDetailsModal = (user) => {
@@ -269,40 +233,40 @@ export default function UsersPage() {
     setSelectedUser(user);
     setShowDeleteModal(true);
   };
+
   const handleToggleUser = async () => {
-    if (!selectedUser) return;
+    if (!selectedUser || submitting) return;
+    setSubmitting(true);
     try {
       const targetIsActive = !selectedUser.isActive;
-      const res = await fetch(`/api/admin/users/${selectedUser.id}`, {
+      const res = await apiRequest(`/api/admin/users/${selectedUser.id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ isActive: targetIsActive }),
       });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        showToast(err.message || err.error || t("errors.loadFailed"), "error");
-        return;
-      }
-      // Update UI
-      setUsers(
-        users.map((u) =>
-          u.id === selectedUser.id
-            ? {
-                ...u,
-                isActive: targetIsActive,
-                status: targetIsActive ? "active" : "banned",
-              }
-            : u,
-        ),
+
+      const serverUser = res?.user;
+      setUsers((prev) =>
+        prev.map((u) => {
+          if (u.id !== selectedUser.id) return u;
+          if (serverUser) {
+            return mapServerUser(serverUser);
+          }
+          return {
+            ...u,
+            isActive: targetIsActive,
+            status: targetIsActive ? "active" : "banned",
+          };
+        }),
       );
       setShowDeleteModal(false);
       setSelectedUser(null);
-      showToast(
+      showSuccess(
         targetIsActive ? t("toast.userAdded") : t("toast.userDeleted"),
-        "success",
       );
     } catch (err) {
-      showToast(t("errors.loadFailed"), "error");
+      showError(err?.message || t("errors.loadFailed"));
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -564,13 +528,19 @@ export default function UsersPage() {
                 </div>
               </div>
               <div className="flex gap-3 mt-6">
-                <Button onClick={handleAddUser} fullWidth>
+                <Button
+                  onClick={handleAddUser}
+                  disabled={submitting}
+                  isLoading={submitting}
+                  fullWidth
+                >
                   <FaSave />
                   <span>{t("modal.add")}</span>
                 </Button>
                 <Button
                   variant="secondary"
                   fullWidth
+                  disabled={submitting}
                   onClick={() => setShowAddModal(false)}
                 >
                   {t("modal.cancel")}

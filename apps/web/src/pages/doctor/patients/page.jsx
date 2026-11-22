@@ -25,6 +25,7 @@ import {
 } from "react-icons/fa";
 import { useLocale, useTranslations } from "@/lib/compat/intl";
 import { formatDate } from "@/lib/date";
+import { apiRequest } from "@/lib/apiClient";
 import { Button, Card, GlideSelect, ProfileMediaCard, StatCard } from "@/components/ui";
 
 // You may need to get locale and labels from props or context, adjust as needed
@@ -115,18 +116,13 @@ export default function DoctorPatientsPage({ locale }) {
     let mounted = true;
     (async () => {
       try {
-        const res = await fetch("/api/doctor/patients", { credentials: "include" });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const json = await res.json();
-        // support both direct array and { patients: [] }
+        const json = await apiRequest("/api/doctor/patients");
         const list = Array.isArray(json)
           ? json
-          : json.patients || json.list || [];
+          : json?.patients || json?.list || [];
         const mapped = list.map(mapPatient);
         if (mounted) setPatients(mapped);
       } catch (err) {
-        // fetch failed — leave `patients` as-is (the translations-based template
-        // is applied by a separate effect). Log for debugging.
         console.error("Failed to fetch doctor patients:", err);
       }
     })();

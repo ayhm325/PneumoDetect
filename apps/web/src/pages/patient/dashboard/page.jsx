@@ -25,6 +25,7 @@ import {
 import { useTranslations, useLocale } from "@/lib/compat/intl";
 import PatientDashboardWrapper from "@/components/PatientDashboardWrapper";
 import useSocket from "@/components/chat/useSocket.client";
+import { apiFetch, apiRequest } from "@/lib/apiClient";
 import { Button, Card, StatCard } from "@/components/ui";
 import { PageHeader } from "@/components/ui/PageHeader";
 
@@ -110,12 +111,8 @@ export default function PatientDashboardPage() {
     let mounted = true;
     async function fetchStats() {
       try {
-        const res = await fetch("/api/patient/dashboard-stats", {
-          cache: "no-store",
-        });
-        if (!res.ok) return;
-        const data = await res.json();
-        if (!mounted) return;
+        const data = await apiRequest("/api/patient/dashboard-stats");
+        if (!mounted || !data) return;
         setStats([
           {
             title: t("dashboard.stats.upcomingAppointments"),
@@ -213,7 +210,7 @@ export default function PatientDashboardPage() {
     let mounted = true;
     async function fetchUnreadCount() {
       try {
-        const res = await fetch("/api/patient/notifications", {
+        const res = await apiFetch("/api/patient/notifications", {
           method: "HEAD",
         });
         if (res.ok) {
@@ -248,9 +245,7 @@ export default function PatientDashboardPage() {
     let mounted = true;
     (async () => {
       try {
-        const res = await fetch("/api/patient/profile", { cache: "no-store" });
-        if (!res.ok) return;
-        const data = await res.json();
+        const data = await apiRequest("/api/patient/profile");
         const name = (data?.profile?.fullName || "").trim();
         if (mounted) setPatientName(name);
       } catch {}
@@ -265,17 +260,15 @@ export default function PatientDashboardPage() {
     let mounted = true;
     (async () => {
       try {
-        const [histRes, apptRes] = await Promise.all([
-          fetch("/api/analysis/history?limit=3", { credentials: "include" }).catch(() => null),
-          fetch("/api/patient/appointments", { credentials: "include" }).catch(() => null),
+        const [histData, apptData] = await Promise.all([
+          apiRequest("/api/analysis/history?limit=3").catch(() => null),
+          apiRequest("/api/patient/appointments").catch(() => null),
         ]);
         if (!mounted) return;
-        if (histRes?.ok) {
-          const histData = await histRes.json().catch(() => ({}));
+        if (histData) {
           setRecentAnalyses(Array.isArray(histData?.data) ? histData.data.slice(0, 3) : []);
         }
-        if (apptRes?.ok) {
-          const apptData = await apptRes.json().catch(() => ({}));
+        if (apptData) {
           const list = Array.isArray(apptData?.appointments) ? apptData.appointments : [];
           setUpcomingAppointments(list.slice(0, 3));
         }

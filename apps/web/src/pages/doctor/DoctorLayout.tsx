@@ -13,6 +13,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { UnifiedPortalShell } from "@/components/layouts/UnifiedPortalShell";
 import useSocket from "@/components/chat/useSocket.client";
+import { apiRequest } from "@/lib/apiClient";
 
 export default function DoctorLayout({ children }: { children: React.ReactNode }) {
   const { t, i18n } = useTranslation("doctorSidebar");
@@ -22,8 +23,7 @@ export default function DoctorLayout({ children }: { children: React.ReactNode }
   // Preserve global presence connection when doctor enters the portal
   useEffect(() => {
     let mounted = true;
-    fetch("/api/auth/token", { credentials: "include" })
-      .then((res) => (res.ok ? res.json() : null))
+    apiRequest<{ token?: string }>("/api/auth/token")
       .then((data) => {
         if (mounted && data?.token) {
           socket.connect({ token: data.token });

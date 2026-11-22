@@ -4,6 +4,7 @@ import { FaUserMd, FaUserEdit, FaUserTimes, FaUserPlus } from "react-icons/fa";
 import { useEffect, useState } from "react";
 import useLocale from "@/lib/compat/intl";
 import { useTranslations } from "@/lib/compat/intl";
+import { apiRequest } from "@/lib/apiClient";
 
 export default function DoctorsTable() {
   const { t } = useLocale();
@@ -15,10 +16,9 @@ export default function DoctorsTable() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch("/api/admin/doctors")
-      .then((res) => res.json())
+    apiRequest("/api/admin/doctors")
       .then((data) => {
-        setDoctors(data.doctors || []);
+        setDoctors(data?.doctors || []);
         setLoading(false);
       })
       .catch(() => {
@@ -30,7 +30,7 @@ export default function DoctorsTable() {
   const handleDelete = async (doctor) => {
     if (!window.confirm(tr.confirmDelete)) return;
     try {
-      await fetch(`/api/admin/doctors/${doctor.userId || doctor.id}`, {
+      await apiRequest(`/api/admin/doctors/${doctor.userId || doctor.id}`, {
         method: "DELETE",
       });
       setDoctors((prev) =>

@@ -8,7 +8,7 @@ export default function UserFormModal({ open, onClose, onSave, user }) {
   const t = useTranslations("adminUsers");
   const [name, setName] = useState(user?.name || "");
   const [email, setEmail] = useState(user?.email || "");
-  const [role, setRole] = useState(user?.role || "patient");
+  const [role, setRole] = useState(user?.role || "admin");
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-(--color-neutral)/50 p-4 backdrop-blur-sm">
@@ -43,11 +43,7 @@ export default function UserFormModal({ open, onClose, onSave, user }) {
           size="lg"
           value={role}
           onChange={(val) => setRole(val)}
-          options={[
-            { value: "admin", label: t("roles.admin") },
-            { value: "doctor", label: t("roles.doctor") },
-            { value: "patient", label: t("roles.patient") },
-          ]}
+          options={[{ value: "admin", label: t("roles.admin") }]}
         />
         <div className="flex gap-3 mt-4">
           <button

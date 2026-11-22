@@ -15,6 +15,7 @@ export interface AdminPatientService {
     gender?: string;
     bloodType?: string;
     birthDate?: string;
+    notes?: string;
     status?: string;
     medicalId?: string;
     doctorId?: string;
@@ -26,10 +27,11 @@ export interface AdminPatientService {
     email?: string;
     phone?: string;
     gender?: string;
-    doctorId?: string;
+    doctorId?: string | null;
     status?: string;
     bloodType?: string;
     birthDate?: string;
+    notes?: string;
     medicalId?: string;
   }): Promise<Record<string, unknown>>;
 }
@@ -97,6 +99,7 @@ export function createAdminPatientService(deps: {
         gender: normalizedGender ?? null,
         bloodType: input.bloodType || null,
         birthDate: input.birthDate ? new Date(input.birthDate) : null,
+        notes: typeof input.notes === "string" ? input.notes : null,
         status: normalizedStatus,
         doctorId: input.doctorId,
         hashedPassword,
@@ -155,16 +158,21 @@ export function createAdminPatientService(deps: {
           ...(normalizedStatus ? { isActive: normalizedStatus === "active" } : {}),
         },
         patient: {
+          ...(typeof input.name === "string" ? { fullName: input.name } : {}),
+          ...(typeof input.email === "string" ? { email: input.email } : {}),
           ...(typeof input.phone !== "undefined" ? { phone: input.phone } : {}),
           ...(normalizedGender ? { gender: normalizedGender } : {}),
           ...(typeof input.bloodType === "string" ? { bloodType: input.bloodType } : {}),
           ...(typeof input.birthDate === "string"
-            ? { birthDate: new Date(input.birthDate) }
+            ? { birthDate: input.birthDate ? new Date(input.birthDate) : null }
             : {}),
+          ...(typeof input.notes === "string" ? { notes: input.notes } : {}),
           ...(normalizedStatus ? { status: normalizedStatus } : {}),
-          ...(typeof input.doctorId === "string" && input.doctorId.trim()
-            ? { doctorId: input.doctorId.trim() }
-            : {}),
+          ...(typeof input.doctorId === "string"
+            ? { doctorId: input.doctorId.trim() ? input.doctorId.trim() : null }
+            : input.doctorId === null
+              ? { doctorId: null }
+              : {}),
         },
       });
 

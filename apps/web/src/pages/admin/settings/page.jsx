@@ -15,6 +15,7 @@ import { useTranslations } from "@/lib/compat/intl";
 import useLocale from "@/lib/compat/intl";
 import { useToast } from "@/components/ui/ToastProvider";
 import { Button, GlideSelect } from "@/components/ui";
+import { apiRequest } from "@/lib/apiClient";
 
 // --- مكون Toggle Switch مخصص ---
 const ToggleSwitch = ({ checked, onChange, label }) => (
@@ -45,39 +46,31 @@ export default function SettingsPage() {
     systemName: t("defaults.systemName"),
     defaultLanguage: "ar",
     registrationEnabled: true,
-    allowPatientChangeDoctor: false,
+    allowPatientChangeDoctor: true,
     maxDoctorChangeRequests: 3,
     appointmentInterval: 15,
-    rolePermissions: {
-      doctor: true,
-      patient: true,
-    },
-    sessionDuration: 30,
-    enableTwoFactor: false,
+    sessionDuration: 120,
   });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   // عند فتح الصفحة، نحمل القيم المخزنة من الخادم
   useEffect(() => {
     let mounted = true;
     (async () => {
       try {
-        const res = await fetch("/api/admin/settings");
-        if (res.status === 404) {
-          return;
-        }
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          showError(err?.error || t("messages.saveFailed"));
-          return;
-        }
-        const body = await res.json().catch(() => ({}));
+        const body = await apiRequest("/api/admin/settings");
         if (!mounted) return;
         if (body?.settings) {
           setSettings((prev) => ({ ...prev, ...body.settings }));
         }
       } catch (e) {
         if (!mounted) return;
-        showError(e?.message || t("messages.saveFailed"));
+        if (e?.status !== 404) {
+          showError(e?.message || t("messages.saveFailed"));
+        }
+      } finally {
+        if (mounted) setLoading(false);
       }
     })();
     return () => {
@@ -90,34 +83,24 @@ export default function SettingsPage() {
     setSettings((prev) => ({ ...prev, [field]: value }));
   };
 
-  // التعامل مع التغييرات المتداخلة (مثل الصلاحيات)
-  const handleNestedChange = (parent, field, value) => {
-    setSettings((prev) => ({
-      ...prev,
-      [parent]: { ...prev[parent], [field]: value },
-    }));
-  };
-
   // حفظ الإعدادات
-  const handleSave = () => {
-    (async () => {
-      try {
-        const res = await fetch("/api/admin/settings", {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(settings),
-        });
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          showError(err?.error || t("messages.saveFailed"));
-          return;
-        }
-        const body = await res.json();
-        showSuccess(t("messages.success"));
-      } catch (e) {
-        showError(e.message || t("messages.saveFailed"));
+  const handleSave = async () => {
+    if (saving) return;
+    setSaving(true);
+    try {
+      const body = await apiRequest("/api/admin/settings", {
+        method: "PATCH",
+        body: JSON.stringify(settings),
+      });
+      if (body?.settings) {
+        setSettings((prev) => ({ ...prev, ...body.settings }));
       }
-    })();
+      showSuccess(t("messages.success"));
+    } catch (e) {
+      showError(e?.message || t("messages.saveFailed"));
+    } finally {
+      setSaving(false);
+    }
   };
 
   // Build appointment options by mapping known values to localized labels.
@@ -290,7 +273,7 @@ export default function SettingsPage() {
               </div>
             </section>
 
-            {/* 4. صلاحيات الأدوار */}
+            {/* 4. صلاحيات الأدوار المعتمدة (RBAC) */}
             <section className="card-glass rounded-2xl shadow-(--shadow-soft) border border-(--ui-border) p-6 hover:shadow-(--shadow-lift) transition-shadow duration-300 flex flex-col gap-5 md:col-span-2 lg:col-span-1">
               <div className="flex items-center gap-3 border-b border-(--ui-border) pb-4">
                 <div className="p-2 brand-gradient text-white rounded-lg shadow-(--shadow-soft)">
@@ -302,40 +285,19 @@ export default function SettingsPage() {
               </div>
 
               <div className="grid grid-cols-1 gap-3 pt-2">
-                {Object.keys(settings.rolePermissions)
-                  .filter((r) => r !== "admin")
-                  .map((role) => (
-                    <button
-                      key={role}
-                      onClick={() =>
-                        handleNestedChange(
-                          "rolePermissions",
-                          role,
-                          !settings.rolePermissions[role],
-                        )
-                      }
-                      className={`flex items-center justify-between p-3 rounded-xl transition-all duration-200 group ${
-                        settings.rolePermissions[role]
-                          ? "bg-(--ui-surface) border border-(--ui-border) shadow-(--shadow-soft)"
-                          : "bg-(--ui-surface-2) border border-(--ui-border) opacity-60 hover:opacity-100"
-                      }`}
-                    >
-                      <span
-                        className={`font-medium capitalize text-sm ${settings.rolePermissions[role] ? "text-foreground" : "text-(--ui-muted-2)"}`}
-                      >
-                        {role}
-                      </span>
-                      <div
-                        className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors border ${settings.rolePermissions[role] ? "bg-(--ui-success) text-white border-(--ui-success-border)" : "bg-(--ui-surface) text-(--ui-muted-2) border-(--ui-border)"}`}
-                      >
-                        {settings.rolePermissions[role] ? (
-                          <FaCheck size={10} />
-                        ) : (
-                          ""
-                        )}
-                      </div>
-                    </button>
-                  ))}
+                {["admin", "doctor", "patient"].map((role) => (
+                  <div
+                    key={role}
+                    className="flex items-center justify-between p-3 rounded-xl bg-(--ui-surface) border border-(--ui-border) shadow-(--shadow-soft)"
+                  >
+                    <span className="font-medium capitalize text-sm text-foreground">
+                      {role}
+                    </span>
+                    <div className="w-5 h-5 rounded-full flex items-center justify-center bg-(--ui-success) text-white border border-(--ui-success-border)">
+                      <FaCheck size={10} />
+                    </div>
+                  </div>
+                ))}
               </div>
             </section>
 
@@ -367,7 +329,7 @@ export default function SettingsPage() {
                         onChange={(e) =>
                           handleChange(
                             "sessionDuration",
-                            parseInt(e.target.value),
+                            parseInt(e.target.value, 10),
                           )
                         }
                         className="w-full h-2 bg-(--ui-surface-2) rounded-lg appearance-none cursor-pointer accent-(--ui-ring)"
@@ -380,23 +342,6 @@ export default function SettingsPage() {
                     <p className="text-xs text-(--ui-muted-2) mt-2">
                       {t("labels.sessionDuration.description")}
                     </p>
-                  </div>
-
-                  <div className="pt-2">
-                    <ToggleSwitch
-                      label={
-                        <span className="flex items-center gap-2">
-                          {t("labels.enableTwoFactor.label")}
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-(--ui-info-bg) text-(--ui-info) border border-(--ui-info-border) tracking-wide">
-                            {t("ui.secureBadge")}
-                          </span>
-                        </span>
-                      }
-                      checked={settings.enableTwoFactor}
-                      onChange={(e) =>
-                        handleChange("enableTwoFactor", e.target.checked)
-                      }
-                    />
                   </div>
                 </div>
 
@@ -421,7 +366,12 @@ export default function SettingsPage() {
               <div className="hidden sm:block text-xs text-(--ui-muted-2) px-2 border-r border-(--ui-border)">
                 {t("ui.unsavedChanges")}
               </div>
-              <Button size="sm" onClick={handleSave}>
+              <Button
+                size="sm"
+                onClick={handleSave}
+                disabled={saving || loading}
+                isLoading={saving}
+              >
                 <FaSave /> {t("actions.save")}
               </Button>
             </div>

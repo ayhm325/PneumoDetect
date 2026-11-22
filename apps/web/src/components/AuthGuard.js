@@ -1,6 +1,7 @@
 "use client";
 import { useEffect } from "react";
 import { usePathname, useRouter } from "@/lib/compat/navigation";
+import { apiFetch } from "@/lib/apiClient";
 
 export default function AuthGuard({ children }) {
   const router = useRouter();
@@ -12,9 +13,8 @@ export default function AuthGuard({ children }) {
 
     (async () => {
       try {
-        const res = await fetch("/api/auth/whoami", {
+        const res = await apiFetch("/api/auth/whoami", {
           cache: "no-store",
-          credentials: "include",
         });
         if (!res.ok) {
           const localePrefix = pathname.startsWith("/en") ? "/en" : "/ar";

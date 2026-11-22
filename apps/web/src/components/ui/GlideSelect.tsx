@@ -3,6 +3,7 @@ import React, {
   useEffect,
   useId,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
   type CSSProperties,
@@ -14,6 +15,7 @@ export interface GlideSelectOption {
   value: string;
   label: ReactNode;
   tag?: string;
+  disabled?: boolean;
 }
 
 export interface GlideSelectProps {
@@ -22,6 +24,7 @@ export interface GlideSelectProps {
   defaultValue?: string;
   onChange?: (value: string, option: GlideSelectOption) => void;
   placeholder?: string;
+  emptyText?: string;
   showTags?: boolean;
   accentColor?: string;
   surfaceColor?: string;
@@ -32,12 +35,16 @@ export interface GlideSelectProps {
   menuWidth?: number;
   fullWidth?: boolean;
   placement?: "top" | "bottom";
-  align?: "left" | "right";
+  align?: "left" | "right" | "start" | "end";
   popDuration?: number;
   glideDuration?: number;
   rememberPosition?: boolean;
   disabled?: boolean;
+  required?: boolean;
+  invalid?: boolean;
   ariaLabel?: string;
+  ariaLabelledBy?: string;
+  ariaDescribedBy?: string;
   className?: string;
   id?: string;
   name?: string;
@@ -53,28 +60,37 @@ const SIZES: Record<string, { chip: number; row: number; font: number }> = {
 const PAD = 4;
 const GAP = 1;
 const MENU_GAP = 6;
-const DEFAULT_OPTIONS: (string | GlideSelectOption)[] = ["One", "Two", "Three"];
+const EMPTY_OPTIONS: (string | GlideSelectOption)[] = [];
 const STYLE = "@keyframes gs-swap{from{opacity:.6;filter:blur(2px)}}";
 
 const norm = (o: string | GlideSelectOption): GlideSelectOption =>
-  typeof o === "string" ? { value: o, label: o } : o;
+  typeof o === "string"
+    ? { value: o, label: o }
+    : { ...o, value: String(o.value ?? "") };
 const textOf = (it: GlideSelectOption) =>
-  typeof it.label === "string" ? it.label : it.value;
-const typeaheadIndex = (items: GlideSelectOption[], from: number, ch: string) => {
+  typeof it.label === "string" ? it.label : String(it.value ?? "");
+const typeaheadIndex = (
+  items: GlideSelectOption[],
+  from: number,
+  ch: string,
+) => {
   const n = items.length;
   for (let s = 1; s <= n; s++) {
     const k = (from + s) % n;
-    if (textOf(items[k]).toLowerCase().startsWith(ch)) return k;
+    if (!items[k].disabled && textOf(items[k]).toLowerCase().startsWith(ch)) {
+      return k;
+    }
   }
   return -1;
 };
 
 export const GlideSelect: React.FC<GlideSelectProps> = ({
-  options = DEFAULT_OPTIONS,
+  options = EMPTY_OPTIONS,
   value: controlled,
   defaultValue,
   onChange,
   placeholder = "Select...",
+  emptyText = "No options available",
   showTags = false,
   accentColor = "var(--color-primary)",
   surfaceColor = "var(--ui-surface-elevated)",
@@ -85,25 +101,36 @@ export const GlideSelect: React.FC<GlideSelectProps> = ({
   menuWidth = 220,
   fullWidth = false,
   placement = "bottom",
-  align = "left",
+  align = "start",
   popDuration = 180,
   glideDuration = 220,
   rememberPosition = true,
   disabled = false,
+  required = false,
+  invalid = false,
   ariaLabel = "Select option",
+  ariaLabelledBy,
+  ariaDescribedBy,
   className = "",
   id,
   name,
 }) => {
   const uid = useId();
-  const items = options.map(norm);
+  const items = useMemo(
+    () => (Array.isArray(options) ? options.map(norm) : []),
+    [options],
+  );
   const { chip: chipH, row: rowH, font } = SIZES[size] || SIZES.md;
   const isControlled = controlled !== undefined;
-  const [internal, setInternal] = useState(
-    () => defaultValue ?? items[0]?.value ?? ""
+  const [internal, setInternal] = useState<string>(() =>
+    defaultValue !== undefined
+      ? String(defaultValue)
+      : items[0]?.value !== undefined
+        ? String(items[0].value)
+        : "",
   );
-  const val = isControlled ? controlled! : internal;
-  const selectedIdx = items.findIndex((o) => String(o.value) === String(val));
+  const val = isControlled ? String(controlled ?? "") : internal;
+  const selectedIdx = items.findIndex((o) => String(o.value) === val);
   const selected = selectedIdx >= 0 ? items[selectedIdx] : undefined;
 
   const [phase, setPhase] = useState<Phase>("closed");
@@ -127,21 +154,34 @@ export const GlideSelect: React.FC<GlideSelectProps> = ({
       closeT.current = undefined;
     }
   }, []);
+
   const close = useCallback(() => {
     clearTimer();
     setPhase((p) => (p === "open" ? "closing" : p));
   }, [clearTimer]);
+
+  const firstEnabledIdx = useCallback(() => {
+    return items.findIndex((it) => !it.disabled);
+  }, [items]);
+
   const open = (initial?: number) => {
-    if (disabled || !items.length) return;
+    if (disabled) return;
     clearTimer();
     if (!rememberPosition) lastRect.current = null;
     setPillReady(false);
-    setHl(initial ?? (selectedIdx >= 0 ? selectedIdx : 0));
+    const defaultIdx =
+      initial !== undefined
+        ? initial
+        : selectedIdx >= 0 && !items[selectedIdx]?.disabled
+          ? selectedIdx
+          : firstEnabledIdx();
+    setHl(defaultIdx);
     setPhase("open");
   };
+
   const commit = (i: number) => {
     const it = items[i];
-    if (!it) return;
+    if (!it || it.disabled) return;
     if (!isControlled) setInternal(it.value);
     onChange?.(it.value, it);
     close();
@@ -152,7 +192,7 @@ export const GlideSelect: React.FC<GlideSelectProps> = ({
     if (phase !== "closing") return;
     const t = window.setTimeout(
       () => setPhase("closed"),
-      Math.max(120, popDuration * 0.72)
+      Math.max(120, popDuration * 0.72),
     );
     closeT.current = t;
     return () => clearTimeout(t);
@@ -163,25 +203,29 @@ export const GlideSelect: React.FC<GlideSelectProps> = ({
     if (!el || phase === "closed") return;
     const enter = phase === "open";
     const dy = (top ? 1 : -1) * (enter ? 6 : 4);
-    el.getAnimations().forEach((a) => a.cancel());
-    el.animate(
-      enter
-        ? [
-            { opacity: 0, transform: `translateY(${dy}px) scale(.96)` },
-            { opacity: 1, transform: "none" },
-          ]
-        : [
-            { opacity: 1, transform: "none" },
-            { opacity: 0, transform: `translateY(${dy}px) scale(.97)` },
-          ],
-      {
-        duration: enter ? popDuration : Math.max(110, popDuration * 0.65),
-        easing: enter
-          ? "cubic-bezier(.16,1,.3,1)"
-          : "cubic-bezier(.4,0,1,1)",
-        fill: "forwards",
-      }
-    );
+    if (typeof el.getAnimations === "function") {
+      el.getAnimations().forEach((a) => a.cancel());
+    }
+    if (typeof el.animate === "function") {
+      el.animate(
+        enter
+          ? [
+              { opacity: 0, transform: `translateY(${dy}px) scale(.96)` },
+              { opacity: 1, transform: "none" },
+            ]
+          : [
+              { opacity: 1, transform: "none" },
+              { opacity: 0, transform: `translateY(${dy}px) scale(.97)` },
+            ],
+        {
+          duration: enter ? popDuration : Math.max(110, popDuration * 0.65),
+          easing: enter
+            ? "cubic-bezier(.16,1,.3,1)"
+            : "cubic-bezier(.4,0,1,1)",
+          fill: "forwards",
+        },
+      );
+    }
   }, [phase, top, popDuration]);
 
   useLayoutEffect(() => {
@@ -190,12 +234,18 @@ export const GlideSelect: React.FC<GlideSelectProps> = ({
     if (!pill || !row || phase !== "open") return;
     const next = { y: row.offsetTop, h: row.offsetHeight };
     const prev = lastRect.current;
-    pill.getAnimations().forEach((a) => a.cancel());
+    if (typeof pill.getAnimations === "function") {
+      pill.getAnimations().forEach((a) => a.cancel());
+    }
     if (!pillReady || !prev) {
       const from = prev ?? next;
       pill.style.transform = `translate3d(0,${next.y}px,0)`;
       pill.style.height = `${next.h}px`;
-      if (prev && (prev.y !== next.y || prev.h !== next.h)) {
+      if (
+        prev &&
+        (prev.y !== next.y || prev.h !== next.h) &&
+        typeof pill.animate === "function"
+      ) {
         pill.animate(
           [
             {
@@ -210,35 +260,37 @@ export const GlideSelect: React.FC<GlideSelectProps> = ({
           {
             duration: glideDuration,
             easing: "cubic-bezier(.22,1,.36,1)",
-          }
+          },
         );
       }
       setPillReady(true);
     } else if (prev.y !== next.y || prev.h !== next.h) {
       const stretch = Math.min(1.03, 1 + Math.abs(next.y - prev.y) / 900);
-      pill.animate(
-        [
+      if (typeof pill.animate === "function") {
+        pill.animate(
+          [
+            {
+              transform: `translate3d(0,${prev.y}px,0) scale(1)`,
+              height: `${prev.h}px`,
+            },
+            {
+              transform: `translate3d(0,${(prev.y + next.y) / 2}px,0) scale(${stretch},${
+                2 - stretch
+              })`,
+              height: `${next.h}px`,
+              offset: 0.45,
+            },
+            {
+              transform: `translate3d(0,${next.y}px,0) scale(1)`,
+              height: `${next.h}px`,
+            },
+          ],
           {
-            transform: `translate3d(0,${prev.y}px,0) scale(1)`,
-            height: `${prev.h}px`,
+            duration: glideDuration,
+            easing: "cubic-bezier(.2,1,.25,1)",
           },
-          {
-            transform: `translate3d(0,${(prev.y + next.y) / 2}px,0) scale(${stretch},${
-              2 - stretch
-            })`,
-            height: `${next.h}px`,
-            offset: 0.45,
-          },
-          {
-            transform: `translate3d(0,${next.y}px,0) scale(1)`,
-            height: `${next.h}px`,
-          },
-        ],
-        {
-          duration: glideDuration,
-          easing: "cubic-bezier(.2,1,.25,1)",
-        }
-      );
+        );
+      }
       pill.style.transform = `translate3d(0,${next.y}px,0)`;
       pill.style.height = `${next.h}px`;
     }
@@ -256,6 +308,7 @@ export const GlideSelect: React.FC<GlideSelectProps> = ({
 
   const rowAtY = (clientY: number) => {
     for (let i = 0; i < items.length; i++) {
+      if (items[i]?.disabled) continue;
       const r = rowRefs.current[i]?.getBoundingClientRect();
       if (r && clientY >= r.top && clientY <= r.bottom) return i;
     }
@@ -291,17 +344,27 @@ export const GlideSelect: React.FC<GlideSelectProps> = ({
     window.addEventListener("pointerup", onUp);
   };
 
-  const step = (d: number) =>
-    setHl((h) => ((h < 0 ? 0 : h) + d + items.length) % items.length);
+  const step = (d: number) => {
+    if (!items.length) return;
+    setHl((h) => {
+      const n = items.length;
+      let curr = h < 0 ? 0 : h;
+      for (let count = 0; count < n; count++) {
+        curr = (curr + d + n) % n;
+        if (!items[curr]?.disabled) return curr;
+      }
+      return h;
+    });
+  };
 
   const onKeyDown = (e: React.KeyboardEvent) => {
-    if (disabled || !items.length) return;
+    if (disabled) return;
     const k = e.key;
     if (!isOpen) {
       if (k === "ArrowDown" || k === "ArrowUp" || k === "Enter" || k === " ") {
         e.preventDefault();
         open();
-      } else if (k.length === 1 && /\S/.test(k)) {
+      } else if (k.length === 1 && /\S/.test(k) && items.length > 0) {
         const m = typeaheadIndex(items, selectedIdx, k.toLowerCase());
         if (m >= 0) {
           if (!isControlled) setInternal(items[m].value);
@@ -318,17 +381,23 @@ export const GlideSelect: React.FC<GlideSelectProps> = ({
       step(-1);
     } else if (k === "Home") {
       e.preventDefault();
-      setHl(0);
+      const idx = firstEnabledIdx();
+      if (idx >= 0) setHl(idx);
     } else if (k === "End") {
       e.preventDefault();
-      setHl(items.length - 1);
+      for (let i = items.length - 1; i >= 0; i--) {
+        if (!items[i]?.disabled) {
+          setHl(i);
+          break;
+        }
+      }
     } else if (k === "Enter" || k === " ") {
       e.preventDefault();
-      if (hl >= 0) commit(hl);
+      if (hl >= 0 && items[hl] && !items[hl].disabled) commit(hl);
     } else if (k === "Escape" || k === "Tab") {
       if (k === "Escape") e.preventDefault();
       close();
-    } else if (k.length === 1 && /\S/.test(k)) {
+    } else if (k.length === 1 && /\S/.test(k) && items.length > 0) {
       const m = typeaheadIndex(items, hl, k.toLowerCase());
       if (m >= 0) setHl(m);
     }
@@ -344,6 +413,15 @@ export const GlideSelect: React.FC<GlideSelectProps> = ({
     "--gs-acc": accentColor,
   } as CSSProperties;
 
+  const alignStyle: CSSProperties =
+    align === "right"
+      ? { right: 0 }
+      : align === "left"
+        ? { left: 0 }
+        : align === "end"
+          ? { insetInlineEnd: 0 }
+          : { insetInlineStart: 0 };
+
   return (
     <div
       ref={rootRef}
@@ -354,22 +432,36 @@ export const GlideSelect: React.FC<GlideSelectProps> = ({
       }}
     >
       <style>{STYLE}</style>
-      {name ? <input type="hidden" name={name} value={val} /> : null}
+      {name ? (
+        <input
+          type="hidden"
+          name={name}
+          value={val}
+          required={required}
+          disabled={disabled}
+        />
+      ) : null}
       <button
         ref={btnRef}
         id={id}
         type="button"
         disabled={disabled}
         aria-label={ariaLabel}
+        aria-labelledby={ariaLabelledBy}
+        aria-describedby={ariaDescribedBy}
+        aria-required={required || undefined}
+        aria-invalid={invalid || undefined}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
         aria-controls={phase !== "closed" ? listId : undefined}
         aria-activedescendant={isOpen && hl >= 0 ? optId(hl) : undefined}
         onPointerDown={onTriggerPointerDown}
         onKeyDown={onKeyDown}
-        className={`inline-flex items-center justify-between gap-2.5 px-3.5 font-medium border border-[var(--ui-border-strong)] shadow-sm transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]/40 disabled:opacity-45 disabled:cursor-not-allowed cursor-pointer ${
-          fullWidth ? "w-full" : ""
-        }`}
+        className={`inline-flex items-center justify-between gap-2.5 px-3.5 font-medium border shadow-sm transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 disabled:opacity-45 disabled:cursor-not-allowed cursor-pointer ${
+          invalid
+            ? "border-[var(--ui-danger)] focus-visible:ring-[var(--ui-danger)]/40"
+            : "border-[var(--ui-border-strong)] focus-visible:ring-[var(--color-primary)]/40"
+        } ${fullWidth ? "w-full" : ""}`}
         style={{
           height: chipH,
           borderRadius: radius,
@@ -422,18 +514,18 @@ export const GlideSelect: React.FC<GlideSelectProps> = ({
             const i = rowAtY(e.clientY);
             if (i >= 0 && i !== hl) setHl(i);
           }}
-          className="absolute z-50 flex flex-col border border-[var(--ui-border-strong)] shadow-[var(--shadow-lift)] max-h-72 overflow-y-auto"
+          className="absolute z-50 flex flex-col border border-[var(--ui-border-strong)] shadow-[var(--shadow-lift)] max-h-72 max-w-[calc(100vw-2rem)] overflow-y-auto"
           style={{
             width: fullWidth ? "100%" : menuWidth,
-            minWidth: menuWidth,
+            minWidth: fullWidth ? undefined : menuWidth,
             padding: PAD,
             gap: GAP,
             borderRadius: radius,
             background: "var(--gs-surf)",
             color: "var(--gs-txt)",
             [top ? "bottom" : "top"]: `calc(100% + ${MENU_GAP}px)`,
-            [align]: 0,
-            transformOrigin: `${top ? "bottom" : "top"} ${align}`,
+            ...alignStyle,
+            transformOrigin: `${top ? "bottom" : "top"} center`,
             pointerEvents: phase === "closing" ? "none" : "auto",
           }}
         >
@@ -446,64 +538,77 @@ export const GlideSelect: React.FC<GlideSelectProps> = ({
               right: PAD,
               borderRadius: itemR,
               background: "var(--gs-hi)",
-              opacity: pillReady && hl >= 0 ? 1 : 0,
+              opacity: pillReady && hl >= 0 && items.length > 0 ? 1 : 0,
               transition: "opacity 90ms ease",
               willChange: "transform,height",
             }}
           />
-          {items.map((it, i) => {
-            const isSel = i === selectedIdx;
-            const isHi = i === hl;
-            return (
-              <button
-                key={it.value}
-                ref={(el) => {
-                  rowRefs.current[i] = el;
-                }}
-                id={optId(i)}
-                type="button"
-                role="option"
-                aria-selected={isSel}
-                onPointerEnter={() => setHl(i)}
-                onClick={() => commit(i)}
-                className="relative z-10 flex items-center justify-between gap-2 px-2.5 text-start font-medium border-0 bg-transparent cursor-pointer focus:outline-none"
-                style={{
-                  height: rowH,
-                  borderRadius: itemR,
-                  fontSize: font,
-                  color: "var(--gs-txt)",
-                  opacity: isHi || isSel ? 1 : 0.82,
-                  transition: "opacity 100ms ease",
-                }}
-              >
-                <span className="truncate">{it.label}</span>
-                <span className="inline-flex items-center gap-1.5 shrink-0">
-                  {showTags && it.tag && (
+          {items.length === 0 ? (
+            <div
+              className="px-3 py-2 text-center opacity-60"
+              style={{ fontSize: font }}
+            >
+              {emptyText}
+            </div>
+          ) : (
+            items.map((it, i) => {
+              const isSel = i === selectedIdx;
+              const isHi = i === hl;
+              return (
+                <button
+                  key={`${it.value}-${i}`}
+                  ref={(el) => {
+                    rowRefs.current[i] = el;
+                  }}
+                  id={optId(i)}
+                  type="button"
+                  role="option"
+                  disabled={it.disabled}
+                  aria-disabled={it.disabled || undefined}
+                  aria-selected={isSel}
+                  onPointerEnter={() => {
+                    if (!it.disabled) setHl(i);
+                  }}
+                  onClick={() => commit(i)}
+                  className="relative z-10 flex items-center justify-between gap-2 px-2.5 text-start font-medium border-0 bg-transparent cursor-pointer focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed"
+                  style={{
+                    height: rowH,
+                    borderRadius: itemR,
+                    fontSize: font,
+                    color: "var(--gs-txt)",
+                    opacity: it.disabled ? 0.4 : isHi || isSel ? 1 : 0.82,
+                    transition: "opacity 100ms ease",
+                  }}
+                >
+                  <span className="truncate">{it.label}</span>
+                  <span className="inline-flex items-center gap-1.5 shrink-0">
+                    {showTags && it.tag && (
+                      <span
+                        className="text-[0.75em] font-normal"
+                        style={{
+                          color:
+                            "color-mix(in oklab, var(--gs-txt) 55%, transparent)",
+                        }}
+                      >
+                        {it.tag}
+                      </span>
+                    )}
                     <span
-                      className="text-[0.75em] font-normal"
+                      className="inline-flex w-3.5 justify-center transition-all duration-150"
                       style={{
-                        color:
-                          "color-mix(in oklab, var(--gs-txt) 55%, transparent)",
+                        color: "var(--gs-acc)",
+                        opacity: isSel ? 1 : 0,
+                        transform: isSel ? "scale(1)" : "scale(.5)",
+                        transitionTimingFunction: "cubic-bezier(.22,1,.36,1)",
                       }}
                     >
-                      {it.tag}
+                      <FaCheck className="w-3 h-3" aria-hidden="true" />
                     </span>
-                  )}
-                  <span
-                    className="inline-flex w-3.5 justify-center transition-all duration-150"
-                    style={{
-                      color: "var(--gs-acc)",
-                      opacity: isSel ? 1 : 0,
-                      transform: isSel ? "scale(1)" : "scale(.5)",
-                      transitionTimingFunction: "cubic-bezier(.22,1,.36,1)",
-                    }}
-                  >
-                    <FaCheck className="w-3 h-3" aria-hidden="true" />
                   </span>
-                </span>
-              </button>
-            );
-          })}
+                </button>
+              );
+            })
+          )}
         </div>
       )}
     </div>

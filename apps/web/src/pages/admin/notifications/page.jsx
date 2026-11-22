@@ -16,6 +16,7 @@ import {
 
 import { formatActivityDescription } from "@/lib/activityFormat";
 import { deserializeLocalizedMessage } from "@/lib/notifications";
+import { apiRequest } from "@/lib/apiClient";
 
 export default function AdminNotificationsPage() {
   const router = useRouter();
@@ -44,43 +45,18 @@ export default function AdminNotificationsPage() {
 
       try {
         const [
-          unreadRes,
-          doctorsRes,
-          changeReqRes,
-          notificationsRes,
-          activitiesRes,
-        ] = await Promise.allSettled([
-          fetch("/api/admin/notifications-unread"),
-          fetch("/api/admin/doctors"),
-          fetch("/api/admin/doctor-change-requests"),
-          fetch("/api/admin/notifications"),
-          fetch("/api/admin/recent-activities"),
+          unreadJson,
+          doctorsJson,
+          changeReqJson,
+          notificationsJson,
+          activitiesJson,
+        ] = await Promise.all([
+          apiRequest("/api/admin/notifications-unread").catch(() => null),
+          apiRequest("/api/admin/doctors").catch(() => null),
+          apiRequest("/api/admin/doctor-change-requests").catch(() => null),
+          apiRequest("/api/admin/notifications").catch(() => null),
+          apiRequest("/api/admin/recent-activities").catch(() => null),
         ]);
-
-        const unreadJson =
-          unreadRes.status === "fulfilled" && unreadRes.value.ok
-            ? await unreadRes.value.json()
-            : null;
-
-        const doctorsJson =
-          doctorsRes.status === "fulfilled" && doctorsRes.value.ok
-            ? await doctorsRes.value.json()
-            : null;
-
-        const changeReqJson =
-          changeReqRes.status === "fulfilled" && changeReqRes.value.ok
-            ? await changeReqRes.value.json()
-            : null;
-
-        const notificationsJson =
-          notificationsRes.status === "fulfilled" && notificationsRes.value.ok
-            ? await notificationsRes.value.json()
-            : null;
-
-        const activitiesJson =
-          activitiesRes.status === "fulfilled" && activitiesRes.value.ok
-            ? await activitiesRes.value.json()
-            : null;
 
         if (!mounted) return;
 
@@ -118,8 +94,7 @@ export default function AdminNotificationsPage() {
             Array.isArray(notificationsJson?.notifications) &&
             notificationsJson.notifications.some((n) => !n.isRead);
           if (hasUnread) {
-            // fire-and-forget; update UI optimistically
-            fetch("/api/admin/notifications", { method: "PATCH" }).catch(
+            apiRequest("/api/admin/notifications", { method: "PATCH" }).catch(
               () => {},
             );
             // update local state to mark as read
