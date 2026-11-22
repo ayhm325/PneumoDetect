@@ -92,9 +92,9 @@ export default function Navbar() {
             {isAuthRoute && (
               <Link
                 to="/"
-                className="inline-flex h-10 items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-3.5 text-xs font-semibold text-white transition hover:bg-white/20"
+                className="inline-flex h-10 items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-3.5 text-sm font-semibold text-white transition hover:bg-white/20"
               >
-                <BackIcon className="h-3 w-3" />
+                <BackIcon className="h-3.5 w-3.5" />
                 <span>{t("home", isAr ? "الرئيسية" : "Home")}</span>
               </Link>
             )}
@@ -112,7 +112,7 @@ export default function Navbar() {
               type="button"
               onClick={handleToggleLocale}
               aria-label={isAr ? "Switch to English" : "التبديل إلى العربية"}
-              className="inline-flex h-10 items-center justify-center rounded-xl border border-white/15 bg-white/10 px-3 text-xs font-bold tracking-wide text-white transition hover:bg-white/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300"
+              className="inline-flex h-10 items-center justify-center rounded-xl border border-white/15 bg-white/10 px-3 text-sm font-bold tracking-wide text-white transition hover:bg-white/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300"
             >
               {isAr ? "EN" : "AR"}
             </button>
@@ -122,9 +122,9 @@ export default function Navbar() {
                 {user ? (
                   <Link
                     to={portalPath}
-                    className="hidden h-10 items-center gap-2 rounded-xl bg-sky-500 px-3.5 text-xs font-bold text-white shadow-xs transition hover:bg-sky-400 sm:inline-flex"
+                    className="hidden h-10 items-center gap-2 rounded-xl bg-sky-500 px-3.5 text-sm font-semibold text-white shadow-xs transition hover:bg-sky-400 sm:inline-flex"
                   >
-                    <span className="inline-flex h-6 w-6 items-center justify-center rounded-lg bg-white/20 text-[10px] font-bold">
+                    <span className="inline-flex h-6 w-6 items-center justify-center rounded-lg bg-white/20 text-xs font-bold">
                       {(user.fullName || user.email || "U").slice(0, 2).toUpperCase()}
                     </span>
                     <span>{t("dashboard", isAr ? "لوحة التحكم" : "Dashboard")}</span>
@@ -133,13 +133,13 @@ export default function Navbar() {
                   <div className="hidden items-center gap-2 sm:flex">
                     <Link
                       to="/login"
-                      className="inline-flex h-10 items-center rounded-xl border border-white/15 bg-white/10 px-3.5 text-xs font-bold text-white transition hover:bg-white/20"
+                      className="inline-flex h-10 items-center rounded-xl border border-white/15 bg-white/10 px-4 text-sm font-semibold text-white transition hover:bg-white/20"
                     >
                       {t("login", isAr ? "تسجيل الدخول" : "Login")}
                     </Link>
                     <Link
                       to="/signup"
-                      className="inline-flex h-10 items-center rounded-xl bg-sky-500 px-3.5 text-xs font-bold text-white shadow-xs transition hover:bg-sky-400"
+                      className="inline-flex h-10 items-center rounded-xl bg-sky-500 px-4 text-sm font-semibold text-white shadow-xs transition hover:bg-sky-400"
                     >
                       {t("signup", isAr ? "إنشاء حساب" : "Sign Up")}
                     </Link>

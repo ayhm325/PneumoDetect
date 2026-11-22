@@ -11,6 +11,11 @@
   --color-text: #172338;
   --color-background: #f3f6fb;
 
+  /* Typography Font Families */
+  --font-arabic: "Cairo", "Readex Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --font-latin: "Plus Jakarta Sans", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --font-sans: var(--font-arabic);
+
   /* Dark defaults (for pre-hydration / prefers-color-scheme) */
   --color-background-dark: #0b1220;
   --color-text-dark: #e6edf7;

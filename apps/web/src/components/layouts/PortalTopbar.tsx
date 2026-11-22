@@ -173,7 +173,7 @@ export function PortalTopbar({
             </>
           )}
           {portalBadge && (
-            <span className="hidden rounded-full border border-white/15 bg-white/10 px-2.5 py-0.5 text-[11px] font-semibold text-sky-100 lg:inline-flex">
+            <span className="hidden rounded-full border border-white/15 bg-white/10 px-2.5 py-0.5 text-xs font-semibold text-sky-100 lg:inline-flex">
               {portalBadge}
             </span>
           )}
@@ -204,7 +204,7 @@ export function PortalTopbar({
         >
           <FaBell className="h-4 w-4" />
           {unreadCount > 0 && (
-            <span className="absolute -top-1 -end-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white shadow-xs ring-2 ring-slate-900">
+            <span className="absolute -top-1 -end-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 px-1 text-[11px] font-bold text-white shadow-xs ring-2 ring-slate-900">
               {unreadCount > 99 ? "99+" : unreadCount}
             </span>
           )}
@@ -240,7 +240,7 @@ export function PortalTopbar({
           type="button"
           onClick={onToggleLocale}
           aria-label={isAr ? "Switch to English" : "التبديل إلى العربية"}
-          className="inline-flex h-10 items-center justify-center rounded-xl border border-white/15 bg-white/10 px-3 text-xs font-bold tracking-wide text-white transition hover:bg-white/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300"
+          className="inline-flex h-10 items-center justify-center rounded-xl border border-white/15 bg-white/10 px-3 text-sm font-bold tracking-wide text-white transition hover:bg-white/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300"
         >
           {isAr ? "EN" : "AR"}
         </button>
@@ -258,7 +258,7 @@ export function PortalTopbar({
               <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-sky-400/25 text-xs font-bold text-sky-100">
                 {getInitials(displayName)}
               </span>
-              <span className="hidden max-w-[130px] truncate text-[13px] font-semibold sm:inline">
+              <span className="hidden max-w-[130px] truncate text-sm font-medium sm:inline">
                 {displayName}
               </span>
               <FaChevronDown

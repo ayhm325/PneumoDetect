@@ -3,7 +3,9 @@
 @import "./animations.css";
 
 @theme {
-  --font-sans: "Inter", "Cairo", "Noto Sans Arabic", system-ui, -apple-system, sans-serif;
+  --font-sans: "Cairo", "Readex Pro", "Noto Sans Arabic", "Plus Jakarta Sans", "Inter", system-ui, -apple-system, sans-serif;
+  --font-arabic: "Cairo", "Readex Pro", "Noto Sans Arabic", system-ui, -apple-system, sans-serif;
+  --font-latin: "Plus Jakarta Sans", "Inter", system-ui, -apple-system, sans-serif;
   --color-brand-primary: #356ae6;
   --color-brand-secondary: #13a89e;
   --color-brand-accent: #203b60;
@@ -69,6 +71,39 @@
   }
 }
 
+/* Direction-aware Typography Cascades */
+html[dir="rtl"],
+html[lang="ar"],
+[dir="rtl"] {
+  --font-sans: "Cairo", "Readex Pro", "Noto Sans Arabic", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  font-family: var(--font-sans);
+  line-height: 1.62;
+}
+
+html[dir="rtl"] h1,
+html[dir="rtl"] h2,
+html[dir="rtl"] h3,
+html[dir="rtl"] h4,
+html[dir="rtl"] h5,
+html[dir="rtl"] h6,
+[dir="rtl"] h1,
+[dir="rtl"] h2,
+[dir="rtl"] h3,
+[dir="rtl"] h4,
+[dir="rtl"] h5,
+[dir="rtl"] h6 {
+  letter-spacing: normal !important;
+  word-spacing: normal !important;
+}
+
+html[dir="ltr"],
+html[lang="en"],
+[dir="ltr"] {
+  --font-sans: "Plus Jakarta Sans", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  font-family: var(--font-sans);
+  line-height: 1.55;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
@@ -83,6 +118,83 @@ body {
     "Noto Sans",
     "Apple Color Emoji",
     "Segoe UI Emoji";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Typography Hierarchy Standards */
+h1, .h1 {
+  font-size: clamp(1.85rem, 3.2vw + 1rem, 2.5rem);
+  font-weight: 800;
+  line-height: 1.25;
+  color: var(--ui-foreground);
+}
+
+h2, .h2 {
+  font-size: clamp(1.35rem, 2.2vw + 0.8rem, 1.85rem);
+  font-weight: 700;
+  line-height: 1.32;
+  color: var(--ui-foreground);
+}
+
+h3, .h3 {
+  font-size: clamp(1.15rem, 1.5vw + 0.75rem, 1.375rem);
+  font-weight: 600;
+  line-height: 1.38;
+  color: var(--ui-foreground);
+}
+
+h4, .h4 {
+  font-size: clamp(1rem, 1vw + 0.7rem, 1.15rem);
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--ui-foreground);
+}
+
+h5, .h5 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--ui-foreground);
+}
+
+h6, .h6 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--ui-muted);
+}
+
+p {
+  line-height: 1.62;
+}
+
+input,
+select,
+textarea {
+  font-family: inherit;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+label {
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+th {
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+td {
+  font-family: inherit;
+  font-size: 0.875rem;
+  line-height: 1.55;
 }
 
 /* Smooth Scrolling */
@@ -895,27 +1007,27 @@ select:focus-visible {
 }
 
 .profile-card-title {
-  font-size: 1.0625rem;
+  font-size: 1.15rem;
   font-weight: 700;
-  letter-spacing: -0.01em;
-  margin: 0 0 2px;
+  margin: 0 0 4px;
   color: var(--ui-foreground);
   line-height: 1.35;
 }
 
 .profile-card-subtitle {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 500;
   margin: 0 0 10px;
   color: var(--ui-muted-foreground);
+  line-height: 1.4;
 }
 
 .profile-card-description {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 400;
   margin-bottom: 14px;
   color: var(--ui-muted-foreground);
-  line-height: 1.6;
+  line-height: 1.62;
 }
 
 .profile-card-buttons {
@@ -936,8 +1048,9 @@ select:focus-visible {
   color: var(--ui-foreground);
   text-align: center;
   font-family: inherit;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 600;
+  line-height: 1.4;
   padding: 8px 16px;
   border-radius: 9999px;
   cursor: pointer;
@@ -1083,42 +1196,45 @@ select:focus-visible {
 }
 
 .specular-button--sm {
-  height: 36px;
+  height: 38px;
   padding: 0 16px;
-  font-size: 12px;
+  font-size: 13.5px;
+  font-weight: 600;
 }
 
 .specular-button--md {
-  height: 42px;
+  height: 44px;
   padding: 0 20px;
-  font-size: 14px;
+  font-size: 15px;
+  font-weight: 600;
 }
 
 .specular-button--lg {
-  height: 48px;
+  height: 50px;
   padding: 0 24px;
-  font-size: 15px;
+  font-size: 16px;
+  font-weight: 700;
 }
 
 .specular-button--icon-sm {
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   padding: 0;
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .specular-button--icon-md {
-  width: 40px;
-  height: 40px;
+  width: 42px;
+  height: 42px;
   padding: 0;
-  font-size: 15px;
+  font-size: 16px;
 }
 
 .specular-button--icon-lg {
-  width: 46px;
-  height: 46px;
+  width: 48px;
+  height: 48px;
   padding: 0;
-  font-size: 17px;
+  font-size: 18px;
 }
 
 .specular-button:hover:not(:disabled) {
