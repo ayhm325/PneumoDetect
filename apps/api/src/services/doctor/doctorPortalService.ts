@@ -23,7 +23,7 @@ export interface DoctorPortalService {
   }): Promise<{ appointment: Record<string, unknown> }>;
   deleteAppointment(input: { userId: string; id: string }): Promise<{ success: true }>;
 
-  listPatients(userId: string): Promise<Array<Record<string, unknown>>>;
+  listPatients(userId: string): Promise<{ patients: Array<Record<string, unknown>> }>;
   listResults(input: { userId: string; patientId?: string }): Promise<{ records: Array<Record<string, unknown>> }>;
   updateResult(input: {
     userId: string;
@@ -227,7 +227,7 @@ export function createDoctorPortalService(deps: {
 
     async listPatients(userId) {
       const patients = await deps.doctorPortalRepository.listActivePatientsForDoctor(userId);
-      return patients.map((patient) => {
+      const mapped = patients.map((patient) => {
         const medicalRecords = (patient.medicalRecords as Array<Record<string, unknown>> | undefined) || [];
         const latest = medicalRecords[0] || null;
         const latestDoctorDiagnosis = latest?.doctorNotes ? String(latest.doctorNotes) : "";
@@ -242,6 +242,7 @@ export function createDoctorPortalService(deps: {
           medicalRecordsCount,
         };
       });
+      return { patients: mapped };
     },
 
     async listResults(input) {
@@ -250,35 +251,55 @@ export function createDoctorPortalService(deps: {
         ...(input.patientId ? { patientId: input.patientId } : {}),
       });
 
-      const out = records.map((record) => ({
-        id: record.id,
-        title: record.title || "Chest X-Ray",
-        imageUrl: record.imageUrl || null,
-        aiResult: record.aiResult || null,
-        confidenceScore: record.confidenceScore || null,
-        reviewedByDoctor: Boolean(record.reviewedByDoctor),
-        doctorNotes: record.doctorNotes || null,
-        createdAt: record.createdAt,
-        patient: record.patient
-          ? {
-              id: (record.patient as { id?: string }).id,
-              name: (record.patient as { fullName?: string }).fullName,
-              email: (record.patient as { email?: string }).email,
-              clinicalStatus: (record.patient as { clinicalStatus?: string }).clinicalStatus || null,
-            }
-          : null,
-        patientClinicalStatus:
-          ((record.patient as { clinicalStatus?: string } | undefined)?.clinicalStatus) || null,
-        doctor:
-          (record.doctor as { user?: Record<string, unknown>; userId?: string } | undefined)
-            ?.user
+      const out = records.map((record) => {
+        const analysis = (record.analysisResult as Record<string, unknown> | null | undefined) || null;
+        const reviewed = Boolean(record.reviewedByDoctor);
+        const needsReview = Boolean(analysis?.needsReview);
+        const reviewStatus = reviewed
+          ? "reviewed"
+          : (typeof analysis?.reviewStatus === "string" && analysis.reviewStatus) ||
+            (needsReview ? "requires_review" : "pending_review");
+
+        return {
+          id: record.id,
+          analysisResultId: record.analysisResultId || analysis?.id || null,
+          title: record.title || "Chest X-Ray",
+          imageUrl: record.imageUrl || null,
+          heatmapUrl: (analysis?.heatmapUrl as string | null) || null,
+          aiResult: record.aiResult || null,
+          confidenceScore: record.confidenceScore ?? null,
+          probabilities: analysis?.probabilities ?? null,
+          needsReview,
+          reviewStatus,
+          status: reviewStatus,
+          reviewedByDoctor: reviewed,
+          doctorNotes: record.doctorNotes || null,
+          uploadNotes: record.uploadNotes || (analysis?.uploadNotes as string | null) || null,
+          explanation: (analysis?.explanation as string | null) || null,
+          modelVersion: (analysis?.modelVersion as string | null) || null,
+          inferenceTimeMs: (analysis?.inferenceTimeMs as number | null) ?? null,
+          createdAt: record.createdAt,
+          patient: record.patient
             ? {
-                id: (record.doctor as { userId?: string }).userId,
-                name: ((record.doctor as { user?: Record<string, unknown> }).user || {})
-                  .fullName || null,
+                id: (record.patient as { id?: string }).id,
+                name: (record.patient as { fullName?: string }).fullName,
+                email: (record.patient as { email?: string }).email,
+                clinicalStatus: (record.patient as { clinicalStatus?: string }).clinicalStatus || null,
               }
             : null,
-      }));
+          patientClinicalStatus:
+            ((record.patient as { clinicalStatus?: string } | undefined)?.clinicalStatus) || null,
+          doctor:
+            (record.doctor as { user?: Record<string, unknown>; userId?: string } | undefined)
+              ?.user
+              ? {
+                  id: (record.doctor as { userId?: string }).userId,
+                  name: ((record.doctor as { user?: Record<string, unknown> }).user || {})
+                    .fullName || null,
+                }
+              : null,
+        };
+      });
 
       return { records: out };
     },
@@ -361,32 +382,51 @@ export function createDoctorPortalService(deps: {
 
       return {
         record: record
-          ? {
-              id: record.id,
-              title: record.title || "Chest X-Ray",
-              imageUrl: record.imageUrl || null,
-              aiResult: record.aiResult || null,
-              confidenceScore: record.confidenceScore || null,
-              reviewedByDoctor: Boolean(record.reviewedByDoctor),
-              doctorNotes: record.doctorNotes || null,
-              createdAt: record.createdAt,
-              patient: record.patient
-                ? {
-                    id: (record.patient as { id?: string }).id,
-                    name: (record.patient as { fullName?: string }).fullName,
-                    email: (record.patient as { email?: string }).email,
-                  }
-                : null,
-              doctor:
-                (record.doctor as { user?: Record<string, unknown>; userId?: string } | undefined)
-                  ?.user
+          ? (() => {
+              const analysis = (record.analysisResult as Record<string, unknown> | null | undefined) || null;
+              const reviewed = Boolean(record.reviewedByDoctor);
+              const needsReview = Boolean(analysis?.needsReview);
+              const reviewStatus = reviewed
+                ? "reviewed"
+                : (typeof analysis?.reviewStatus === "string" && analysis.reviewStatus) ||
+                  (needsReview ? "requires_review" : "pending_review");
+              return {
+                id: record.id,
+                analysisResultId: record.analysisResultId || analysis?.id || null,
+                title: record.title || "Chest X-Ray",
+                imageUrl: record.imageUrl || null,
+                heatmapUrl: (analysis?.heatmapUrl as string | null) || null,
+                aiResult: record.aiResult || null,
+                confidenceScore: record.confidenceScore ?? null,
+                probabilities: analysis?.probabilities ?? null,
+                needsReview,
+                reviewStatus,
+                status: reviewStatus,
+                reviewedByDoctor: reviewed,
+                doctorNotes: record.doctorNotes || null,
+                uploadNotes: record.uploadNotes || (analysis?.uploadNotes as string | null) || null,
+                explanation: (analysis?.explanation as string | null) || null,
+                modelVersion: (analysis?.modelVersion as string | null) || null,
+                inferenceTimeMs: (analysis?.inferenceTimeMs as number | null) ?? null,
+                createdAt: record.createdAt,
+                patient: record.patient
                   ? {
-                      id: (record.doctor as { userId?: string }).userId,
-                      name: ((record.doctor as { user?: Record<string, unknown> }).user || {})
-                        .fullName || null,
+                      id: (record.patient as { id?: string }).id,
+                      name: (record.patient as { fullName?: string }).fullName,
+                      email: (record.patient as { email?: string }).email,
                     }
                   : null,
-            }
+                doctor:
+                  (record.doctor as { user?: Record<string, unknown>; userId?: string } | undefined)
+                    ?.user
+                    ? {
+                        id: (record.doctor as { userId?: string }).userId,
+                        name: ((record.doctor as { user?: Record<string, unknown> }).user || {})
+                          .fullName || null,
+                      }
+                    : null,
+              };
+            })()
           : null,
       };
     },

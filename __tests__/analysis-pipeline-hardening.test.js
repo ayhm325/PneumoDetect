@@ -150,6 +150,7 @@ describe("Active AI X-Ray Analysis Pipeline (apps/api/src)", () => {
     expect(res.needs_review).toBe(false);
     expect(saveAnalysis).toHaveBeenCalledWith(
       expect.objectContaining({ userId: "pat-user-1" }),
+      expect.anything(),
     );
     expect(createMedRecord).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -157,6 +158,7 @@ describe("Active AI X-Ray Analysis Pipeline (apps/api/src)", () => {
         doctorId: "doc-1",
         aiResult: "POSITIVE",
       }),
+      expect.anything(),
     );
 
     // Clean up saved PNG created by this test
@@ -219,7 +221,90 @@ describe("Active AI X-Ray Analysis Pipeline (apps/api/src)", () => {
     const validRes = await request(app)
       .get(`/uploads/nonexistent.png?exp=${futureExp}&sig=${validSig}`)
       .set("Authorization", `Bearer ${token}`);
-    // Signature is valid so middleware passes through to express.static (404 because file doesn't exist)
-    expect(validRes.status).toBe(404);
+    // Even with a valid signature, record-level ownership denies access to unowned/nonexistent records
+    expect(validRes.status).toBe(403);
+
+    const unsignedUploadRes = await request(app)
+      .get("/uploads/unowned.png")
+      .set("Authorization", `Bearer ${token}`);
+    expect(unsignedUploadRes.status).toBe(403);
+
+    const unownedHeatmapRes = await request(app)
+      .get("/static/heatmaps/unowned.png")
+      .set("Authorization", `Bearer ${token}`);
+    expect(unownedHeatmapRes.status).toBe(403);
+  });
+
+  test("analysisService persists uploadNotes and links MedicalRecord inside transaction", async () => {
+    let txEntered = false;
+    let savedAnalysisPayload = null;
+    let savedMedPayload = null;
+
+    const service = createAnalysisService({
+      runInference: async () => ({
+        prediction: "NORMAL",
+        confidence: 0.94,
+        probabilities: { NORMAL: 0.94, PNEUMONIA: 0.06 },
+        needs_review: false,
+        explanation: "Clear lungs",
+        heatmap_url: "/static/heatmaps/gradcam_test.png",
+        model_version: "best_densenet121_xray.pth#a305699f",
+        inference_time_ms: 42,
+        is_mock: false,
+      }),
+      runInTransaction: async (fn) => {
+        txEntered = true;
+        return fn({});
+      },
+      analysisResultRepository: {
+        save: async (input) => {
+          savedAnalysisPayload = input;
+          return { id: "ar-123", ...input };
+        },
+        findHistoryByUserId: async () => [],
+        findHistoryByUploadedUserId: async () => [],
+        deleteByUserAndId: async () => ({ count: 1 }),
+      },
+      patientRepository: {
+        findById: async () => ({ id: "pat-1", userId: "pat-user-1", doctorId: "doc-1", fullName: "Test Patient" }),
+        findByUserId: async () => null,
+      },
+      medicalRecordRepository: {
+        create: async (input) => {
+          savedMedPayload = input;
+          return { id: "med-456", ...input };
+        },
+      },
+      notificationRepository: {
+        createBestEffort: async () => undefined,
+      },
+    });
+
+    const result = await service.analyzeXray({
+      userId: "doc-1",
+      role: "doctor",
+      patientId: "pat-1",
+      modality: "xray",
+      notes: "Persistent cough for 5 days",
+      image: { name: "cxr.png", type: "image/png", buffer: VALID_PNG, withHeatmap: true },
+    });
+
+    expect(txEntered).toBe(true);
+    expect(result.saved).toBe(true);
+    expect(savedAnalysisPayload.uploadNotes).toBe("Persistent cough for 5 days");
+    expect(savedAnalysisPayload.uploadedByUserId).toBe("doc-1");
+    expect(savedMedPayload.analysisResultId).toBe("ar-123");
+    expect(savedMedPayload.uploadNotes).toBe("Persistent cough for 5 days");
+  });
+
+  test("POST /api/predict validates image_base64 through unified predictService", async () => {
+    const app = createApp();
+    const token = jwt.sign({ id: "u-1", role: "doctor", isActive: true }, SECRET, { expiresIn: "1h" });
+
+    const res = await request(app)
+      .post("/api/predict")
+      .set("Authorization", `Bearer ${token}`)
+      .send({});
+    expect(res.status).toBe(400);
   });
 });

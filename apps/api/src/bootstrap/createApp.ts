@@ -1,14 +1,13 @@
 import express from "express";
 import fs from "fs";
-import crypto from "crypto";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import path from "path";
 import { env } from "../config/env.js";
-import { requireAuth, type AuthenticatedRequest } from "../middleware/auth.js";
+import { requireAuth } from "../middleware/auth.js";
+import { authorizeHeatmapAccess, authorizeUploadAccess } from "../middleware/fileAccessAuth.js";
 import { errorHandler } from "../middleware/errorHandler.js";
-import { getUploadSigningSecret } from "../services/analysis/analysisService.js";
 import { healthRouter } from "../routes/health.routes.js";
 import { authRouter } from "../routes/auth.routes.js";
 import { analysisRouter } from "../routes/analysis.routes.js";
@@ -47,37 +46,17 @@ export function createApp() {
   app.use(express.json({ limit: "10mb" }));
   app.use(express.urlencoded({ extended: true }));
 
-  // Serve static uploaded files & generated AI heatmaps (authenticated + signed URL verification)
+  // Serve static uploaded files & generated AI heatmaps (authenticated + record-level ownership + signed URL verification)
   app.use(
     "/uploads",
     requireAuth,
-    (req: AuthenticatedRequest, res, next) => {
-      const exp = typeof req.query.exp === "string" ? req.query.exp : "";
-      const sig = typeof req.query.sig === "string" ? req.query.sig : "";
-
-      if (exp || sig) {
-        const expMs = Number(exp);
-        if (!Number.isFinite(expMs) || expMs < Date.now()) {
-          return res.status(403).json({ error: "Signed URL expired" });
-        }
-        const fileName = path.basename(decodeURIComponent(req.path || ""));
-        const expected = crypto
-          .createHmac("sha256", getUploadSigningSecret())
-          .update(`${fileName}:${exp}`)
-          .digest("hex");
-        const sigBuf = Buffer.from(sig);
-        const expBuf = Buffer.from(expected);
-        if (sigBuf.length !== expBuf.length || !crypto.timingSafeEqual(sigBuf, expBuf)) {
-          return res.status(403).json({ error: "Invalid signed URL signature" });
-        }
-      }
-      next();
-    },
+    authorizeUploadAccess,
     express.static(path.join(repoRoot, "public", "uploads")),
   );
   app.use(
     "/static/heatmaps",
     requireAuth,
+    authorizeHeatmapAccess,
     express.static(path.join(repoRoot, "python_model", "static", "heatmaps")),
   );
 

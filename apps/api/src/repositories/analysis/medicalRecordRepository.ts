@@ -4,28 +4,33 @@ import { AppError } from "../../lib/errors/appError";
 export type CreateMedicalRecordInput = {
   patientId: string;
   doctorId: string | null;
+  analysisResultId?: string | null;
   aiResult: "POSITIVE" | "NEGATIVE";
   confidenceScore: number;
   imageUrl: string;
+  uploadNotes?: string | null;
 };
 
 export interface MedicalRecordRepository {
-  create(input: CreateMedicalRecordInput): Promise<unknown>;
+  create(input: CreateMedicalRecordInput, tx?: PrismaClientLike): Promise<unknown>;
 }
 
 export function createMedicalRecordRepository(
   db: PrismaClientLike = prisma,
 ): MedicalRecordRepository {
   return {
-    async create(input) {
+    async create(input, tx) {
+      const client = tx || db;
       try {
-        return await db.medicalRecord.create({
+        return await client.medicalRecord.create({
           data: {
             patientId: input.patientId,
             doctorId: input.doctorId,
+            analysisResultId: input.analysisResultId ?? null,
             aiResult: input.aiResult,
             confidenceScore: input.confidenceScore,
             imageUrl: input.imageUrl,
+            uploadNotes: input.uploadNotes ?? null,
             reviewedByDoctor: false,
             doctorNotes: null,
           },

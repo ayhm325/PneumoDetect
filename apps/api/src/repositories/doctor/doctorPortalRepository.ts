@@ -200,6 +200,19 @@ export function createDoctorPortalRepository(
                 user: { select: { id: true, fullName: true, email: true } },
               },
             },
+            analysisResult: {
+              select: {
+                id: true,
+                heatmapUrl: true,
+                probabilities: true,
+                needsReview: true,
+                reviewStatus: true,
+                uploadNotes: true,
+                explanation: true,
+                modelVersion: true,
+                inferenceTimeMs: true,
+              },
+            },
           },
           orderBy: { createdAt: "desc" },
         });
@@ -236,17 +249,28 @@ export function createDoctorPortalRepository(
             },
           });
 
-          if (input.clinicalStatus) {
-            const before = await tx.medicalRecord.findFirst({
-              where: { id: input.id, doctorId: input.doctorId },
-              select: { patient: { select: { id: true } } },
+          const targetRecord = await tx.medicalRecord.findFirst({
+            where: { id: input.id, doctorId: input.doctorId },
+            select: {
+              analysisResultId: true,
+              patient: { select: { id: true } },
+            },
+          });
+
+          if (targetRecord?.analysisResultId) {
+            await tx.analysisResult.update({
+              where: { id: targetRecord.analysisResultId },
+              data: {
+                reviewStatus: input.reviewedByDoctor ? "reviewed" : "pending_review",
+              },
             });
-            if (before?.patient?.id) {
-              await tx.patient.updateMany({
-                where: { id: before.patient.id, doctorId: input.doctorId },
-                data: { clinicalStatus: input.clinicalStatus },
-              });
-            }
+          }
+
+          if (input.clinicalStatus && targetRecord?.patient?.id) {
+            await tx.patient.updateMany({
+              where: { id: targetRecord.patient.id, doctorId: input.doctorId },
+              data: { clinicalStatus: input.clinicalStatus },
+            });
           }
 
           return updated.count;
@@ -266,6 +290,19 @@ export function createDoctorPortalRepository(
               select: {
                 userId: true,
                 user: { select: { id: true, fullName: true, email: true } },
+              },
+            },
+            analysisResult: {
+              select: {
+                id: true,
+                heatmapUrl: true,
+                probabilities: true,
+                needsReview: true,
+                reviewStatus: true,
+                uploadNotes: true,
+                explanation: true,
+                modelVersion: true,
+                inferenceTimeMs: true,
               },
             },
           },

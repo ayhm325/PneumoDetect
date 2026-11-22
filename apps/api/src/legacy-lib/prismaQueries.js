@@ -25,7 +25,21 @@ export async function getMedicalRecordsForPatient(patientId) {
     include: {
       doctor: { include: { user: true } },
       appointment: true,
+      analysisResult: {
+        select: {
+          id: true,
+          heatmapUrl: true,
+          probabilities: true,
+          needsReview: true,
+          reviewStatus: true,
+          uploadNotes: true,
+          explanation: true,
+          modelVersion: true,
+          inferenceTimeMs: true,
+        },
+      },
     },
+    orderBy: { createdAt: "desc" },
   });
 }
 

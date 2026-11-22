@@ -168,23 +168,26 @@ enum AiResult {
 }
 
 model MedicalRecord {
-  id            String  @id @default(uuid())
-  patientId     String
-  doctorId      String?
-  appointmentId String? @unique
+  id               String  @id @default(uuid())
+  patientId        String
+  doctorId         String?
+  appointmentId    String? @unique
+  analysisResultId String? @unique
 
   aiResult        AiResult
   confidenceScore Float
 
   reviewedByDoctor Boolean @default(false)
   doctorNotes      String?
+  uploadNotes      String?
 
   imageUrl  String
   createdAt DateTime @default(now())
 
-  patient     Patient      @relation(fields: [patientId], references: [id])
-  doctor      Doctor?      @relation(fields: [doctorId], references: [userId])
-  appointment Appointment? @relation(fields: [appointmentId], references: [id])
+  patient        Patient         @relation(fields: [patientId], references: [id])
+  doctor         Doctor?         @relation(fields: [doctorId], references: [userId])
+  appointment    Appointment?    @relation(fields: [appointmentId], references: [id])
+  analysisResult AnalysisResult? @relation(fields: [analysisResultId], references: [id], onDelete: SetNull)
 }
 
 //////////////////////
@@ -280,6 +283,7 @@ model Chat {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@unique([doctorId, patientId])
   @@index([doctorId])
   @@index([patientId])
 }
@@ -298,27 +302,39 @@ model Message {
 
   chat Chat @relation(fields: [chatId], references: [id])
 
+  @@unique([chatId, clientKey])
   @@index([chatId])
+  @@index([chatId, createdAt])
 }
 
 //////////////////////
 // Analysis results //
 //////////////////////
 model AnalysisResult {
-  id              String   @id @default(uuid())
-  userId          String
-  imageUrl        String
-  prediction      String
-  confidence      Float
-  explanation     String
-  heatmapUrl      String?
-  modelVersion    String
-  inferenceTimeMs Int
-  createdAt       DateTime @default(now())
+  id               String   @id @default(uuid())
+  userId           String
+  patientId        String?
+  uploadedByUserId String?
+  uploadedByRole   String?
+  imageUrl         String
+  prediction       String
+  confidence       Float
+  probabilities    Json?
+  needsReview      Boolean  @default(false)
+  reviewStatus     String   @default("pending_review")
+  uploadNotes      String?
+  explanation      String
+  heatmapUrl       String?
+  modelVersion     String
+  inferenceTimeMs  Int
+  createdAt        DateTime @default(now())
 
-  user User @relation(fields: [userId], references: [id])
+  user          User           @relation(fields: [userId], references: [id])
+  medicalRecord MedicalRecord?
 
   @@index([userId, createdAt])
+  @@index([patientId, createdAt])
+  @@index([uploadedByUserId, createdAt])
 }
 
 enum Sender {

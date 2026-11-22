@@ -61,8 +61,8 @@ export default function DoctorAppointmentsPage() {
       const res = await fetch("/api/doctor/patients");
       if (!res.ok) throw new Error(t("errors.fetchPatientsFailed"));
       const data = await res.json();
-      // patients returned as array of patient records
-      const mapped = (data || []).map((p) => ({
+      const list = Array.isArray(data) ? data : Array.isArray(data?.patients) ? data.patients : [];
+      const mapped = list.map((p) => ({
         id: p.id,
         fullName: p.fullName || p.user?.fullName || p.email,
         phone: p.phone || "",

@@ -2,6 +2,7 @@ import asyncio
 import base64
 import hashlib
 import os
+import threading
 import time
 import uuid
 from io import BytesIO
@@ -28,6 +29,7 @@ MAX_IMAGE_BYTES = int(os.getenv("MAX_UPLOAD_BYTES", str(10 * 1024 * 1024)))
 MAX_BASE64_LEN = int(MAX_IMAGE_BYTES * 1.4) + 1024
 MAX_CONCURRENT_INFERENCES = max(1, int(os.getenv("MAX_CONCURRENT_INFERENCES", "2")))
 INFERENCE_SEMAPHORE = asyncio.Semaphore(MAX_CONCURRENT_INFERENCES)
+GRADCAM_LOCK = threading.Lock()
 LABELS = {0: "NORMAL", 1: "PNEUMONIA"}
 
 
@@ -203,23 +205,30 @@ def decode_and_validate_image(image_base64: str) -> Image.Image:
 def generate_gradcam_overlay(tensor: torch.Tensor, orig_gray: Image.Image, target_class: int) -> str:
     """Compute genuine Grad-CAM from DenseNet121 final convolutional features."""
     grad_tensor = tensor.detach().clone().requires_grad_(True)
-    MODEL.zero_grad(set_to_none=True)
 
-    with torch.enable_grad():
-        features = MODEL.features(grad_tensor)
-        features.retain_grad()
-        out = F.relu(features, inplace=False)
-        out = F.adaptive_avg_pool2d(out, (1, 1))
-        out = torch.flatten(out, 1)
-        logits = MODEL.classifier(out)
-        score = logits[0, target_class]
-        score.backward()
+    with GRADCAM_LOCK:
+        try:
+            MODEL.zero_grad(set_to_none=True)
+            with torch.enable_grad():
+                features = MODEL.features(grad_tensor)
+                features.retain_grad()
+                out = F.relu(features, inplace=False)
+                out = F.adaptive_avg_pool2d(out, (1, 1))
+                out = torch.flatten(out, 1)
+                logits = MODEL.classifier(out)
+                score = logits[0, target_class]
+                score.backward()
 
-    if features.grad is None:
-        raise RuntimeError("Grad-CAM gradients unavailable")
+            if features.grad is None:
+                raise RuntimeError("Grad-CAM gradients unavailable")
 
-    weights = features.grad.mean(dim=(2, 3), keepdim=True)
-    cam = F.relu((weights * features.detach()).sum(dim=1, keepdim=True))
+            grads = features.grad.detach().clone()
+            acts = features.detach().clone()
+        finally:
+            MODEL.zero_grad(set_to_none=True)
+
+    weights = grads.mean(dim=(2, 3), keepdim=True)
+    cam = F.relu((weights * acts).sum(dim=1, keepdim=True))
     cam_np = cam.squeeze().cpu().numpy()
 
     cam_min, cam_max = float(cam_np.min()), float(cam_np.max())

@@ -365,26 +365,46 @@ export function createPatientPortalService(deps: {
         records = await deps.patientPortalRepository.listMedicalRecordsWithDoctor(patient.id);
       }
 
-      const mapped = (records || []).map((record) => ({
-        id: record.id,
-        imageUrl: record.imageUrl || null,
-        aiResult: record.aiResult || null,
-        confidenceScore: record.confidenceScore || null,
-        reviewedByDoctor: Boolean(record.reviewedByDoctor),
-        doctorNotes: record.doctorNotes || null,
-        createdAt: record.createdAt,
-        clinicalStatus: (patient.clinicalStatus as string | null) || "stable",
-        doctor:
-          record.doctor && (record.doctor as { user?: Record<string, unknown>; userId?: string; clinic?: string }).user
-            ? {
-                id: (record.doctor as { userId?: string }).userId || null,
-                name:
-                  ((record.doctor as { user?: Record<string, unknown> }).user || {})
-                    .fullName || null,
-                clinic: (record.doctor as { clinic?: string }).clinic || null,
-              }
-            : null,
-      }));
+      const mapped = (records || []).map((record) => {
+        const analysis = (record.analysisResult as Record<string, unknown> | null | undefined) || null;
+        const reviewed = Boolean(record.reviewedByDoctor);
+        const needsReview = Boolean(analysis?.needsReview);
+        const reviewStatus = reviewed
+          ? "reviewed"
+          : (typeof analysis?.reviewStatus === "string" && analysis.reviewStatus) ||
+            (needsReview ? "requires_review" : "pending_review");
+
+        return {
+          id: record.id,
+          analysisResultId: record.analysisResultId || analysis?.id || null,
+          imageUrl: record.imageUrl || null,
+          heatmapUrl: (analysis?.heatmapUrl as string | null) || null,
+          aiResult: record.aiResult || null,
+          confidenceScore: record.confidenceScore ?? null,
+          probabilities: analysis?.probabilities ?? null,
+          needsReview,
+          reviewStatus,
+          status: reviewStatus,
+          reviewedByDoctor: reviewed,
+          doctorNotes: record.doctorNotes || null,
+          uploadNotes: record.uploadNotes || (analysis?.uploadNotes as string | null) || null,
+          explanation: (analysis?.explanation as string | null) || null,
+          modelVersion: (analysis?.modelVersion as string | null) || null,
+          inferenceTimeMs: (analysis?.inferenceTimeMs as number | null) ?? null,
+          createdAt: record.createdAt,
+          clinicalStatus: (patient.clinicalStatus as string | null) || "stable",
+          doctor:
+            record.doctor && (record.doctor as { user?: Record<string, unknown>; userId?: string; clinic?: string }).user
+              ? {
+                  id: (record.doctor as { userId?: string }).userId || null,
+                  name:
+                    ((record.doctor as { user?: Record<string, unknown> }).user || {})
+                      .fullName || null,
+                  clinic: (record.doctor as { clinic?: string }).clinic || null,
+                }
+              : null,
+        };
+      });
 
       return { records: mapped };
     },

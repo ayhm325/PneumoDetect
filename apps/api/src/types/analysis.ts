@@ -52,6 +52,11 @@ export type NormalizedInferenceResult = {
 
 export type SaveAnalysisInput = {
   userId: string;
+  patientId?: string | null;
+  uploadedByUserId?: string | null;
+  uploadedByRole?: string | null;
+  uploadNotes?: string | null;
+  reviewStatus?: string;
   imageUrl: string;
   analysisData: NormalizedInferenceResult;
 };

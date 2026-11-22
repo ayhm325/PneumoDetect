@@ -102,7 +102,11 @@ analysisRouter.get(
   requireAuth,
   async (req: AuthenticatedRequest, res, next) => {
     try {
-      const records = await analysisHistoryService.getHistory(req.auth!.user.id);
+      const scope = typeof req.query.scope === "string" ? req.query.scope : undefined;
+      const records = await analysisHistoryService.getHistory(req.auth!.user.id, {
+        scope,
+        role: req.auth!.user.role,
+      });
       return res.status(200).json({ success: true, data: records });
     } catch (error) {
       next(error);

@@ -102,7 +102,7 @@ export default function PatientResultsPage() {
           const status = r.reviewedByDoctor ? "ready" : "pending";
           const ai = (r.aiResult || "").toString().toUpperCase();
           const confidence = typeof r.confidenceScore === "number" ? r.confidenceScore : null;
-          const priority = ai === "POSITIVE" && (confidence == null || confidence >= 0.7) ? "urgent" : "normal";
+          const priority = r.needsReview || ai === "POSITIVE" ? "urgent" : "normal";
           const aiSummary = (() => {
             if (ai === "POSITIVE") return t("aiSummary.positive", { score: confidence == null ? "" : Math.round(confidence * 100) });
             if (ai === "NEGATIVE") return t("aiSummary.negative", { score: confidence == null ? "" : Math.round(confidence * 100) });

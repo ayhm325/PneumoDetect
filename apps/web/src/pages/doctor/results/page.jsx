@@ -112,7 +112,7 @@ export default function DoctorResultsPage() {
 
           const status = r.reviewedByDoctor
             ? "completed"
-            : ai === "POSITIVE" && (confidence == null || confidence >= 0.7)
+            : r.needsReview || ai === "POSITIVE"
               ? "urgent"
               : "pending";
 

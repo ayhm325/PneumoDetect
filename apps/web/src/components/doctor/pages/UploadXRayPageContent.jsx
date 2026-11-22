@@ -26,7 +26,7 @@ export default function UploadXRayPageContent() {
 
   const loadRecentUploads = useCallback(async () => {
     try {
-      const res = await fetch("/api/analysis/history", { credentials: "include" });
+      const res = await fetch("/api/analysis/history?scope=doctor", { credentials: "include" });
       if (!res.ok) return;
       const json = await res.json();
       const rows = Array.isArray(json?.data) ? json.data : [];
@@ -36,10 +36,12 @@ export default function UploadXRayPageContent() {
           patientName: item.patientName || item.prediction || placeholder,
           type: "xray",
           date: item.createdAt ? new Date(item.createdAt).toLocaleString(locale === "ar" ? "ar-EG" : "en-US") : placeholder,
-          status: "completed",
-          notes: item.prediction
-            ? `${item.prediction} (${Math.round(Number(item.confidence || 0) * 100)}%)`
-            : placeholder,
+          status: item.reviewStatus || (item.reviewedByDoctor ? "reviewed" : item.needsReview ? "requires_review" : "pending_review"),
+          notes: item.uploadNotes
+            ? `${item.prediction || ""} (${Math.round(Number(item.confidence || 0) * 100)}%) — ${item.uploadNotes}`
+            : item.prediction
+              ? `${item.prediction} (${Math.round(Number(item.confidence || 0) * 100)}%)`
+              : placeholder,
         })),
       );
     } catch {
@@ -198,14 +200,27 @@ export default function UploadXRayPageContent() {
       setPerFileOutcomes(outcomes);
       setLastResult(latest);
       if (outcomes.some((o) => o.ok)) {
-        setShowSuccessModal(true);
-        setToast({
-          open: true,
-          message: t("upload"),
-          variant: "success",
-        });
-        setFiles([]);
-        await loadRecentUploads();
+        const hasMockOnly = outcomes.filter((o) => o.ok).every((o) => o.isMock);
+        if (hasMockOnly) {
+          setToast({
+            open: true,
+            message:
+              locale === "ar"
+                ? "تم تشغيل وضع المحاكاة فقط — لم يتم حفظ النتيجة في السجل الطبي."
+                : "Simulation mode only — result was NOT saved to the medical record.",
+            variant: "warning",
+          });
+        } else {
+          setShowSuccessModal(true);
+          setToast({
+            open: true,
+            message: t("upload"),
+            variant: "success",
+          });
+          setFiles([]);
+          setNotes("");
+          await loadRecentUploads();
+        }
       } else {
         setToast({
           open: true,

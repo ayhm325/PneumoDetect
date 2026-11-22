@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import crypto from "crypto";
+import { prisma, type PrismaClientLike } from "../../db/prisma";
 import type {
   AnalyzeXrayCommand,
   AnalyzeXrayResult,
@@ -92,7 +93,7 @@ async function detectFileType(buffer: Buffer): Promise<{ ext?: string; mime?: st
   return null;
 }
 
-function normalizeInferenceResult(raw: RawInferenceResult): NormalizedInferenceResult {
+export function normalizeInferenceResult(raw: RawInferenceResult): NormalizedInferenceResult {
   const threshold = Number(process.env.MODEL_CONFIDENCE_THRESHOLD) || 0.85;
   const confidence = typeof raw.confidence === "number" ? raw.confidence : Number(raw.confidence) || 0;
   const prediction = raw.prediction ?? "Unknown";
@@ -128,6 +129,7 @@ export type AnalysisServiceDeps = {
   patientRepository: PatientRepository;
   medicalRecordRepository: MedicalRecordRepository;
   notificationRepository: NotificationRepository;
+  runInTransaction?: <T>(fn: (tx: PrismaClientLike) => Promise<T>) => Promise<T>;
 };
 
 export interface AnalysisService {
@@ -331,27 +333,53 @@ export function createAnalysisService(deps: AnalysisServiceDeps): AnalysisServic
 
       // Attribute AnalysisResult to the patient's userId when uploaded by an assigned doctor
       const ownerUserId = targetPatient?.userId || userId;
+      const rawNotes = typeof command.notes === "string" ? command.notes.trim() : "";
+      const uploadNotes = rawNotes ? rawNotes.slice(0, 2000) : null;
+      const runTx =
+        deps.runInTransaction ||
+        (<T>(fn: (tx: PrismaClientLike) => Promise<T>) => prisma.$transaction(fn));
+
       let savedRecord: Record<string, unknown> | null = null;
       let createdMedicalRecord: Record<string, unknown> | null = null;
 
       try {
-        const persisted = await deps.analysisResultRepository.save({
-          userId: ownerUserId,
-          imageUrl,
-          analysisData: normalized,
-        });
-        savedRecord = (persisted as Record<string, unknown>) || null;
+        const txResult = await runTx(async (tx) => {
+          const persisted = await deps.analysisResultRepository.save(
+            {
+              userId: ownerUserId,
+              patientId: targetPatient?.id ?? null,
+              uploadedByUserId: userId,
+              uploadedByRole: normalizedRole || null,
+              uploadNotes,
+              reviewStatus: normalized.needsReview ? "requires_review" : "pending_review",
+              imageUrl,
+              analysisData: normalized,
+            },
+            tx,
+          );
+          const saved = (persisted as Record<string, unknown>) || null;
 
-        if (targetPatient?.id) {
-          const med = await deps.medicalRecordRepository.create({
-            patientId: targetPatient.id,
-            doctorId: targetPatient.doctorId,
-            aiResult,
-            confidenceScore: clamp01(normalized.confidence),
-            imageUrl,
-          });
-          createdMedicalRecord = (med as Record<string, unknown>) || null;
-        }
+          let medRecord: Record<string, unknown> | null = null;
+          if (targetPatient?.id) {
+            const med = await deps.medicalRecordRepository.create(
+              {
+                patientId: targetPatient.id,
+                doctorId: targetPatient.doctorId,
+                analysisResultId: (saved?.id as string | undefined) ?? null,
+                aiResult,
+                confidenceScore: clamp01(normalized.confidence),
+                imageUrl,
+                uploadNotes,
+              },
+              tx,
+            );
+            medRecord = (med as Record<string, unknown>) || null;
+          }
+
+          return { saved, medRecord };
+        });
+        savedRecord = txResult.saved;
+        createdMedicalRecord = txResult.medRecord;
       } catch (error) {
         await fs.promises.unlink(savedFilePath).catch(() => undefined);
         console.error("analysisService: mandatory persistence failed", error);
@@ -394,6 +422,7 @@ export function createAnalysisService(deps: AnalysisServiceDeps): AnalysisServic
         patientId: targetPatient?.id ?? null,
         doctorId: targetPatient?.doctorId ?? null,
         medicalRecordId: (createdMedicalRecord?.id as string | undefined) ?? null,
+        uploadNotes,
         probabilities: normalized.probabilities,
         needsReview: normalized.needsReview,
         displayLabel: normalized.displayLabel,
