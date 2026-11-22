@@ -74,8 +74,8 @@
     "clinicOfDoctor": "Doctor clinic ({name})"
   },
   "aiSummary": {
-    "positive": "AI flagged a possible finding{score, select, 0 {} other { ({score}% confidence)}}.",
-    "negative": "AI did not detect suspicious findings{score, select, 0 {} other { ({score}% confidence)}}.",
+    "positive": "AI flagged a possible finding ({{score}}% confidence).",
+    "negative": "AI did not detect suspicious findings ({{score}}% confidence).",
     "unknown": "AI summary is not available for this report."
   },
   "findings": {

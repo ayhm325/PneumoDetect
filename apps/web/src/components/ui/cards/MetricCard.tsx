@@ -41,8 +41,25 @@ export function MetricCard({
         {value}
       </motion.div>
 
-      {layout === "visual" && visual && (
-        <div className="pd-metric__visual">{visual}</div>
+      {layout === "visual" && (
+        <div className="pd-metric__visual">
+          {visual ?? (
+            <svg
+              width="58"
+              height="26"
+              viewBox="0 0 58 26"
+              fill="none"
+              aria-hidden="true"
+              className="opacity-55"
+            >
+              <rect x="2" y="14" width="6" height="10" rx="3" fill="currentColor" opacity="0.45" />
+              <rect x="13" y="9" width="6" height="15" rx="3" fill="currentColor" opacity="0.65" />
+              <rect x="24" y="4" width="6" height="20" rx="3" fill="currentColor" opacity="0.9" />
+              <rect x="35" y="11" width="6" height="13" rx="3" fill="currentColor" opacity="0.65" />
+              <rect x="46" y="6" width="6" height="18" rx="3" fill="currentColor" opacity="0.8" />
+            </svg>
+          )}
+        </div>
       )}
 
       {description && <p className="pd-metric__description">{description}</p>}
