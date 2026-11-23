@@ -5,6 +5,7 @@ import { useToast } from "@/components/ui/ToastProvider";
 import { useTranslations } from "@/lib/compat/intl";
 import { useLocale } from "@/lib/compat/intl";
 import { apiRequest } from "@/lib/apiClient";
+import { Icon3D } from "@/components/ui";
 
 export default function PatientNotificationsPage() {
   const locale = useLocale();
@@ -176,15 +177,15 @@ export default function PatientNotificationsPage() {
   const getTypeIcon = (type) => {
     switch (type) {
       case "info":
-        return <InfoIcon size={18} strokeWidth={1.7} className="text-[var(--pd-sage)]" />;
+        return <Icon3D icon={InfoIcon} tone="sage" size="sm" />;
       case "success":
-        return <CircleCheckIcon size={18} strokeWidth={1.7} className="text-[var(--pd-sage)]" />;
+        return <Icon3D icon={CircleCheckIcon} tone="olive" size="sm" />;
       case "warning":
-        return <TriangleAlertIcon size={18} strokeWidth={1.7} className="text-[var(--pd-cream)]" />;
+        return <Icon3D icon={TriangleAlertIcon} tone="cream" size="sm" />;
       case "alert":
-        return <CircleAlertIcon size={18} strokeWidth={1.7} className="text-[var(--pd-red)]" />;
+        return <Icon3D icon={CircleAlertIcon} tone="red" size="sm" />;
       default:
-        return <BellIcon size={18} strokeWidth={1.7} className="text-[var(--pd-text-secondary)]" />;
+        return <Icon3D icon={BellIcon} tone="olive" size="sm" />;
     }
   };
 

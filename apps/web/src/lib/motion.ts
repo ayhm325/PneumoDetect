@@ -69,3 +69,14 @@ export const pressable = {
   whileTap: { scale: 0.975 },
   transition: pdMotion.press,
 };
+
+/** Consistent viewport reveal props for landing sections. */
+export function sectionReveal(reduceMotion: boolean | null) {
+  if (reduceMotion) return {};
+  return {
+    initial: { opacity: 0, y: 18 },
+    whileInView: { opacity: 1, y: 0 },
+    viewport: { once: true, amount: 0.16 },
+    transition: pdMotion.page,
+  };
+}

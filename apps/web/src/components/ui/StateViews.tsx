@@ -92,7 +92,7 @@ export function EmptyState({ title, description, icon, action, className = "" }:
     <div
       className={`pd-panel pd-panel--organic flex flex-col items-center justify-center border-dashed border-[var(--pd-line-strong)] bg-[var(--pd-canvas-raised)] p-10 text-center ${className}`}
     >
-      <div className="pd-orb pd-orb--lg mb-4 text-[var(--pd-text-muted)]">
+      <div className="pd-orb pd-orb--lg pd-orb--sage mb-4">
         {icon || <FolderOpenIcon size={22} strokeWidth={1.7} />}
       </div>
       <h3 className="text-base font-semibold text-[var(--pd-text-primary)]">{title}</h3>

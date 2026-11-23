@@ -1,7 +1,15 @@
 import { ArrowUpRight } from "lucide-react";
 
+import { Icon3D } from "../Icon3D";
 import { PneumoCard } from "./PneumoCard";
-import type { FeatureCardProps } from "./types";
+import type { CardTone, FeatureCardProps } from "./types";
+
+const CONTRAST_ICON_TONE: Record<CardTone, CardTone> = {
+  red: "cream",
+  cream: "red",
+  sage: "olive",
+  olive: "sage",
+};
 
 export function FeatureCard({
   eyebrow,
@@ -30,7 +38,7 @@ export function FeatureCard({
       <div className="pd-feature__top">
         {eyebrow ? <span className="pd-feature__eyebrow">{eyebrow}</span> : <span />}
 
-        {Icon && <Icon size={24} strokeWidth={1.7} aria-hidden="true" />}
+        {Icon && <Icon3D icon={Icon} tone={CONTRAST_ICON_TONE[tone]} size="md" />}
       </div>
 
       <div className="pd-feature__content">

@@ -1,8 +1,16 @@
 import clsx from "clsx";
 import { motion, useReducedMotion } from "framer-motion";
 
+import { Icon3D } from "../Icon3D";
 import { PneumoCard } from "./PneumoCard";
-import type { MetricCardProps } from "./types";
+import type { CardTone, MetricCardProps } from "./types";
+
+const CONTRAST_ICON_TONE: Record<CardTone, CardTone> = {
+  red: "cream",
+  cream: "red",
+  sage: "olive",
+  olive: "sage",
+};
 
 export function MetricCard({
   label,
@@ -25,11 +33,7 @@ export function MetricCard({
       <div className="pd-metric__header">
         <span className="pd-metric__label">{label}</span>
 
-        {Icon && (
-          <span className="pd-metric__icon">
-            <Icon size={20} strokeWidth={1.7} aria-hidden="true" />
-          </span>
-        )}
+        {Icon && <Icon3D icon={Icon} tone={CONTRAST_ICON_TONE[tone]} size="sm" />}
       </div>
 
       <motion.div

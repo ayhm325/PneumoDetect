@@ -1,5 +1,5 @@
 import { ArrowLeftIcon, ArrowRightIcon, MenuIcon, MoonIcon, StethoscopeIcon, SunIcon, XIcon } from "lucide-react";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
@@ -16,7 +16,15 @@ export default function Navbar() {
   const { user } = useAuth();
   const { pathname } = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const reduceMotion = useReducedMotion();
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 24);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   const isAuthRoute =
     pathname === "/login" || pathname === "/signup" || pathname === "/forgot-password";
@@ -47,8 +55,16 @@ export default function Navbar() {
 
   return (
     <div className="sticky top-3 z-40 mx-auto w-full max-w-7xl px-3 sm:px-6 lg:px-8">
-      <header className="rounded-3xl border border-[var(--pd-line)] bg-[var(--pd-neutral-surface)]/95 text-[var(--pd-text-primary)] shadow-[var(--pd-shadow-depth)] backdrop-blur-md">
-        <div className="flex h-[68px] items-center justify-between gap-3 px-4 sm:px-6">
+      <header
+        className={`rounded-3xl border border-[var(--pd-line)] bg-[var(--pd-neutral-surface)]/95 text-[var(--pd-text-primary)] backdrop-blur-md transition-all duration-300 ${
+          scrolled ? "shadow-[var(--pd-shadow-float)]" : "shadow-[var(--pd-shadow-depth)]"
+        }`}
+      >
+        <div
+          className={`flex items-center justify-between gap-3 px-4 transition-[height] duration-300 sm:px-6 ${
+            scrolled ? "h-[60px]" : "h-[68px]"
+          }`}
+        >
           {/* Brand */}
           <Link
             to="/"
@@ -69,14 +85,26 @@ export default function Navbar() {
                   to={item.to}
                   end={item.to === "/"}
                   className={({ isActive }) =>
-                    `relative shrink-0 whitespace-nowrap rounded-full px-2 py-1.5 text-[13px] font-medium transition-colors lg:px-2.5 lg:py-1.5 ${
+                    `relative shrink-0 whitespace-nowrap rounded-full px-2.5 py-1.5 text-[13px] font-medium transition-colors lg:px-3 ${
                       isActive
-                        ? "bg-[var(--pd-crimson)] text-[#faf0e1]"
+                        ? "text-[#faf0e1]"
                         : "text-[var(--pd-text-secondary)] hover:bg-[var(--pd-surface-2)] hover:text-[var(--pd-text-primary)]"
                     }`
                   }
                 >
-                  {item.label}
+                  {({ isActive }) => (
+                    <>
+                      {isActive && (
+                        <motion.span
+                          layoutId="public-nav-pill"
+                          transition={reduceMotion ? { duration: 0 } : pdMotion.spring}
+                          aria-hidden="true"
+                          className="absolute inset-0 rounded-full bg-[var(--pd-crimson)]"
+                        />
+                      )}
+                      <span className="relative z-10">{item.label}</span>
+                    </>
+                  )}
                 </NavLink>
               ))}
             </nav>

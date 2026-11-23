@@ -44,6 +44,8 @@ export {
   ActivityList,
   ChartCard,
 } from "./cards";
+export { Icon3D } from "./Icon3D";
+export type { Icon3DProps } from "./Icon3D";
 export type {
   CardTone,
   MetricLayout,

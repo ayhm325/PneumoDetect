@@ -7,6 +7,7 @@ import { applyDocumentDirection } from "@/i18n/config";
 import { useTheme } from "@/lib/compat/theme";
 import { useAuth } from "@/stores/authStore";
 import { pdMotion } from "@/lib/motion";
+import { AmbientBackdrop } from "@/components/visuals/MedicalIllustrations";
 import { PortalTopbar } from "./PortalTopbar";
 
 export interface PortalSubmenuItem {
@@ -30,14 +31,18 @@ export interface UnifiedPortalShellProps {
 
 const PortalShellContext = createContext(false);
 
+const NAV_ICON_TONES = ["red", "sage", "cream", "olive"] as const;
+
 function SidebarNavItem({
   item,
+  index = 0,
   isOpen,
   isCollapsed,
   onToggle,
   onNavigate,
 }: {
   item: PortalNavItem;
+  index?: number;
   isOpen: boolean;
   isCollapsed: boolean;
   onToggle: () => void;
@@ -46,6 +51,7 @@ function SidebarNavItem({
   const { pathname } = useLocation();
   const isSubActive = Boolean(item.submenu?.some((s) => pathname === s.to));
   const isActive = pathname === item.to || isSubActive;
+  const tone = NAV_ICON_TONES[index % NAV_ICON_TONES.length];
 
   if (!item.submenu || item.submenu.length === 0) {
     return (
@@ -57,7 +63,7 @@ function SidebarNavItem({
           title={isCollapsed ? item.label : undefined}
           className={({ isActive: linkActive }) =>
             `group relative flex h-11 items-center rounded-2xl text-sm font-medium transition-colors ${
-              isCollapsed ? "justify-center px-0" : "gap-3 px-3.5"
+              isCollapsed ? "justify-center px-0" : "gap-3 px-2.5"
             } ${
               linkActive
                 ? "text-[#faf0e1]"
@@ -75,7 +81,9 @@ function SidebarNavItem({
                   className="absolute inset-0 rounded-2xl bg-[var(--pd-red)] shadow-[var(--pd-glow-copper)]"
                 />
               )}
-              <span className="relative z-10 shrink-0 text-base transition-transform duration-150 group-hover:scale-105">
+              <span
+                className={`pd-icon-3d pd-icon-3d--${linkActive ? "cream" : tone} relative z-10 h-8 w-8 shrink-0 rounded-xl text-sm`}
+              >
                 {item.icon}
               </span>
               {!isCollapsed && <span className="relative z-10 truncate">{item.label}</span>}
@@ -96,14 +104,18 @@ function SidebarNavItem({
         title={isCollapsed ? item.label : undefined}
         onClick={onToggle}
         className={`flex h-11 w-full items-center rounded-[var(--shape-control)] text-sm font-medium transition-colors ${
-          isCollapsed ? "justify-center px-0" : "gap-3 px-3.5"
+          isCollapsed ? "justify-center px-0" : "gap-3 px-2.5"
         } ${
           isOpen || isActive
             ? "bg-[var(--pd-crimson)] text-[var(--pd-parchment)] shadow-[var(--pd-shadow-sm)]"
             : "text-[var(--pd-parchment)]/85 hover:bg-[var(--pd-parchment)]/12 hover:text-[var(--pd-parchment)]"
         }`}
       >
-        <span className="shrink-0 text-base">{item.icon}</span>
+        <span
+          className={`pd-icon-3d pd-icon-3d--${isOpen || isActive ? "cream" : tone} h-8 w-8 shrink-0 rounded-xl text-sm`}
+        >
+          {item.icon}
+        </span>
         {!isCollapsed && (
           <>
             <span className="flex-1 truncate text-start">{item.label}</span>
@@ -236,10 +248,11 @@ export function UnifiedPortalShell({
           )}
 
           <ul className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto py-1">
-            {navItems.map((item) => (
+            {navItems.map((item, idx) => (
               <SidebarNavItem
                 key={item.to}
                 item={item}
+                index={idx}
                 isOpen={openId === item.to && !collapsed}
                 isCollapsed={collapsed}
                 onToggle={() => handleItemToggle(item)}
@@ -311,10 +324,11 @@ export function UnifiedPortalShell({
                 </div>
 
                 <ul className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto py-1">
-                  {navItems.map((item) => (
+                  {navItems.map((item, idx) => (
                     <SidebarNavItem
                       key={item.to}
                       item={item}
+                      index={idx}
                       isOpen={openId === item.to}
                       isCollapsed={false}
                       onToggle={() => handleItemToggle(item)}
@@ -353,8 +367,9 @@ export function UnifiedPortalShell({
             onLogout={handleLogout}
           />
 
-          <main className="flex-1 p-4 sm:p-5 lg:p-8">
-            <div className="mx-auto max-w-7xl">{children}</div>
+          <main className="relative flex-1 overflow-hidden p-4 sm:p-5 lg:p-8">
+            <AmbientBackdrop />
+            <div className="relative z-10 mx-auto max-w-7xl">{children}</div>
           </main>
 
           <footer className="border-t border-[var(--pd-line)] bg-[var(--pd-surface-deep)] px-4 py-3 text-xs text-[var(--pd-text-muted)] sm:px-6">

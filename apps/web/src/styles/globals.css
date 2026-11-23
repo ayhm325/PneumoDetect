@@ -409,31 +409,85 @@
   .pd-shape-slanted.pd-tone-sage::before { background: var(--pd-sage); }
   .pd-shape-slanted.pd-tone-moss::before { background: var(--pd-moss); }
 
-  /* ---------- Orbits ---------- */
+  /* ---------- 3D Colored Icon Medallions & Orbits ---------- */
+  .pd-icon-3d,
   .pd-orb {
+    position: relative;
     display: inline-grid;
     place-items: center;
+    flex-shrink: 0;
+    box-shadow:
+      inset 0 2px 3px rgba(255, 250, 240, 0.36),
+      inset 0 -3px 5px rgba(17, 23, 19, 0.34),
+      0 6px 14px rgba(17, 23, 19, 0.22);
+    transition: transform 220ms var(--pd-ease-out), box-shadow 220ms var(--pd-ease-out);
+  }
+  .pd-icon-3d__svg,
+  .pd-orb svg {
+    filter: drop-shadow(0 1.5px 1.5px rgba(17, 23, 19, 0.28));
+  }
+  .pd-card:hover .pd-icon-3d,
+  .pd-quick-action:hover .pd-icon-3d {
+    transform: translateY(-2px) scale(1.06) rotate(-3deg);
+    box-shadow:
+      inset 0 2px 4px rgba(255, 250, 240, 0.45),
+      inset 0 -3px 6px rgba(17, 23, 19, 0.38),
+      0 10px 18px rgba(17, 23, 19, 0.28);
+  }
+  .pd-icon-3d--red {
+    background: linear-gradient(145deg, color-mix(in srgb, var(--pd-red) 78%, #fff3e4), var(--pd-red) 55%, color-mix(in srgb, var(--pd-red) 72%, #111713));
+    color: #faf0e1;
+    border: 1px solid rgba(250, 240, 225, 0.28);
+  }
+  .pd-icon-3d--cream {
+    background: linear-gradient(145deg, #fff8ee, var(--pd-cream) 58%, color-mix(in srgb, var(--pd-cream) 78%, #52674c));
+    color: #181f1a;
+    border: 1px solid rgba(24, 31, 26, 0.16);
+  }
+  .pd-icon-3d--sage {
+    background: linear-gradient(145deg, color-mix(in srgb, var(--pd-sage) 78%, #faf0e1), var(--pd-sage) 58%, color-mix(in srgb, var(--pd-sage) 72%, #181f1a));
+    color: #141c16;
+    border: 1px solid rgba(250, 240, 225, 0.28);
+  }
+  .pd-icon-3d--olive {
+    background: linear-gradient(145deg, color-mix(in srgb, var(--pd-olive) 76%, #faf0e1), var(--pd-olive) 58%, color-mix(in srgb, var(--pd-olive) 70%, #111713));
+    color: #faf0e1;
+    border: 1px solid rgba(250, 240, 225, 0.24);
+  }
+
+  .pd-orb {
     width: 2.75rem;
     height: 2.75rem;
-    flex-shrink: 0;
     border-radius: 50%;
-    background: var(--pd-surface-2);
-    color: var(--pd-text-primary);
-    border: 1px solid var(--pd-border);
+    background: linear-gradient(145deg, color-mix(in srgb, var(--pd-olive) 76%, #faf0e1), var(--pd-olive) 58%, color-mix(in srgb, var(--pd-olive) 70%, #111713));
+    color: #faf0e1;
+    border: 1px solid rgba(250, 240, 225, 0.22);
     font-size: 1.1rem;
   }
   .pd-orb--sm { width: 2.15rem; height: 2.15rem; font-size: 0.95rem; }
   .pd-orb--lg { width: 3.5rem; height: 3.5rem; font-size: 1.35rem; }
   .pd-orb--acid,
-  .pd-orb--copper { background: var(--pd-copper-soft); color: var(--pd-copper); border-color: var(--pd-copper-border); }
+  .pd-orb--copper,
   .pd-orb--coral,
-  .pd-orb--clay { background: var(--pd-clay-soft); color: var(--pd-clay); border-color: color-mix(in srgb, var(--pd-clay) 28%, transparent); }
+  .pd-orb--clay,
+  .pd-orb--solid {
+    background: linear-gradient(145deg, color-mix(in srgb, var(--pd-red) 78%, #fff3e4), var(--pd-red) 55%, color-mix(in srgb, var(--pd-red) 72%, #111713));
+    color: #faf0e1;
+    border-color: rgba(250, 240, 225, 0.28);
+  }
   .pd-orb--orchid,
   .pd-orb--moss,
-  .pd-orb--sage { background: var(--pd-sage-soft); color: var(--pd-sage); border-color: color-mix(in srgb, var(--pd-sage) 28%, transparent); }
+  .pd-orb--sage {
+    background: linear-gradient(145deg, color-mix(in srgb, var(--pd-sage) 78%, #faf0e1), var(--pd-sage) 58%, color-mix(in srgb, var(--pd-sage) 72%, #181f1a));
+    color: #141c16;
+    border-color: rgba(250, 240, 225, 0.28);
+  }
   .pd-orb--marigold,
-  .pd-orb--ochre { background: var(--pd-ochre-soft); color: var(--pd-ochre); border-color: color-mix(in srgb, var(--pd-ochre) 28%, transparent); }
-  .pd-orb--solid { background: var(--pd-copper); color: var(--pd-on-accent); border-color: transparent; }
+  .pd-orb--ochre {
+    background: linear-gradient(145deg, #fff8ee, var(--pd-cream) 58%, color-mix(in srgb, var(--pd-cream) 78%, #52674c));
+    color: #181f1a;
+    border-color: rgba(24, 31, 26, 0.16);
+  }
 
   /* ---------- Chips & Segmented ---------- */
   .pd-chip {
